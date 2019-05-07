@@ -1,0 +1,31 @@
+<section id="rqtask" class="basenewscontent-view">
+    <h1>{{ entity.title | e }}</h1>
+    <div class="content-metadata">
+        <span>{{ _(state) }}</span>
+        <span class="rqtask-state--block rqtask-state rqtask-state-{{ state }}"></span>
+    </div>
+    {% for propname, value in main_props %}
+    <div class="row indexes-values">
+      <div class="col-md-3"><strong>{{ propname }}</strong></div>
+      <div class="col-md-9">{{ value }}</div>
+    </div>
+    {% endfor %}
+    {% if findingaids %}
+        <h2>{{ findingaids.title }}</h2>
+        <div id="bs-table-container"></div>
+        <script type="text/javascript">
+            var data = {{ findingaids.data }};
+        </script>
+    {% else %}
+       <script type="text/javascript">
+            var data = [];
+       </script>
+    {% endif %}
+    {% if logs %}
+    <h2>{{ logs.label }}</h2>
+    <div id="logs-table-container"></div>
+     <script type="text/javascript">
+        var logs = {{ logs.data }};
+     </script>
+    {% endif %}
+</section>

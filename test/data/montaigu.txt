@@ -1,0 +1,66 @@
+2787060	Scherpenheuvel	Scherpenheuvel	Montaigu,Scherpenheuvel-Zichem (Scherpenheuvel)	50.98075	4.97552	P	PPL	BE		VLG	VBR	24	24134	0		63	Europe/Brussels	2011-02-18
+7668893	Scherpenheuvel-Zichem	Scherpenheuvel-Zichem	Montaigu-Zichem,Sjerpenheuvel-Zichem,Skherpenkh'ovel-Zikhem,shrpnwlzyshm,si he er peng he gang er-qi ke mu,Схерпенхьовел-Зихем,شرپنولزیشم,斯赫尔彭赫纲尔－齐克姆	51.01041	4.97492	P	PPLA4	BE		VLG	VBR	24	24134	0		14	Europe/Brussels	2011-07-31
+2976924	Saint-Silvain-Montaigut	Saint-Silvain-Montaigut	Saint-Silvain,Saint-Silvain-Montaigut,Saint-Sylvain-Montaigut	46.14239	1.7517	P	PPL	FR		75	23	232	23242	210		388	Europe/Paris	2016-02-18
+2978226	Saint-Martin-sous-Montaigu	Saint-Martin-sous-Montaigu	Montaigu,Saint-Martin,Saint-Martin-sous-Montaigu,Sen-Marten-su-Montegju,Сен-Мартен-су-Монтегю,سینٹ-مارٹن-سوس-مونٹیگو	46.81583	4.71345	P	PPL	FR		27	71	712	71459	381		247	Europe/Paris	2016-02-18
+2979476	Saint-Hippolyte-de-Montaigu	Saint-Hippolyte-de-Montaigu	Polithe-Montaigu,Saint-Hippolyte,Saint-Hippolyte-de-Montaigu	44.03235	4.49586	P	PPL	FR		76	30	302	30262	127		161	Europe/Paris	2016-02-18
+2979930	Saint-Georges-de-Montaigu	Saint-Georges-de-Montaigu	Saint-Georges,Saint-Georges-de-Montaigu,Sen-Zhorzh-de-Montegju,sheng re ao er re de meng tai ju,Сен-Жорж-де-Монтегю,سینٹ-گیورگس-دے-مونٹیگو,圣热奥尔热德蒙泰居	46.94655	-1.29262	P	PPL	FR		52	85	852	85217	3598		54	Europe/Paris	2016-02-18
+2986984	Placy-Montaigu	Placy-Montaigu	Placy-Montaigu	49.03089	-0.9053	P	PPL	FR		28	50	504	50444	192		175	Europe/Paris	2017-05-29
+2987650	Petit Montaigut	Petit Montaigut		48.26667	0.88333	P	PPLX	FR		24	28	284	28407	0		208	Europe/Paris	2016-02-18
+2993078	Montaigut-sur-Save	Montaigut-sur-Save	Montagut de Sava,Montaigut,Montaigut-sur-Save,Montegju-sjur-Sav,sa fu he pan meng tai ju,Монтегю-сюр-Сав,萨夫河畔蒙泰居	43.68947	1.23133	P	PPL	FR		76	31	313	31356	1360		141	Europe/Paris	2016-02-18
+2993079	Montaigut-le-Blanc	Montaigut-le-Blanc	Montaigut,Montaigut-le-Blanc	46.12151	1.73488	P	PPL	FR		75	23	232	23132	401		487	Europe/Paris	2016-02-18
+2993080	Montaigut-le-Blanc	Montaigut-le-Blanc	Montaigut,Montaigut-le-Blanc	45.58632	3.09059	P	PPL	FR		84	63	633	63234	627		544	Europe/Paris	2016-02-18
+2993081	Montaigut-en-Combraille	Montaigut-en-Combraille	Montaigut,Montaigut-en-Combraille,Montaigut-en-Combrailles	46.17984	2.80847	P	PPL	FR		84	63	634	63233	1047		625	Europe/Paris	2018-04-04
+2993082	Montaigut	Montaigut		48.26667	0.88333	P	PPL	FR		24	28	284	28407	0		208	Europe/Paris	2016-02-18
+2993083	Montaigut	Montaigut		45.96499	1.27831	P	PPL	FR		75	87	871	87047	0		494	Europe/Paris	2016-02-18
+2993084	Montaigut	Montaigut	Montaigut	45.61267	3.44775	P	PPL	FR		84	63	631	63056	1203		642	Europe/Paris	2018-07-13
+2993085	Montaigu-les-Bois	Montaigu-les-Bois	Montaigu,Montaigu-les-Bois	48.8912	-1.28357	P	PPL	FR		28	50	503	50336	212		156	Europe/Paris	2016-02-18
+2993086	Montaigu-le-Blin	Montaigu-le-Blin	Montaigu,Montaigu-le-Blin	46.29391	3.50872	P	PPL	FR		84	03	033	03179	368		292	Europe/Paris	2016-02-18
+2993087	Montaiguët-en-Forez	Montaiguet-en-Forez	Montaiguet,Montaigüet	46.26667	3.8	P	PPL	FR		84	03	033	03178	323		402	Europe/Paris	2016-02-18
+2993088	Montaigu-de-Quercy	Montaigu-de-Quercy	Montaigu,Montaigu-de-Quercy	44.33964	1.0169	P	PPL	FR		76	82	821	82117	1539		169	Europe/Paris	2016-02-18
+2993089	Pic de Montaigu	Pic de Montaigu		42.98333	0.06667	T	PK	FR		76	65	651	65191	0		2224	Europe/Paris	2016-12-10
+2993090	Montaigu-la-Brisette	Montaigu-la-Brisette		49.56341	-1.40865	P	PPL	FR		28	50	502	50335	439		128	Europe/Paris	2016-02-18
+2993091	Montaigu	Montaigu	Montaigu	49.53512	3.83119	P	PPL	FR		32	02	022	02498	679		111	Europe/Paris	2016-02-18
+2993092	Montaigu	Montaigu	Montaigu	46.97667	-1.30846	P	PPL	FR		52	85	852	85146	5070		47	Europe/Paris	2016-02-18
+2993093	Montaigu	Montaigu	Montaigu	46.65912	5.56717	P	PPL	FR		27	39	392	39348	608		424	Europe/Paris	2016-02-18
+2993094	Montaigu	Montaigu		47.95642	1.83627	S	HSEC	FR		24	45	452	45235	0		127	Europe/Paris	2016-02-18
+3000255	Les Montaigu	Les Montaigu		47.48752	2.74876	P	PPL	FR		24	18	181	18243	0		235	Europe/Paris	2016-02-18
+3010990	La Boissière-de-Montaigu	La Boissiere-de-Montaigu	Boasjer de Montegi,Boissiere-de-Montaigu,Boissière-de-Montaigu,La Boissiere,La Boissiere-de-Montaigu,La Boissière,La Boissière-de-Montaigu,La-Buasser-de-Montegju,la bu wa xi ai de meng tai ju,Боасјер де Монтеги,Ла-Буассєр-де-Монтегю,لا بویسییری-ڈی-مونتایگو,拉布瓦西埃德蒙泰居	46.95012	-1.19047	P	PPL	FR		52	85	852	85025	1683		80	Europe/Paris	2016-02-18
+3015048	Grand Montaigut	Grand Montaigut		48.26667	0.88333	P	PPLX	FR		24	28	284	28407	0		208	Europe/Paris	2016-02-18
+3015866	Glaine-Montaigut	Glaine-Montaigut	Glaine-Montaigut	45.75532	3.38937	P	PPL	FR		84	63	632	63168	500		381	Europe/Paris	2016-02-18
+3018000	Fontaine-sous-Montaiguillon	Fontaine-sous-Montaiguillon	Fontaine,Fontaine-sous-Montaiguillon	48.61646	3.51633	P	PPL	FR		11	77	773	77262	0		177	Europe/Paris	2016-02-18
+3029352	Buxières-sous-Montaigut	Buxieres-sous-Montaigut	Buxieres,Buxieres-sous-Montaigut,Buxières,Buxières-sous-Montaigut	46.20417	2.84733	P	PPL	FR		84	63	634	63062	253		582	Europe/Paris	2016-02-18
+6425062	Montaigu	Montaigu	Montegju,meng tai ju,Монтегю,蒙泰居	49.53556	3.82972	A	ADM4	FR		32	02	022	02498	716		118	Europe/Paris	2016-02-18
+6425407	Montaigu-le-Blin	Montaigu-le-Blin	Montagut dau Blin,Montegju-le-Blen,meng tai ju lai bu lan,Монтегю-ле-Блен,蒙泰居莱布兰	46.29444	3.51111	A	ADM4	FR		84	03	033	03179	307		291	Europe/Paris	2016-02-18
+6429227	Montaigut-le-Blanc	Montaigut-le-Blanc	Mont Agut,Montagut,Montegju-le-Blan,meng tai ju lai bu lang ke,Монтегю-ле-Блан,蒙泰居莱布朗克	46.12111	1.735	A	ADM4	FR		75	23	232	23132	385		485	Europe/Paris	2016-02-18
+6429313	Saint-Silvain-Montaigut	Saint-Silvain-Montaigut	Sant Sauve Mont Agut,Sen-Sil'ven-Montegju,Sent Sauve de Montagut,sheng xi er wan meng tai ju,Сен-Сильвен-Монтегю,Сен-Сільвен-Монтегю,圣西尔万蒙泰居	46.1425	1.75194	A	ADM4	FR		75	23	232	23242	186		388	Europe/Paris	2016-02-18
+6431406	Saint-Hippolyte-de-Montaigu	Saint-Hippolyte-de-Montaigu	Sen-Ippolit-de-Montegju,Sent Ipolit de Montagut,sheng yi bo li te de meng tai ju,Сен-Іпполіт-де-Монтегю,Сен-Ипполит-де-Монтегю,سینٹ-ہپپولیتے-دے-مونٹیگو,圣伊波利特德蒙泰居	44.03222	4.49278	A	ADM4	FR		76	30	302	30262	240		137	Europe/Paris	2016-02-18
+6431696	Montaigut-sur-Save	Montaigut-sur-Save		43.69139	1.23056	A	ADM4	FR		76	31	313	31356	1559		130	Europe/Paris	2016-02-18
+6433646	Montaigu	Montaigu	Montegju,meng tai ju,Монтегю,蒙泰居	46.65944	5.56861	A	ADM4	FR		27	39	392	39348	499		422	Europe/Paris	2016-02-18
+6435485	Montaigu-les-Bois	Montaigu-les-Bois	Montegju-le-Bua,sen lin meng tai ju,Монтегю-ле-Буа,森林蒙泰居	48.89278	-1.27944	A	ADM4	FR		28	50	503	50336	235		156	Europe/Paris	2016-02-18
+6435532	Placy-Montaigu	Placy-Montaigu	Plasi-Montegju,pu la xi meng tai ju,Пласи-Монтегю,Пласі-Монтегю,普拉西蒙泰居	49.03028	-0.90583	A	ADM4H	FR		28	50	504	50404	217		177	Europe/Paris	2017-05-10
+6440046	Glaine-Montaigut	Glaine-Montaigut	Glaina e Montagut,Glen Montegi,Glen-Montegju,ge lan meng tai ju,Глен Монтеги,Глен-Монтегю,格兰蒙泰居	45.75583	3.38917	A	ADM4	FR		84	63	632	63168	536		380	Europe/Paris	2016-02-18
+6440096	Montaigut-le-Blanc	Montaigut-le-Blanc	Montagut e Gordon,Montegju-le-Blan,meng tai ju lai bu lang ke,montegyu=ru=buran,Монтегю-ле-Блан,モンテギュー＝ル＝ブラン,蒙泰居莱布朗克	45.58611	3.08972	A	ADM4	FR		84	63	633	63234	752		529	Europe/Paris	2016-02-18
+6442448	Saint-Martin-sous-Montaigu	Saint-Martin-sous-Montaigu		46.81639	4.71389	A	ADM4	FR		27	71	712	71459	335		248	Europe/Paris	2016-02-18
+6445003	Montaigu-de-Quercy	Montaigu-de-Quercy		44.34028	1.01806	A	ADM4	FR		76	82	821	82117	1416		165	Europe/Paris	2016-02-18
+6445194	Saint-Georges-de-Montaigu	Saint-Georges-de-Montaigu		46.94694	-1.29472	A	ADM4	FR		52	85	852	85217	3805		49	Europe/Paris	2016-02-18
+6450331	Buxières-sous-Montaigut	Buxieres-sous-Montaigut		46.20306	2.84778	A	ADM4	FR		84	63	634	63062	244		583	Europe/Paris	2016-10-14
+6454482	Montaigut	Montaigut	Mons Acutus in Combralia,Montagut,Montegju,meng tai ju,Монтегю,蒙泰居	46.179	2.8088	A	ADM4	FR		84	63	634	63233	1047		616	Europe/Paris	2016-10-14
+6454806	Montaigu	Montaigu	Montegju,meng tai ju,Монтегю,蒙泰居	46.9728	-1.3087	A	ADM4	FR		52	85	852	85146	5008		47	Europe/Paris	2016-02-18
+6457135	La Boissière-de-Montaigu	La Boissiere-de-Montaigu		46.95083	-1.19139	A	ADM4	FR		52	85	852	85025	2028		79	Europe/Paris	2016-02-18
+6616910	Montaigu-la-Brisette	Montaigu-la-Brisette	Montegju-la-Brizett,meng tai ju la bu li sai te,Монтегю-ла-Бризетт,蒙泰居拉布里塞特	49.565	-1.41972	A	ADM4	FR		28	50	502	50335	494		94	Europe/Paris	2016-02-18
+6618117	Montaiguët-en-Forez	Montaiguet-en-Forez	Monteget-an-Fore,Montegjueh-an-Fore,fu lei de qu meng tai ju e,Монтегет-ан-Форе,Монтегюэ-ан-Форе,福雷地区蒙泰居厄	46.2708	3.8024	A	ADM4	FR		84	03	033	03178	316		400	Europe/Paris	2016-02-18
+6619941	Forêt de Montaigut	Foret de Montaigut		43.66716	1.23296	V	FRST	FR		76	31			1460	180	176	Europe/Paris	2016-02-18
+6694757	Montaigu - Saint-Georges	Montaigu - Saint-Georges	LFFW	46.933	-1.326	S	AIRP	FR		52	85	852	85217	0	56	54	Europe/Paris	2016-02-18
+8285449	Truc de Montaigu	Truc de Montaigu		44.06996	3.66192	T	MT	FR		76	30	303	30339	0	747	731	Europe/Paris	2016-02-18
+8286996	Montaigu-Vendée Railway Station	Montaigu-Vendee Railway Station	87481465	46.98375	-1.31648	S	RSTN	FR		52	85	852	85146	0		45	Europe/Paris	2016-02-18
+8287495	Montaigut Railway Station	Montaigut Railway Station	87597674	46.13685	1.73477	S	RSTN	FR		75	23	232	23132	0		426	Europe/Paris	2016-02-18
+8291514	Bureau de Poste de Montaigut Sur Save	Bureau de Poste de Montaigut Sur Save		43.69138	1.23049	S	PO	FR		76	31	313	31356	0		130	Europe/Paris	2016-02-18
+8294958	Bureau de Poste de Montaigut En Combraille	Bureau de Poste de Montaigut En Combraille		46.17951	2.80931	S	PO	FR		84	63	634	63233	0		616	Europe/Paris	2016-02-18
+8297073	Bureau de Poste de Montaigu De Quercy	Bureau de Poste de Montaigu De Quercy		44.3399	1.01737	S	PO	FR		76	82	821	82117	0		166	Europe/Paris	2016-02-18
+8297423	Bureau de Poste de Montaigu	Bureau de Poste de Montaigu		46.97727	-1.31078	S	PO	FR		52	85	852	85146	0		49	Europe/Paris	2016-02-18
+8449458	Bibliotheque Sainte-Genevieve	Bibliotheque Sainte-Genevieve	College de Montaigu,Collège de Montaigu	48.84691	2.34614	S	LIBR	FR		11	75	751	75056	0		66	Europe/Paris	2016-02-18
+9222779	Montaiguet	Montaiguet		43.49786	5.48992	T	HLL	FR		93	13	131	13060	0	344	336	Europe/Paris	2016-02-18
+9224935	Plaine du Montaiguet	Plaine du Montaiguet		43.46391	5.25577	T	PLN	FR		93	13	131	13060	0	336	196	Europe/Paris	2016-02-18
+11971536	Château de Montaigu	Chateau de Montaigu		48.6634	6.21582	S	HSEC	FR		44				0		211	Europe/Paris	2018-11-08
+11972667	St Germain de Montaigu	St Germain de Montaigu		44.11499	4.06181	T	PK	FR		76	30	301	30007	0	352	171	Europe/Paris	2018-11-08
+3720695	Montaigu	Montaigu		19.83333	-72.51667	P	PPL	HT		09	3729454			0		40	America/Port-au-Prince	2016-01-30

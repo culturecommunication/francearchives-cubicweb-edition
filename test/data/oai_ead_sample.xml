@@ -1,0 +1,798 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+  <responseDate>2016-12-12T10:03:53Z</responseDate>
+  <request verb="ListRecords" metadataPrefix="ead">http://portail.cg51.mnesys.fr/oai_pmh.cgi</request>
+  <ListRecords>
+    <record>
+
+      <header>
+        <identifier>86869/a011349628476eWWr7u</identifier>
+        <datestamp>2011-06-24</datestamp>
+      </header>
+      <metadata>
+        <ead xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:isbn:1-931666-22-9" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation="urn:isbn:1-931666-22-9 http://www.loc.gov/ead/ead.xsd http://www.w3.org/1999/xlink http://www.loc.gov/standards/xlink/xlink.xsd">
+          <eadheader>
+            <eadid>FRAD051_000000028_203M</eadid>
+            <filedesc>
+              <titlestmt>
+                <titleproper>Fonds de la préfecture de la Marne relatif à la guerre 1914-1918(203 M).</titleproper>
+                <author>par Archives départementales de la Marne.</author>
+              </titlestmt>
+              <editionstmt>
+                <p>Rétroconversion grâce à la v3.4 du module classement du logiciel Arkhéïa de la Société Anaphore.</p>
+              </editionstmt>
+              <publicationstmt>
+                <publisher>Archives départementales de la Marne</publisher>
+                <address><addressline>Châlons-en-Champagne</addressline></address>
+                <date normal="2012">2012</date>
+              </publicationstmt>
+            </filedesc>
+            <profiledesc>
+              <creation>Instrument de recherche produit au moyen du logiciel Arkhéïa Aide au classement de la société Anaphore sarl, version 3-9.3 du
+                <date normal="2011-06-24">vendredi 24 juin 2011</date>. Date de l'export :
+                <date normal="2014-08-14">jeudi 14 août 2014</date> (14:16 h)</creation>
+              <langusage>Instrument de recherche rédigé en
+                <language langcode="fre">français</language>
+              </langusage>
+            </profiledesc>
+          </eadheader>
+          <archdesc level="subfonds" id="a011349628476eWWr7u">
+            <did>
+              <unitid label="Cotes extrêmes">
+                <extptr xlink:href="http://portail.cg51.mnesys.fr/ark:/86869/a011349628476eWWr7u" />203 M 1-216</unitid>
+              <unittitle label="Intitulé de l'unité documentaire">Fonds de la préfecture de la Marne relatif à la première guerre mondiale</unittitle>
+              <unitdate label="Date de l'unité documentaire" normal="1904-01-01/1938-12-31" type="inclusive">1904-1938</unitdate>
+              <physdesc label="Description physique">
+                <genreform source="liste-typedocAC">Document d'archives</genreform>
+                <lb/>
+                <lb/>
+                <extent type="unités description" label="Nombre d'unités de niveau bas">209</extent>
+                <lb/>
+                <extent label="Métrage linéaire" unit="ml">17,00</extent>
+                <lb/>
+              </physdesc>
+              <repository label="Organisme responsable de l'accès intellectuel">Archives départementales de la Marne</repository>
+              <physloc label="Localisation physique">Centre de Reims</physloc>
+              <origination label="Origine">
+                <corpname role="producteur" altrender="administration">Préfecture de la Marne</corpname>
+                <geogname>Paris (Île-de-France, Paris)</geogname>
+              </origination>
+            </did>
+            <acqinfo>
+
+              <head>Informations sur les modalités d'entrée</head>
+              <p>Versement</p>
+            </acqinfo>
+            <scopecontent>
+
+              <head>Présentation du contenu</head>
+              <p>Ce fonds est constitué de documents provenant du cabinet du préfet et du secrétariat de la préfecture. Il a été organisé de manière thématique :</p>
+              <p>Administration générale</p>
+              <p>Réfugiés</p>
+              <p>Subsistances</p>
+              <p>Agriculture</p>
+            </scopecontent>
+            <appraisal>
+
+              <head>Informations sur l'évaluation</head>
+              <p>Cette série a été constituée à partir de versements de la préfecture. Les articles 203 M 119-126 antérieurs à 1913, ont été recotés en 134 M.</p>
+            </appraisal>
+            <accessrestrict>
+
+              <head>Modalités d'accès</head>
+              <accessrestrict>
+
+                <head>Statut juridique</head>
+                <legalstatus>
+                  Archives publiques
+                </legalstatus>
+              </accessrestrict>
+              <accessrestrict>
+
+                <head>Communicabilité</head>
+                <p>Conformément au Code du patrimoine (art. L 213-1 à L 213-8)</p>
+              </accessrestrict>
+            </accessrestrict>
+            <relatedmaterial>
+
+              <head>Sources complémentaires</head>
+              <relatedmaterial type="sources-internes">
+
+                <head>Sources internes</head>
+                <p>Des archives complémentaires se trouvent en série R (affaires militaires traitées par la préfecture) : recrutement, remonte, cantonnements, victimes de guerre, cimetières militaires, ravitaillement, secours. En 10 R se trouvent également les archives des organismes spéciaux créés pendant la première guerre : la Société amicale de la Marne ou Service des réfugiés, service des évacuations et Service des subsistances.</p>
+                <p>Des documents complémentaires se trouvent également dans diverses sous-séries de M, en particulier en 86 M, les bons de rapatriement des corps de soldats marnais tués sur le front.</p>
+                <p>Les fonds des sous-préfectures contiennent des renseignements complémentaires, en particulier sur la vie des civils à l'arrière.</p>
+              </relatedmaterial>
+            </relatedmaterial>
+            <controlaccess>
+
+              <head>Descripteurs</head>
+              <subject source="contexte-historique">Guerre 1914-1918</subject>
+              <genreform type="typir">Recherche détaillée</genreform>
+            </controlaccess>
+            <dsc type="in-depth">
+              <c id="a011341586881zS9ds5" level="recordgrp">
+                <did>
+                  <unitid>
+                    <extptr xlink:href="http://portail.cg51.mnesys.fr/ark:/86869/a011341586881zS9ds5" />
+                  </unitid>
+                  <unittitle type="titre" label="Intitulé de l'unité documentaire">Administration générale</unittitle>
+                </did>
+                <dao href="medias/04_toutes_periodes/01_serie_NUM/1NUM1/FRAD051_1NUM1_001.jpg" xlink:href="http://portail.cg51.mnesys.fr/ark:/86869/a011401093704slpxLP/1/1.thumbnail" xlink:title="thumbnail" />
+                <c id="a011341586881ocCg6g" level="subgrp">
+                  <did>
+                    <unitid>
+                      <extptr xlink:href="http://portail.cg51.mnesys.fr/ark:/86869/a011341586881ocCg6g" />
+                    </unitid>
+                    <unittitle type="titre" label="Intitulé de l'unité documentaire">Généralités</unittitle>
+                  </did>
+                  <c id="a0113415868810p3J8C" level="file">
+                    <did>
+                      <unitid label="Cotes extrêmes">
+                        <extptr xlink:href="http://portail.cg51.mnesys.fr/ark:/86869/a0113415868810p3J8C" />203 M 1</unitid>
+                      <unittitle label="Intitulé de l'unité documentaire">Correspondance générale.</unittitle>
+                      <unitdate label="Date de l'unité documentaire" normal="1914-01-01/1914-12-31">1914</unitdate>
+                    </did>
+                    <controlaccess>
+
+                      <head>Descripteurs</head>
+                      <subject source="contexte-historique">Guerre 1914-1918</subject>
+                    </controlaccess>
+                  </c>
+                  <c id="a011341586881LVrJdC" level="file">
+                    <did>
+                      <unitid label="Cotes extrêmes">
+                        <extptr xlink:href="http://portail.cg51.mnesys.fr/ark:/86869/a011341586881LVrJdC" />203 M 2</unitid>
+                      <unittitle label="Intitulé de l'unité documentaire">Correspondance générale.</unittitle>
+                      <unitdate label="Date de l'unité documentaire" normal="1915-01-01/1915-12-31">1915</unitdate>
+                    </did>
+                    <scopecontent>
+
+                      <head>Présentation du contenu</head>
+                      <p>Janvier-juin.</p>
+                    </scopecontent>
+                    <controlaccess>
+
+                      <head>Descripteurs</head>
+                      <subject source="contexte-historique">Guerre 1914-1918</subject>
+                    </controlaccess>
+                  </c>
+                </c>
+              </c>
+            </dsc>
+          </archdesc>
+        </ead>
+      </metadata>
+    </record>
+    <record>
+
+      <header>
+        <identifier>86869/a0114666730443PYpcW</identifier>
+        <datestamp>2011-06-24</datestamp>
+      </header>
+      <metadata>
+        <ead xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:isbn:1-931666-22-9" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation="urn:isbn:1-931666-22-9 http://www.loc.gov/ead/ead.xsd http://www.w3.org/1999/xlink http://www.loc.gov/standards/xlink/xlink.xsd">
+          <eadheader>
+            <eadid>FRAD051_204M</eadid>
+            <filedesc>
+              <titlestmt>
+                <titleproper>204 M - Organisation économique pendant la guerre 1939-1945</titleproper>
+                <author>par René Gandilhon</author>
+              </titlestmt>
+              <publicationstmt>
+                <publisher>Archives départementales de la Marne</publisher>
+                <address><addressline>Châlons-en-Champagne</addressline></address>
+                <date normal="2015">2015</date>
+              </publicationstmt>
+            </filedesc>
+            <profiledesc>
+              <creation>Instrument de recherche produit au moyen du logiciel Arkhéïa Aide au classement de la société Anaphore sarl, version 3-9.3 du
+                <date normal="2011-06-24">vendredi 24 juin 2011</date>. Date de l'export :
+                <date normal="2016-06-23">jeudi 23 juin 2016</date> (11:00 h).
+                <lb/>Instrument de recherche encodé par la société Fontaine et Fils Archives Service en 2009, sous la direction des Archives départementales de la Marne</creation>
+              <langusage>Instrument de recherche rédigé en
+                <language langcode="fre">français</language>
+              </langusage>
+            </profiledesc>
+          </eadheader>
+          <archdesc level="otherlevel" otherlevel="groupe-de-fonds" id="a0114666730443PYpcW">
+            <did>
+              <unitid label="Cotes extrêmes">
+                <extptr xlink:href="/C/portail.cg51.mnesys.fr/ark:/86869/a0114666730443PYpcW" />204 M 1-3105</unitid>
+              <unittitle label="Intitulé de l'unité documentaire">204 M. Organisation économique de la région de Châlons-sur-Marne et du département de la Marne pendant la guerre 1939-1945</unittitle>
+              <unitdate label="Date de l'unité documentaire" normal="1933-01-01/1957-12-31" type="inclusive">1933-1957</unitdate>
+              <physdesc label="Description physique">
+                <genreform source="liste-typedocAC">Document d'archives</genreform>
+                <lb/>
+                <lb/>
+                <extent type="nombre elements" label="Nombre d'éléments">3105 articles</extent>
+                <lb/>
+                <extent label="Métrage linéaire" unit="ml">118,00</extent>
+                <lb/>
+              </physdesc>
+              <repository label="Organisme responsable de l'accès intellectuel">Archives départementales de la Marne</repository>
+              <physloc label="Localisation physique">Centre de Reims</physloc>
+            </did>
+            <scopecontent>
+
+              <head>Présentation du contenu</head>
+              <p>Cet inventaire des Archives de la Marne que nous présentons aujourd'hui est consacré aux divers fonds d'archives provenant des administrations qui ont pris en charge, pendant la guerre de 1939-1945, la gestion des questions économiques dans la Région de Châlons-sur-Marne et le département de la Marne. De leurs attributions, de leur compétence territoriale nous reparlerons plus loin ; mais qu'il nous soit permis d'indiquer de suite que toutes concoururent au fonctionnement d'une économie dirigée, nécessitée par le besoin d'un rationnement indispensable, principalement dans le domaine alimentaire. Tout a été écrit sur les méfaits réels ou supposés du " Ravitaillement " ! Cependant, il faut bien reconnaître que sans son concours, de nombreux Français auraient succombé ; que d'autre part le personnel employé s'appliqua avec conscience aux tâches qui lui furent confiées. Certains même s'identifiant avec leurs fonctions en arrivèrent à perdre de vue la cruelle période qui avait motivé leur nomination. Illustration de cette idée ! Le début d'un discours du Directeur du Groupement d'achat et de répartition des denrées alimentaires : " Le groupement est né le 18 septembre 1940 ; c'était un bel enfant, très bien constitué, il s'est développé très rapidement et dans des conditions très favorables... " (Archives de la Marne, 204 M 2982). Combien de Marnais n'ont pas apprécié ces conditions très favorables !</p>
+              <p>En opposition cependant dans un organisme voisin une note de service laisse penser... à une certaine nonchalance : " Si aucun travail ne reste à faire après que les armoires et bureaux sont en ordre, le personnel est autorisé à travailler pour son compte à condition toutefois de faire disparaître ledit travail dès qu'un visiteur s'annonce et tant qu'il n'a pas quitté le bureau. Quant à la téléphoniste, sa place est assise sur une chaise à proximité immédiate de l'appareil et non assise sur une table comme cela lui arrive fréquemment, donnant aux visiteurs une piètre idée de la tenue des bureaux " (Archives de la Marne, 204 M 485).</p>
+              <p>Et pourtant lorsque l'historien examinera la masse imposante des textes officiels, il songera sans doute que rien ne restait à réglementer. Qu'on veuille bien en juger par la liste des succédanés dont l'emploi était autorisé dans le " café-mélange " : chiendent, coques de noix, de pépins de citrouilles, de marrons d'Inde, d'écorces de glands, feuilles de betteraves, graines de pastèques, de petit houx, de tomates, noyaux de dattes, de prunelles, pépins de pommes, de raisins, racines d'asperges, de choux fourragère, d'orties, haricots et pois jarasses déclassés... et pour terminer sarments de vignes ! (Archives de la Marne, 204 M 1639 et 2047)</p>
+              <p>La définition de la vache laitière fut l'objet des réflexions d'un aéropage ! Nous la transcrivons dans son intégralité : " femme bovine depuis la naissance du premier veau jusqu'au jour de la remise à la boucherie " (Archives de la Marne, 204 M 1009).</p>
+              <p>Ajoutons que l'étude des rapports adressés à l'administration centrale devra, dans bien des cas, être prudente. Le lecteur se reportant à ses souvenirs personnels appréciera l'optimisme du Préfet régional qui affirmait le 1er juin 1943 au Ministre de l'Agriculture et du Ravitaillement : " les files d'attente devant les magasins sont inexistantes, même dans les grands centres de ma Région " (Archives de la Marne, 204 M 369). .</p>
+              <p>On portera au passif de la réglementation des pertes de denrées dues... à des imprévoyances ou à une observation exagérée des textes. Quelques exemples pris au hasard : en 1942, un stock de 500 hectolitres de vin doit être immédiatement distribué " sa conservation ne pouvait être assurée plus de 48 heures " ! En 1943, 7.575 kilogrammes de fromages envoyés en Saône-et-Loire sont arrivés en un état tel qu'ils doivent être immédiatement portés à la voirie (Archives de la Marne, 204 M 1633 et 1671).</p>
+              <p>On appréciera également tout l'humour de quelques documents ou de certaines situations.</p>
+              <p>Direction des Services agricoles des Ardennes</p>
+              <p>Le Directeur des Services agricoles des Ardennes certifie que Mme Lambotte Céline, de Saint-Menges-(Ardennes) se trouve capable d'assurer la subsistance des animaux ci-après désignés : (3) Trois têtes de lapins reproducteurs (1 mâle, 2 femelles) ; ce bétail devant être acheté du 5 juillet 1943 au 5 août 1943 dans le département de la Marne.</p>
+              <p>A la même époque, deux contrôleurs, avertis par une voie mystérieuse, se présentent un bel après-midi dans une boucherie pour y saisir un veau abattu clandestinement. La perquisition menée avec célérité ne laisse rien découvrir dans la boutique, dans l'arrière-boutique, dans les dépendances. Poursuivant leurs recherches au premier étage, nos deux zélés préposés allaient se retirer tout déconfits, quand avisant la bouchère couchée malgré l'heure dans son lit, ils la prièrent de vouloir bien se lever, l'un d'eux s'étant en-effet aperçu que " l'impétrante " s'y trouvait toute habillée ! Quelle ne fut leur surprise, de découvrir la. bouchère reposant sous l'édredon avec une moitié de veau douillettement allongée auprès d'elle !</p>
+              <p>Ce côté anecdotique ne doit pas cependant laisser dans l'ombre les efforts prodigieux fournis pendant une décade pour organiser une économie dirigée.</p>
+              <p>Certes sous la Révolution de 1789 la carte de pain et celle de viande avaient été inventées (J. Pannier, L'Inventeur de la carte de pain dans Soc. de l'hist. du protestantisme français. Bulletin, 6e série, t. XIII, 1940, p. 436.. - A. Mathiez, La carte de viande en l'an II dans Annales révolutionnaires, nouv. série, t. IX, 1917, p. 691-693. - A. Aulard, Cartes- de viande sous la Convention nationale dans La Révolution française, t. LXX, 1917, p. 296-299) ; pendant la guerre de 1914-1918 le principe avait été étendu à d'autres produits mais c'est assurément pendant la guerre-de 1939-1945 qu'un dirigisme de toute l'économie a été conçu et réalisé.</p>
+              <p>Son histoire a été tentée mais le plus souvent à l'aide des souvenirs de ceux qui vécurent cette-période. Un roman, comme Le puits des miracles (Paris, 1945, in-8°, 239 p.), d'André Chamson n'en a-t-il pas fait la trame essentielle-de son action ?</p>
+              <p>D'autres travaux, d'ordre juridique ont vu le jour pendant la période elle-même envisagée. Ce sont alors des &#x0153;uvres " de forme " établies à l'aide des textes réglementaires. Or en cette matière, réglementation ne veut pas dire observation. N'a-t-on pas consacré des ouvrages au marché noir ? Il faudra donc consulter les fonds d'archives qui offriront les documents utiles à la connaissance des deux aspects du dirigisme : les textes et leur application. C'est la raison d'être du présent inventaire.</p>
+            </scopecontent>
+            <arrangement>
+
+              <head>Mode de classement</head>
+              <p>La circulaire de la Direction générale des Archives de France, en date du 18 juillet 1941, relative à l'organisation des papiers des services de la guerre de 1914-1918 avait prescrit le classement des documents de l'espèce en une subdivision spéciale de la série R, mais avait cependant prévu le maintien dans la série M de ces fonds dans les Archives départementales où les dossiers relatifs aux guerres de 1814-1815 et 1870-1871 y avaient été placés. Or ce cas d'exception était justement celui des Archives de la Marne où un Inventaire de la série M a. été publié en 1940. Les sous-séries utilisées s'étant élevées à 202, nous avons donc prévu, en accord avec la Direction générale des Archives de France, de réserver la sous-série 203 M aux fonds de la guerre de 1914-1918 et d'attribuer la cote 204 M aux fonds de la guerre 1939-1945. Nous avons joint en appendice une bibliographie des imprimés périodiques et non périodiques se-rapportant au sujet, mais comme nous le précisons à nouveau en tête de l'Annexe I, le lecteur voudra bien y voir un inventaire des imprimés conservés aux Archives de la Marne et non une bibliographie exhaustive.. C'est en effet, à nos yeux, l'amorce d'un travail d'ensemble, fort utile, mais qui, croyons-nous, ne pourra être qu'une &#x0153;uvre collective. Nous avons également joint la description d'une collection de 2.943 spécimens de titres de rationnement. De ce fait, sa cotation a été effectuée dans la série J (J 2074 à 2131:). Ce bel ensemble a été obtenu grâce au concours que M. Lamiral, de Châlons-sur-Marne, a bien voulu généreusement nous prêter, en donnant aux Archives de la Marne, les éléments d'une collection réunie patiemment pendant la guerre, ce dont nous le remercions bien vivement. Le dépouillement des fonds, la collecte près des organismes nous ont permis d'y apporter un substantiel complément.</p>
+            </arrangement>
+            <accessrestrict>
+
+              <head>Modalités d'accès</head>
+              <accessrestrict>
+
+                <head>Statut juridique</head>
+                <legalstatus>
+                  Archives publiques
+                </legalstatus>
+              </accessrestrict>
+              <accessrestrict>
+
+                <head>Communicabilité</head>
+                <p>Archives librement communicables</p>
+              </accessrestrict>
+            </accessrestrict>
+            <otherfindaid>
+
+              <head>Références</head>
+              <p>René GANDILHON, Répertoire numérique détaillé de la sous-série 204 M (organisation économique de la région de Châlons-sur-Marne et du département de la Marne pendant la guerre de 1939-1945), Châlons-sur-Marne, 1961</p>
+            </otherfindaid>
+            <relatedmaterial>
+
+              <head>Sources complémentaires</head>
+              <relatedmaterial type="sources-internes">
+
+                <head>Sources internes</head>
+                <p>J 2074-2131. Collection de titres de ravitaillement (1940-1949).</p>
+              </relatedmaterial>
+            </relatedmaterial>
+            <bibliography>
+
+              <head>Bibliographie</head>
+              <p>OUVRAGES NON PÉRIODIQUES</p>
+              <p>I-GÉNÉRALITÉS</p>
+              <p>1. Aide aux Forces alliées. Instruction générale, n° 1 (Ministère des Finances. Direction de la Comptabilité générale. Service d'aide aux Forces alliées). Paris, [1944], in-4°, 24 p. [Dp 15291].</p>
+              <p>2. BAUDIN (Louis). Le corporatisme. Italie, Portugal, Espagne, France. Parie, 1942, m-8°, 224 p. (Coll. d'études économiques sous la direction de Louis Baudin). [D 45].</p>
+              <p>3. BAUDIN (Louis). Esquisse de l'économie française sous l'occupation allemande. Parie, 1945, in-8°, 223 p. (Coll. d'histoire économique, III). [D 54].</p>
+              <p>4. BICHELONNE. Extraits des conférences prononcées à l'Hôtel de Ville de Paris, les 5 août et 12 octobre 1943. S. l., [1943], in-8°, p. 24 p. [Hp 6118].</p>
+              <p>5. Commission du coût de l'occupation créée par arrêté ministériel du 21 oct. 1944 devenu Commission consultative des dommages et des réparations créée par arrêté ministériel du 18 oct. 1943. Série A. I. - Ingérences allemandes dans l'activité industrielle [51 monographies]. Prélèvements de matières premières [19 monographies]. Série P. A. - Prélèvements allemands de produits agricoles [20 monographies]. Série P. F. - Emprise allemande sur la pensée française [6 monographies]. Série T. C. - Ingérences allemandes dans les transports et communications [8 monographies]. Série M. G., D. P., A. L. - Monographies diverses [4 monographies]. Paris, 1945-1948, in-fol. [Dp 15026].</p>
+              <p>6. DALADIER (E.) et REYNAUD (P.). Le bilan économique et financier des cinq premiers mois du plan de trois ans (12 novembre 1938 - 31 mars 1939). (Ministère des Finances). Paris, 1939, in-4°, 28 p. [Dp 15278].</p>
+              <p>7. DËFOSSË (Gaston). La coopération de consommation. Théorie et technique. Paris, 1942, in-8°, XII-398 p. [D 94].</p>
+              <p>8. DÉFOSSË (Gaston). La place du consommateur dans l'économie dirigée, 2e éd. Paris, 1941, in-8°, VII-200 p. (Nouv. bibliothèque économique fondée par François Simiand). [D 484].</p>
+              <p>9. DENIS (Henri). Introduction aux problèmes économiques. Paris, 1942, in-8°, 64 p. (Bibliothèque du peuple). [Dp 5040].</p>
+              <p>10. DUBOIN (Jacques). Demain ou le socialisme de l'abondance. Paris, 1942, in-8°, 351 p. [D 366].</p>
+              <p>11. Inventaire des ressources de l'économie française (Ministère de l'Economie nationale et des Finances. Direction de la documentation et des études économiques). Paris, 1946, in-4°, 298 p. [D 10294].</p>
+              <p>12. Instruction n° 1 relative au rôle du service de l'Intendance en matière d'Aide aux Forces alliées (Gouvernement provisoire de la République française. Ministère de la Guerre. Direction générale de l'Intendance). Paris, 1945, in-8°, 46 p. [Dp 5618].</p>
+              <p>13. LE ROY LADURIE (Jacques). Produire ou mourir. Lyon, 1942, in-8°, 16 p. [Hp 5232].</p>
+              <p>14. Note établie par le Syndicat des cadres des organismes publics et semi-publics pour servir de contribution à l'étude de la réforme de, l'organisation économique (Confédération générale des cadres). Paris, [1946], in-8°, 8 p. [Dp 5609].</p>
+              <p>15. PAHL (Walther). La lutte mondiale pour les matières premières ; traduit de l'allemand par le commandant André Cogniet, membre de l'Académie dte Marine. Paris, 1943, in-8°, 312 p. [D 363].</p>
+              <p>16. PETAIN (Philippe). Travail. Famille. Patrie. S. l, s. d., in-8°, n. p. [Hp 6574].</p>
+              <p>17. PHILIP (André). La documentation française. La politique économique du gouvernement. Déclaration de Monsieur André Philip, ministre de l'Economie nationale, Issy-les-Moulineaux, [1947], in-8°, 24 p. [Dp 5627].</p>
+              <p>18. PLEVEN. La politique économique du gouvernement provisoire de la République française. Discours prononcé par M. Pleven, ministre de l'Economie nationale et des Finances à la tribune de l'Assemblée consultative le 4 juillet 1945. Paris, 1945, in-8°, 24 p. [Dp 5649].</p>
+              <p>19. PRACHE (Gaston). Les coopératives en France. Paris, 1941, in-8°, 64 p. (Bibliothèque du peuple). [Dp 5042].</p>
+              <p>20. REUTER (P.). Les grandes réformes de l'économie française. Comités d'entreprise et nationalisations. Paris, 1945, in-8°, p. 197-225. (Conférences de l'Information, V). [Hp 6231].</p>
+              <p>21. SAMHABER (Ernest). Les formes nouvelles de l'économie (1914-1940) ; traduit de l'allemand par Lucien Laurat. Paris, 1942, in-8°, 341 p. [D 365].</p>
+              <p>22. WEIMANN (Robert). Vingt mois d'économie dirigée. Eléments de réflexion. Paris, 1942, in-8°, 32 p. [Hp 5730].</p>
+              <p>II - TRAVAIL ET MAIN-D'&#x0152;UVRE</p>
+              <p>23. Arbeitsrechtliche Anordnungen für des besetzte Frankreich. Paris, [1942], in-8°, 96 p. [Hp 6164].</p>
+              <p>24. Arbeitsrechtliche Anordnungen für des besetze Frankreich. Ordonnances statuant en matière de législation du travail pour les territoires de la France occupée. Paris, 1943, in-4°, 103 p. [Hp 15195].</p>
+              <p>25. BROUTIN (J.-B.). L'échelle sociale et son application à la rénovation par le travail. Le Vésinet, s. d. [vers 1943], in-8°, 8 p. [Dp 5598].</p>
+              <p>26. La charte du travail. Lyon, [1941], in-4°, 24 p. [Dp 15281].</p>
+              <p>27. La charte du travail et son application (Office des Comités sociaux). Paris, [1942], in-8°, 58 p. [Dp 5599]</p>
+              <p>28. Chef d'entreprise, ne craignez pas le chômage pour votre main-d'&#x0153;uvre. Pour réaliser ses vastes projets l'Etat français a besoin d'elle. Paris, [1942], in-4°, 8 p. [Hp 15329].</p>
+              <p>29. Circulaire ministérielle n° 25336 BOP 4 du 7 avril 1944. Application de la loi du 17 novembre 1943 sur la gestion des intérêts professionnels (C. I. I. Bureau-Service des Comités d'organisation). Paris, 1944, in-8°, 32 p. [Dp 5545].</p>
+              <p>30. Circulaire sur la propagande ouvrière à MM. les Préfets régionaux et départementaux et à MM. les délégués régionaux et départementaux à l'information. S. 1., [1943], in-8", 14 p. [Dp 5164].</p>
+              <p>31. Contrôle des comités d'organisation sur leurs ressortissants. Arrêté du 23 novembre 1942. Circulaire ministérielle du 25 mars 1943 (Secrétariat d'Etat à la Production industrielle et aux Communications). Paris, 1943, in-8°, 20 p. [Dp 5544].</p>
+              <p>32. DIDIER (Friedrich). Travailler pour l'Europe. Sauckel mobilise les réserves de main-d'&#x0153;uvre. Berlin.. 1943, in-4°, 128 p. [Hp 15427, H 10538].</p>
+              <p>33. Directives concernant le régime des Assurances sociales pour les travailleurs de France occupés en Allemagne, et leurs familles... Paris, [1943], in-4°, 4 p. [Dp 15289]].</p>
+              <p>34. Documents concernant l'administration des chantiers " Province ". Fascicule 4. Administration financière et gestion comptable. Fascicule 5. Ravitaillement et transports (Délégation générale à l'équipement national. Commissariat à la lutte contre le chômage). [Paris, 1941], in-4°, 24 p. n. c. [Dp 15321].</p>
+              <p>35. Faites relever vos ruines par ceux qui en sont responsables. Faites embellir vos cités par ceux qui voulaient les détruire. Faites travailler les prisonniers ennemis (République française. Ministère du Travail et de la Sécurité sociale. Direction générale de la Main-d'&#x0153;uvre). [Paris], [vers 1945], in-8°, 8 p. [Hp 6882].</p>
+              <p>36. GUERDAN (René). La charte du travail. Paris, 1942, in-8°, 127 p. [Hp 5722].</p>
+              <p>37. GUERDAN (René). Travailleurs mes amis.. Voici vos droits et vos obligations, n° 1. Paris, 1941, in-8", 129 p. [Hp 5720].</p>
+              <p>38. GUERDAN (René). Travailleurs mes amis... voici vos droits et vos obligations, n° 2. Paris, 1941, in-8°, 128 p. [Hp 6115].</p>
+              <p>39. GUERDAN (René). Travailleur qui pars pour l'Allemagne... Voici ce que tu dois savoir. Aubenas, s.d., in-8°, 78 p. [Hp 5721].</p>
+              <p>40. Journées d'études de l'organisation professionnelle économique. Séances de travail des 7-8-9 juin 1943 (Centre d'information interprofessionnel). Paris, 1943, in-8°, 307 p. [D 291].</p>
+              <p>41. LAGARDE (Georges de). La charte du travail. Sa place dans l'évolution du corporatisme moderne. Paris, 1942, in-8°, VII-99 p. [Dp 5032].</p>
+              <p>42. Liste des Comités d'organisation... (loi du 16 août 1940). A jour au 15. 4. 41. S. l., [1941], in-4°, 8 p. [Dp 15288].</p>
+              <p>43. Liste des Comités d'organisation. Leurs dirigeants et leurs adresses dans les deux zones (Centre d'information interprofessionnel). [Paris], 1942, in-8°, 35 p. [Dp 5600].</p>
+              <p>44. Liste des comités d'organisation, leurs dirigeants et leurs adresses dans les deux zones (Centre d'information interprofessionnel). Paris, 1944, in-8°, 76 p. [Dp 5608].</p>
+              <p>45. Métallurgistes. Misère ? Non ! Berlin, [1942], in-80, 24 p. [Hp 6931].</p>
+              <p>46. Ordonnance [fixant les conditions de travail et de rémunération dans l'industrie du bâtiment et les industries connexes pour les territoires relevant de, la compétence du Militärbefehlshaber in Frankreich (Tarif pour le bâtiment) (Der Militärbefehlshaber in Frankreich Arbl770jXXI a\44). Berlin-Paris, 29 mars 1944, in-8", 16 p. [Hp 6883].</p>
+              <p>47. Ouvrier ! connais les droits que le Maréchal t'a donné par sa charte du travail signée le 4 octobre 19M et d'abord souviens-toi. S. l, s. d., in-8°, 16 p. [Hp 6575].</p>
+              <p>48. Ouvrier de chez nous, regarde, lis, juge. S. 1., s. d., in-8°, n. p. [Hp 5230].</p>
+              <p>49. Pourquoi ?... Devez-vous travailler pour vous. Parie, [1943], in-8°, 12 p. [Hp 6932].</p>
+              <p>50. Le reclassement professionnel des prisonniers de guerre rapatriés, salariés du commerce et de. l'industrie (Centre interprofessionnel des commissions de reclassement). Paris, [vers 1942], in-8°, 16 p. [Dp 5622].</p>
+              <p>51. Le reclassement professionnel des prisonniers de guerre rapatriés, salariés du commerce et de l'industrie. 2e éd. (Centre interprofessionnel des commissions de reclassement des prisonniers de guerre rapatriés). Paris, [1943], in-8°, 16 p. [Dp 5548].</p>
+              <p>52. Recueil des décisions réglementaires (Comité d'organisation professionnelle des industries et commerces de la musique). Paris-Lyon, [1942], in-4°, 18 p. [Dp 15320].</p>
+              <p>53. Résumé analytique des décisions des comités d'organisation. 3e trimestre 1943 (Centre d'information interprofessionnel). Parie, 1943, in-8°, n. p. [Dp 5543].</p>
+              <p>54. SAUVY (A.). Les statistiques et l'organisation professionnelle). Paris, 1943, in-8°, 103 p. [Dp 5035].</p>
+              <p>55. Table alphabétique des matières relatives à la charte du travail. S. L, [1944], in-4°, 45 p. n. c. [Dp 15280].</p>
+              <p>56. Travailler en Allemagne, c'est gagner sa vie dans de bonnes conditions ; voyez par vous-même. S. l.. s. d., [1943], in-8°, n. p. [Hp 6134].</p>
+              <p>57. Travailleur français si tu es satisfait de ton sort, ne lis pas cette brochure ; sinon... écoute le parti populaire français de Jacques Doriot. Paris, 1941, in-8°, n. p. [Hp 6361].</p>
+              <p>58. Un reportage illustré. Ouvriers français au travail dans l'industrie allemande. S. l., s. d. [1943], in-8°, n. p. [La couverture porte : Travailler-vivre ! Reportage sensationnel] [Hp 6155].</p>
+              <p>Région de Ghâlons-sur-Mame</p>
+              <p>59. Bordereau des salaires de l'industrie du bâtiment et des travaux publics (Préfecture de la Marne. 4e Division. 3e Bureau). Epernay, [1945], in-4°, 10 p.. [Chp 16078].</p>
+              <p>60. Caisse de compensation de Reims et de la région (Allocations pour charges de familles). Statuts et règlement intérieur. Reims, 1942, in-8°, 12 p. [Chp 8409].</p>
+              <p>61. Caisse interprofessionnelle de compensation de Chalons-sur-Marne et de la Région (Allocations familiales). Règlement approuvé par le Ministère du Travail. Châlons-sur-Marne, 1941, in-8°, 22 p. [Chp 7478].</p>
+              <p>62. Les mutilés et anciens combattants de l'Est au service de la relève. Appel de Gaston Rogé, Président de. l'Association des mutilés et anciens combattants de la Région de l'Est à ses camarades de combat. Nancy, 1942, in-8°, 8 p.</p>
+              <p>III - PRIX ET CONTROLE ÉCONOMIQUE</p>
+              <p>63. Aide-mémoire à l'usage des agents du contrôle économique (Direction générale du contrôle économique). S. l., 1944, in-8°, 155 p. [Dp 5603].</p>
+              <p>64. La comptabilité industrielle. Cours professé au Centre d'études du contrôle économique (Direction générale du contrôle économique. Centre d'études). S. l., s. d. [vers 1944], in-4°, 36 p. [Dp 15283].</p>
+              <p>65. Conférences de contrôle comptable à l'usage des stagiaires du centre d'études de la Direction générale du contrôle économique (Direction générale du contrôle économique. Centre d'études). S. l., [1946], in-4°, 41 p. [Dp 15276].</p>
+              <p>66. Documentation législative et réglementaire (Ministère des Finances. Direction de l'économie générale. Service général du contrôle économique). [Paris], 1942-1943, in-4°, 79 p. [Dp 15299].</p>
+              <p>67. Documentation législative et réglementaire (Nouvelle série) [Textes du 30 juin 1945 au 25 janvier 1949]. (Direction générale du contrôle économique. Service de la documentation et des études). S. l., [1949], in-8°. [Feuillets destinés à être intercalés dans la Documentation législative et réglementaire]. [Dp 5650].</p>
+              <p>68. Instruction concernant les poursuites judiciaires. 31 décembre 1943 (Direction générale du contrôle économique. 2e Division). Paris, 1943, in-8°, 151 p. [Dp 5617].</p>
+              <p>69. Instruction portant commentaire des lois du 7 août et 31 décembre 1942, modifiant la loi du 21 octobre 1940 modifiant, complétant et codifiant la législation sur les prix (12 janvier 1943). (Direction générale du contrôle économique. [Ire Division. 1er Bureau. Circulaire n" 12)^ Paris, 1943, in-8°, 79 p. [Dp 5604].</p>
+              <p>70. Législation des prix. Vins à appellations contrôlées. Tableau des vins à appellations contrôlées dont les prix limites d la propriété ont été fixés par arrêtés ministériels et préfectoraux (Syndicat national du commerce en gros des vins, cidres, spiritueux et liqueurs de France). S. L, 1942,in-4°, 14 p. [Dp 15277].</p>
+              <p>71. Manuel des commissions d'assainissement (Ministère de l'Economie nationale). S. L, [1947], in-8°. 65 p. [Dp 5607].</p>
+              <p>72. Manuel des commissions d'assainissement. Liste de prix officiels au 25 mai 1947 (Ministère de l'Economie-nationale). Paris, [1947], in-8°, 48 p. [Dp 5606].</p>
+              <p>73. Le marché noir. Paris, 1943, in-8°, 56 p. (Les documents Jeune Patron). [Hp 6111].</p>
+              <p>74. SAILLY (J. de). Instructions sur l'organisation des directions régionales et départementales (Direction générale du contrôle économique. 3e Division. 2e Bureau. Circulaire n" 24). Paris, 1943, in-8°, 56 p. [Dp 5602].</p>
+              <p>Région de Châlons-sur-Marne</p>
+              <p>75. Relevé de prix à la date du 1er mai 1940 pour les principaux articles répartis par les " Coopérateurs de Champagne ". S.I., [1940], in-4°, 5 p. [Chp 16089].</p>
+              <p>IV - AGRICULTURE ET RAVITAILLEMENT</p>
+              <p>76. Agriculteurs ! Semez en septembre de la navette d'hiver... S. 1., s. d., in-8°, 2 p. [Dp 5588].</p>
+              <p>77. Agriculteurs. Voici ce qu'en un an le Gouvernement du Maréchal a fait pour vous (Ministère de l'Agriculture). S. 1., s. d., in-8°, 47 p. [Hp 15072].</p>
+              <p>78. Au cours de l'année 1944, un nouvel effort sera demandé aux agriculteurs, en vue d'accroître, les cultures oléagineuses. Dans la région de Marseille, il est nécessaire, dans ce but, d'utiliser toutes les terres disponibles... (Ministère de l'Agriculture et du Ravitaillement. Direction régionale de la production agricole de Marseille). S. 1., 1944, in-4°, 2 p. [Dp 15297]</p>
+              <p>79. BABEUR (Henri). Le corporatisme appliqué d l'organisation de la richesse laitière. 2e éd. Paris, s. d.. in-4°, 23 p. [Dp 15222].</p>
+              <p>80. BONNAFOUS (Max). Deux discours à la corporation paysanne. Paris, 1943, in-8°, 91 p. [Hp 6148].</p>
+              <p>81. BONNAFOUS (Max). Discours au Conseil national corporatif agricole (15 septembre 1943). Paris. 1943, in-8°, 39 p. [Hp 6147].</p>
+              <p>82. La bataille de la production agricole en Europe. Corbeil, [vers 1941], in-16°, 17 p. [Dp 5640].</p>
+              <p>83. BRAIBANT. La Fi-ance, nation agricole. Regards sur le passé ; perspectives d'avenir. Paris, 1943, in-8°, 152 p. [Hp 5104].</p>
+              <p>84. BAUDIN (P.). Etude sur l'économie dirigée. La consommation dirigée en France en matière d'alimentation. Paris, 1942, in-8°, 120 p. (Coll. d'études économiques sous la direction de Louis Baudin). [D 50].</p>
+              <p>85. La campagne agricole 1943-1944 sera caractérisée par un nouveau développement des cultures oléagineuses d'hiver (Ministère de l'Agriculture et du Ravitaillement. Direction régionale de la Production agricole de Marseille). Marseille, 1943, in-4°, 4 p. [Dp 15293].</p>
+              <p>86. CAPUS (J.). L'assainissement du marché des vins par le contrôle des appellations d'origine. Une expérience corporative... Alençon, 1941, in-8°, 19 p. [Dp 5611].</p>
+              <p>87. Carnet d'observations des champs d'essais comparatifs de variétés de blé... (Corporation nationale paysanne. Groupe national spécialisé des producteurs de céréales). S. L, s. d., in-8°, 7 p. [Dp 5596].</p>
+              <p>88. Catalogue des variétés de blés, avoines, orges, maïs, pommes de terre, topinambours, betteraves fourragères, soyas, cultivées en France (Ministère de l'Agriculture. Comité technique permanent de la sélection des plantes cultivées). Versailles, 1945, in-8°, 31 p. [Dp 5591].</p>
+              <p>89. CHARBIN (Paul). La politique générale du ravitaillement. Discours prononcé à Lyon le 15 février 1942 à la réunion de la Région économique. S. L, [1942], in-4°, 13 p. [Dp 15286].</p>
+              <p>90. Contribution à l'étude statistique du bétail de boucherie en 1942 à l'usage des services de l'Agriculture et du Ravitaillement (Ministère de l'Agriculture et du Ravitaillement. Comité national interprofessionnel des viandes). Paris, 1943, in-4°, 316 p. [D 10234].</p>
+              <p>91. Contribution à l'étude statistique du bétail de boucherie en 1943 à l'usage des services de l'Agriculture et du Ravitaillement (Ministère de l'Agriculture et du Ravitaillement. Comité national interprofessionnel des viandes). Paris, 1944, in-4°, 531 p. [D 10046].</p>
+              <p>92. Cultivez comme autrefois les plantes oléagineuses... (Ministère de l'Agriculture. Secrétariat d'Etat au Ravitaillement). S. 1., [1942], in-8°, 6 p. [Dp 5587].</p>
+              <p>93. CREPIN (Ch.). Le blé au cours de la campagne 1941-</p>
+              <p>1942. Alençon, 1943, in-8°, 6 p. (Académie d'agriculture de France). [Dp 5594].</p>
+              <p>94. Dans quelles conditions les cultures oléagineuses de printemps doivent-elles être entreprises pour réussir dans la région de Clermont-Ferrand ? (Ministère de l'Agriculture et du Ravitaillement. Direction régionale de la Production agricole de Clermont-Ferrand...). Clermont-Ferrand, [1943], in-8°, 2 p. [Dp 5589].</p>
+              <p>95. Fédération nationale des courtiers spécialistes de céréales, produits du sol et dérivés. Paris, 1941, in-8°, 68 p. [Dp 5585].</p>
+              <p>96. Formule de statuts pour une société coopérative agricole laitière (Corporation nationale paysanne. Fédération nationale des coopératives laitières. 7 rue Scribe, Paris 9e). Paris, 1942, ln-8°, 24 p. [Hp 6881].</p>
+              <p>97. La France peut-elle se nourrir ? Paris, 1942, in-8°, 20 p. [Hp 6313].</p>
+              <p>98. Les fruits sauvages. Châtaignes, glands, faines, marrons d'Inde. Ramassage, conservation, utilisation (Secrétariat d'Etat au Ravitaillement. Service central des ramassages). Clermont-Ferrand-Paris, in-8°, 32 p. [Dp 5531].</p>
+              <p>99. Instruction sur la carte individuelle d'alimentation. Secret (Présidence du Conseil. Ministère de la Défense nationale et de la Guerre. Ministère de l'Agriculture). [Paris, 1939], in-4°, 72 p. [Dp 15287].</p>
+              <p>100. Instructions et commentaires pour la réalisation des champs d'essais comparatifs de variétés de blé (Corporation nationale paysanne. Groupe national spécialisé des producteurs de céréales). [Paris], e. d., in-8°, 12 p. [Dp 5595].</p>
+              <p>101. Instructions générales à nos délégués (Ministère du Ravitaillement. Direction du contrôle du Ravitaillement). S. 1., [1946], in-4°, 12 p. [Dp 15223].</p>
+              <p>102. LECOC (Louis-Charles). Nourrir l'Europe. Paris, 1943, in-8", 79 p. [Hp 6110].</p>
+              <p>103. MAZARD (Jean). Les infractions au rationnement (Denrées-produits-matières premières). Paris, 1943, in-8°, 207 p. [D 564].</p>
+              <p>104. Notice : insectes n° 1. Le doryphore de la pomme de terre (Ministère de l'Agriculture. Direction de l'enseignement et des services scientifiques. Services de la protection des végétaux). Paris, s. d., in-8°, 4 p. [Dp 5597].</p>
+              <p>105. Notice explicative pour la commission communale de statistique agricole (Etat français. Ministère de l'Agriculture. Direction des services économiques). [Paris], [1942], in-16, 16 p. [Dp 5583].</p>
+              <p>106. Les oléagineux de printemps dans la région de Laon : Aisne, Ardennes, Oise, Somme. Oeillette, cameline-moutarde... (Ministère de l'Agriculture. Direction régionale de la Production agricole). Laon. s. d. [1943],. in-4°, 4 p. [Chp 16086].</p>
+              <p>107. Organisation du Ministère de l'Agriculture et du Ravitaillement (Publications du Ministère de l'Agriculture et du Ravitaillement). Rouen, [1943], in-4°, 10 p. [Dp 15271].</p>
+              <p>108. Organisation professionnelle provisoire de l'Agriculture. Paris, [1944, octobre], in-4°, 7 p. [Dp 15270].</p>
+              <p>109. PIERARD (Jean). L'organisation corporative du Champagne. Paris, 1942, in-8°, 222 p. [Ch 416].</p>
+              <p>110. Pour que la soudure se fasse sans importation, livrez... (C. G. A. Association générale des producteurs de blé). S. 1., s. d. [1945], in-16, 2 p. [Dp 5593].</p>
+              <p>111. Pourquoi et comment supprimer l'étouffage des abeilles (Ministère de l'Agriculture et du Ravitaillement. Direction de la production et de l'approvisionnement en produits animaux. Direction de l'enseignement et des recherches. Direction régionale de la production agricole. Région Bretagne). S. 1., [1943], in-4°, 4 p. [Dp 15301].</p>
+              <p>112. Producteurs d'oléagineux... (Ministère de l'Agriculture et du Ravitaillement. Direction régionale de la production agricole de Marseille). S. 1., [1943], in-4°, 4 p. [Dp 15294].</p>
+              <p>113. RADET (E.). Influence de la date de récolte du colza sur la teneur en huile. Alençon, 1944, in-8°, 4 p. [Chp 7468].</p>
+              <p>114. Rapport du Conseil syndical central sur les problèmes du ravitaillement... (Confédération générale du travail. Syndicat général des fonctionnaires et agents du Ravitaillement) S. 1., [1945], in-4°, 4 p. [Dp 15298].</p>
+              <p>115. Le rationnement (Secrétariat d'état au Ravitaillement). Nancy, 1941, in-4°. [Cet ouvrage non paginé est classé par sections permettant des mises à jour]. [D 10249].</p>
+              <p>116. Le rationnement. Annexe 2. Tableau des déclarations à faire par les producteurs et détenteurs de denrées, et produits alimentaires (Secrétariat d'Etat au Ravitaillement). S. 1., 1941, in-4°. [Comporte 70 chapitres ayant chacun une pagination spéciale]. [D 10250].</p>
+              <p>117. [Rationnement]. Recueil de documentation. S. 1., 1943-1944, in-4°. [La pagination va de 1 à 1.200 avec lacunes. Elle avait été ainsi prévue " de telle manière que la documentation puisse être complétée périodiquement et rectifiée éventuellement, soit par addition de pages nouvelles à la suite, soit par addition de pages intercalaires (bis, ter...) ou rectificatives "]. [D 10251].</p>
+              <p>118. RAYBAUD (Joseph). La législation du lait. S. 1., [1943], in-4°, 530 p. [Comporte 3 fascicules de mise à jour le dernier s'arrêtant au 31 décembre 1944]. [D 10248].</p>
+              <p>119. Recueil des textes législatifs et réglementaires concernant l'organisation corporative de V agriculture (Etat français. Publications du Secrétariat d'Etat à l'agriculture). Paris, 1942, in-8°, 147 p. [Dp 5257].</p>
+              <p>120. Règlement de collecte des laines de France (tonte). 1944. Arrêté du 26 juin 1944. J. O. du 8 juillet 1944 (Comité national interprofessionnel de la laine). Paris, 1944, in-8&#60;\ 12 p. [Dp 5549].</p>
+              <p>121. Règlement et instructions sur le contrôle de la production des semences d'oléagineux (Comité permanent de sélection. Sous-section " Graines oléagineuses ". Paris, 1943, in-8°, 14 p. [Dp 5586].</p>
+              <p>122. Règlements intérieurs (Décret n° 3653 du 5 décembre 1942. Corporation nationale de la boucherie). Paris, 1942, in-8°, 6-6-4-5-4-5-2 p. [Dp 5573].</p>
+              <p>123. Réussissez vos oléagineux de printemps (Direction régionale de la production agricole et Commissariat général aux corps gras de la région de Dijon). Dijon, e. d., [1943], in-4°, 2 p. [Dp 15296].</p>
+              <p>124. Réussissez vos oléagineux de printemps (Région de Dijon. Direction régionale de la production agricole et Commissariat général aux corps gras). Dijon, s d. [1943], in-4°, 2 p. [Dp 15295].</p>
+              <p>125. Service de liaison chargé de l'étude des questions agricoles dans certains départements touchés par les événements de guerre : Ardennes, Aisne, Meuse, Meurthe-et-Moselle, Somme... Reprise normale des cultures sur certains territoires (Ministère de l'Agriculture). Paris, 1944, in-4°, 8 p. [Chp 16085].</p>
+              <p>126. Sommaire analytique des publications du Comité central concernant l'organisation de la production laitière. S. 1., 1940, in-4°, 7 p. [Dp 15272].</p>
+              <p>127. STIRN (Alexandre). L'organisation du marché du lait. Paris, s. d. [1943], im-4&#60;\ 243 p. [D 10010].</p>
+              <p>128. Terre de France. Paris, 1943, in-8°, n. p. [Hp 6114].</p>
+              <p>129. Textes législatifs, lettres et circulaires concernant l'organisation de la production laitière (Comité central des Groupements interprofessionnels laitiers...). S. 1., 1940, in-4", 17 p. [Dp 15273].</p>
+              <p>Région de Châlons-sur-Marne</p>
+              <p>130. Agriculteurs aubois... la France, celte année encore, doit continuer à vivre sur elle-même ! S. I., [1942], in-4", 2 p. [Chp 16081].</p>
+              <p>131. Agriculteurs ! Livrez vos oléagineux de la récolte 4943... S. 1. [Reims], [1943], in-4", 2 p. [Chp 16088].</p>
+              <p>132. Agriculteurs ! Profitez de l'expérience acquise au cours des deux campagnes écoulées... Vous sèmerez l'&#x0153;illette (Ministère de l'Agriculture et du Ravitaillement. Direction régionale de la production agricole de Châlons-sur-Mame). S. 1. [Châlons-sur-Marne], s. d. [1943], in-8°, 2 p. [Chp 9119].</p>
+              <p>133. Agriculteurs. [Vous cultiverez en 4943-1944 des oléagineux d'hiver]. S. 1. [Châlons-sur-Marne], [1943], iii-80. [Chp 9118].</p>
+              <p>134. BLANC (R.). Le choix des variétés de blé. Comité des céréales de la Marne. Châlons-sur-Marne, [1938], in-8°, 4 p. [Dp 5592].</p>
+              <p>135. Classement des consommateurs en catégories " T " (Préfecture de la Marne. 4e Division - 2e Bureau). Châlons-sur-Marne, 1941, in-4°, 12 p. [Chp 16151].</p>
+              <p>136. Culture des oléagineux en Champagne. Châlons-sur-Marne, 1943, in-8\ 55 p. [Chp 5348].</p>
+              <p>137. Des cultures intéressantes et rémunératrices. Les cultures oléagineuses d'automne. Grâce à elles vous toucherez sans tickets de l'huile, du savon, des tourteaux... [Troyes], e. d. [1943], in-4° [Chp 16087].</p>
+              <p>138. FERRE (L.) et FRANÇOT (P.). Les vendanges de 1942 en Champagne et leur qualité (Station de recherches viticoles et &#x0153;nologiques de Champagne). Epernay, [1942], in-8°, 24 p. [Chp 9113].</p>
+              <p>139. FERRÉ (L.), FRANÇOT (P.) et MAURO (J.). Les vendanges de 1943 en Champagne et leur qualité (Station de recherches viticoles et &#x0153;nologiques de Champagne). Epernay, [1943], in-8°, 33 p. [Chp 9114].</p>
+              <p>140. L'industrie du sucre. Périodes de fabrication. Consommation du sucre en France. Culture de la betterave. Quelques maladies de la betterave. La campagne de 1938 et le marché du sucre (Syndicat des planteurs de betteraves, fournisseurs de la Raffinerie de Sermaize-lès-Bains). Sermaize-lès-Bains, [1939], in-8°, 24 p. [Dp 5590].</p>
+              <p>a*</p>
+              <p>V - INDUSTRIES ET PRODUITS INDUSTRIELS</p>
+              <p>141. Barème général d'équivalence des articles textiles (Section textile de l'Office central de répartition des produits industriels). Paris, 1944, in-8°, 16 p. [Dp 5550].</p>
+              <p>142. Besoins en matières premières, année scolaire 1942-1943. Circulaire n° 16 (Ministère de l'Education nationale. Direction de l'enseignement technique. 4e Bureau). S. L, [1942], in-4°, 17 p. [Dp 15285].</p>
+              <p>143. BOURCIER (P.-G.). Le genêt. Textile nouveau. Ses origines, les phases de son développement, ses possibilités d'avenir (Fédération nationale du genêt). Fontenay-aux-Roses, [1948], in-8°, 39 p. [Hp 6106].</p>
+              <p>144. BOUTET (Daniel). La reconstruction de la France. " L'outillage national ". Paris, 1945, in-8°, p. 93-154. (Conférences de l'Information, III). [Hp 6229].</p>
+              <p>145. La carbonisation des bois en forêt et à l'usine par les procédés Gohin et le four " Calocarbone ". S. jl, 1945, in-4", 4 p. [Dp 15322].</p>
+              <p>146. Comment obtenir de la matière première ? Paris, [1941], in-8°, 80 p. [Hp 6149].</p>
+              <p>147. Compte rendu d'activité de la Direction de la laine (Comité général d'organisation de l'Industrie textile). Paris, 1943, in-8°, 42 p. [Hp 6116].</p>
+              <p>148. Comptoir de réception des charbons de bois et des combustibles pour gazogènes de l'Ile de France.. Statuts déposés à l'étude de Me Cottenet, notaire à Paris. Paris, 1942, in-8°, 12 p. [Hp 6871].</p>
+              <p>149. Conférences prononcées à l'occasion de l'exposition des économies de matières et des produits de remplacement (Paris 19 juin-19 juillet 1943) (Ministère de la production industrielle et des communications. Commissariat général aux économies de matières). Paris, 1943, in-8°, 378 p. [D 246].</p>
+              <p>150. Conseils pour l'emploi dans les gazogènes des combustibles minéraux (houille maigre, anthracite, coke, semi-coke) (Section des Carburants gazeux et divers. 4e Section de la Commission Générale des carburants de remplacement). S. L, 1942, in-8°, 16 p. [Hp 6873].</p>
+              <p>151. La distribution des combustibles pour gazogènes (Comité d'organisation de la distribution et du commerce des combustibles pour gazogènes). [Paris], [1943], in-8°, 8 p. [Dp 5562].</p>
+              <p>152. Documentation législative et réglementaire concernant bois et ameublement. S. L, [1947], in-4°, 462 p. [D 10271].</p>
+              <p>153. Etudes pour un plan d'importation de matières premières industrielles (Comité technique consultatif pour l'importation des produits industriels). S. 1., [1944], in-4°, n. p. [Dp 15253].</p>
+              <p>154. GARNIER (Henri). Assemblée générale des délégués régionaux et départementaux. Rapports présentés par M. Henri Garnier, président du Comité (23 octobre 1943) (Comité d'organisation du bâtiment et des travaux publics). Paris, 1943, in-4°, 140 p. [Dp 15259].</p>
+              <p>155. Guide de la répartition des produits industriels. T. I. Renseignements généraux... Supplément n° 1 (Ministère de la Production industrielle et des communications. Office central de répartition des produits industriels). Paris, 1943, im-4°, 128 p. [D 10297].</p>
+              <p>156. Guide de la répartition des produits industriels. Textes et commentaires (Secrétariat d'Etat à la production industrielle). Paris, s. d., in-4°. [Textes sur feuilles mobiles (1941-1950)]. [D 10299].</p>
+              <p>157. Guide du gazogène et des énergies de remplacement. Préface de M. R. Hicguet. 1re édition. Paris, [1941], in-8°. [D 566].</p>
+              <p>158. Guide du gazogène et des énergies de remplacement. Préface de M. Pons. 1943. Paris, [1943], in-8°, 647 p. [D 565].</p>
+              <p>159. Guide du rationnement des produits industriels de consommation (Commissariat général aux produits industriels de consommation). Paris, [1944], in-8°, 24 p. [Dp 15261].</p>
+              <p>160. Guide du rationnement des produits industriels de consommation. 2e éd. (1er octobre 1945) (Ministère de la Production industrielle). Paris, 1945, in-4°, 23 p. [Dp 15318].</p>
+              <p>161. Guide du rationnement des produits industriels de-consommation. 3e éd. (10 janvier 1948) (Ministère de l'Industrie et du Commerce). Paris, 1948, in-4°, 32 p. [Dp 15319].</p>
+              <p>162. Huit mois d'activité (Comité d'études des petites et. moyennes entreprises). Paris, 1944, in-4°, 12 p. [Dp 15260].</p>
+              <p>163. Industriels de France économisez les lubrifiants... Voici quelques conseils à cet effet (Office central de répartition des produits industriels. Section du pétrole). Paris, [1941], in-8\ 8 p. [Dp 5551].</p>
+              <p>164. Instruction sur l'organisation et le fonctionnement des comités régionaux de gestion et des comptoirs départementaux de la production forestière (Ministère de l'Agriculture et du Ravitaillement. Direction générale des Eaux et Forêts... Comité central des groupements interprofessionnels forestiers...). Paris, 1943, in-8°, 24 p. [Dp 5610].</p>
+              <p>165. Instruction n° 3 relative à la répartition des machines agricoles (Ministère de l'Agriculture et du Ravitaillement. Direction générale du génie rural et de l'hydraulique agricole. Service du machinisme agricole). [Paris], 1942, in-8°, 6 p. [Dp 5580].</p>
+              <p>166. Instructions aux maires au sujet de l'impôt-métal (Etat français. Secrétariat d'Etat à la production industrielle et aux communications. Commissariat à la mobilisation des métaux non ferreux). Paris, 1943, in-4°, 8 p. [Dp 12257].</p>
+              <p>167. LAPASSE (Louis de). Organisation de la production forestière (Bois et charbon de bois). Les obligations des assujettis à la loi du 13 août 1940 et à ses règlements d'application. Bordeaux, 1942, in-8°, 16 p. [Dp 5651].</p>
+              <p>168. Liste des activités ressortissant au Comité d'organisation du bâtiment et des travaux publics. 4e éd. (Comité d'organisation du bâtiment et des travaux publics). Paris, [1942], in-8°, 23 p. [Dp 5576].</p>
+              <p>169. Liste des compétences des sections de l'O.C.R.P.I. (Office central de répartition des produits industriels). Paris, 1943, in-4", n. p. [Dp 15252].</p>
+              <p>170. Manuel de carbonisation (Ministère de l'Agriculture et du Ravitaillement). Paris, s.d. [vers 1942], in-8°, 16 p. [Dp 5653].</p>
+              <p>171. Note d'information n° 1. Guide pratique de la répartition des ciments en zone occupée. Décision L &#38; du Répartiteur (Office central de répartition des produits industriels. Section des matériaux de construction et des produits divers. Groupe des matériaux de constructions). Paris, [1941], in-8&#60;\ 16 p. [Dp 5575].</p>
+              <p>172. Note sur les combustibles forestiers pour gazogène d'automobile. Lyon, [1942], in-4°, 7 p.</p>
+              <p>173. Notice sur l'utilisation de matériaux de remplacement en raison des difficultés d'approvisionnement en fer et ciment (Secrétariat d'Etat à la Guerre. Direction de la défense passive, Section technique, n° 2.400 DPIST). Lyon, 1941, in-4°, 4 p. 6 pl. [Dp 15185].</p>
+              <p>174. Notice technique pour le montage des gazogènes sur les véhicules automobiles (Comité d'organisation de l'industrie des gazogènes pour moteurs à explosion et à combustion interne). Paris, 1944, in-8°, 64 p. [Dp 5561].</p>
+              <p>175. La production des amendements calcaires et magnésiens crus (Comité d'organisation des produits de carrière et de dragage). Paris, 1943, in-4°, 8 p. [Dp. 15258].</p>
+              <p>176. Les produits de remplacement dans l'industrie de l'emballage. L'expérience allemande. Paris, 1941, in-8°, 52 p. [Dp 5140].</p>
+              <p>177. Projet relatif à l'attribution d'allocations professionnelles aux entreprises sinistrées ou évacuées par ordre et à la couverture des risques de guerre sur le plan professionnel (Conseil supérieur de l'économie industrielle et commerciale). Parie, 1943, in-4°, 20 p. [Dp 15255].</p>
+              <p>178. Répertoire alphabétique des matières premières et principaux produits (Centre d'information interprofessionnel). Paris, 1943, in-8°, 111 p. [Comporte une liste des Comités d'organisation des organismes professionnels]. [Dp 5139].</p>
+              <p>179. Reconstitution industrielle et commerciale. Information (Commissariat à la Reconstruction). Paris, 1943, in-8°, 43 p. [Hp 6117].</p>
+              <p>180. Révision générale des prix des produits des exploitations forestières et des scieries (août 1941). S. L, 1941, in-4°, n. p. [Dp 15122].</p>
+              <p>181. Utilisation des ciments en période de restriction. Nature, propriétés, usages et contre-indications des 9 groupes de liants hydrauliques créés par application de la Décision n° 12, du 24 novembre 1941 du Comité d'organisation de l'industrie des chaux et ciments (Comité d'organisation de l'industrie des chaux et ciments). Paris, [1941], in-8°, 14 p. [Dp 5574].</p>
+              <p>182. V. K. Les économies de combustible dans le chauffage central (Office de répartition du charbon. Service. " Utilisation des combustibles "). Paris, 1941, in-8°, 16 p. [Dp 5612].</p>
+              <p>Région de Châlons-sur-Marne</p>
+              <p>183. Les carburants forestiers champenois à Jaulgonne (Aisne) présentent une machine, à découper les bois de taillis et rémanents... S. 1., s. d. [vers 1942-1943], in-4°, 2 p. [Chp 16082].</p>
+              <p>184. Exposition artisanale. Reims, 1942, du 14 août au 23 août, Hall du Boulingrin. Artisans... Reims, [1942], in-4°, 4 p. [Chp 16079].</p>
+              <p>185. Exposition artisanale. Reims, 1942, du 14 août au 23 août, Hall du Boulingrin. Artisans. Reims, [1942], in-4°, 4 p. [Chp 16080].</p>
+              <p>- COMMERCE</p>
+              <p>186. Chambre syndicale nationale des voyageurs, représentants placiers du commerce, de l'industrie et de la</p>
+              <p>production de France et des colonies... Organisation syndicale et corporative des V.R.P. Parie, [1941], in-40, 8 p. [Dp 15282].</p>
+              <p>VII - TRANSPORTS</p>
+              <p>187. La Chambre de commerce de Nancy. La Région économique de l'Est. L'Office des transports de l'Est. Nancy, 1941, in-8°, 31 p. [Chp 7328]. </p>
+              <p>188. Instruction sur les moyens de transport. 30 avril 1945 (Direction générale du contrôle économique, 3e Division, 2e Bureau). Paris, in-8°, 46 p. [Dp 5563]. </p>
+              <p>189. Le problème des transports est un problème national qui conditionne le .relèvement économique de la France (Fédération nationale des transports routiers). Parie, 1946, in-8°, 15 p. [Dp 5564]. </p>
+              <p>Les v&#x0153;ux des Chambres de commerce pour l'amélioration du transport routier (Fédération nationale des transports routiers). Parie, [1946], in-8°, 7 p. [Dp 5565].</p>
+              <p>PERIODIQUES </p>
+              <p>I - GÉNÉRALITÉS</p>
+              <p>1. Annuaire statistique abrégé (Service national des statistiques... Statistique générale). Paris, t. I, 1943 [A 899]. </p>
+              <p>2. Annuaire statistique de la France (Ministère de l'Agriculture et du Commerce. Service de la statistique générale de France). Parie, 1939-1946 [A 543]. </p>
+              <p>3. Baromètre économique mensuel (Ministère de l'Economie nationale. Direction du Plan et de la Documentation. Service d'information interministérielle). Parie, 1945-1946 [A 1835]. ' </p>
+              <p>4. Bottin administratif. Annuaire général de l'administration française. Parie, 1941-1949 [A 1095]. </p>
+              <p>5. Bulletin d'information et de documentation (Secrétariat général du gouvernement provisoire de la République française). Paris, n° 6-11, 1944-1946 [A 745]. </p>
+              <p>0. Bulletin de documentation (Ministère de l'Intérieur. Service des rapports préfectoraux). Parie, n° 1-6, 1943-1944 [A 717]. </p>
+              <p>7. Bulletin de la statistique générale de la France (Service et Institut national des statistiques). Paris, 1936-1949 [A 998]. </p>
+              <p>8. Bulletin des Contributions indirectes. Paris, 1939-1941 [A 915]. </p>
+              <p>9. Bulletin (Le) économique de la Société d'études économiques et documentaires. Paris, 1945-1946 [A 934]. </p>
+              <p>10. Bulletin hebdomadaire de Documentation de la Société de publications économiques. Paris, n° 157, juillet 1944 [A 1825]. </p>
+              <p>11. Bulletin législatif Dalloz. Lois, décrets, arrêtés, circulaires, etc. Paris, 1939-1949 [W 583]. </p>
+              <p>12. Bulletin mensuel d'informations économiques (Ministère de l'économie nationale. Direction de la Documentation et des études économiques). Parie, 1945-1947 [A 765]. </p>
+              <p>13. Bulletin officiel annoté de tous les ministères (lois, décrets, circulaires, instructions). Paris, 1939-1944 [W 622]. </p>
+              <p>14. Bulletin officiel du Ministère de l'Intérieur. Parie, 1939-1948 [W 623]. </p>
+              <p>15. Circulaire d'information économique générale éditée par le Centre d'information interprofessionnel. Parie, n° 1-37, 1942-1944 [A 586]. </p>
+              <p>16. Courrier quotidien (Centre national d'information économique). Paris, 1945-1947 [A 935]. </p>
+              <p>17. Documents (Les) français. Revue des hautes études politiques, sociales, économiques et financières. Paris, 1942-1944 ; devenu France Documents. Revue d'études politiques, sociales, économiques et financières, nouv. série. Paris, 1947-1949 [A 349]. </p>
+              <p>18. Droit social. Revue des rapports professionnels de l'organisation de la production et du travail. Paris, 1942-1943 [A 1851]. </p>
+              <p>19. Evolution de la situation économique française. Confidentiel (Ministère de l'économie nationale. Direction de la documentation et des études économiques). Paris, </p>
+              <p>n° 6-99, 1945-1946 [A 807]. </p>
+              <p>20. Evolution hebdomadaire de la situation économique (Centre national d'information économique). Paris, n° 43-159, 1945-1948 [A 1039]. </p>
+              <p>21. Finances françaises. Paris, n° 1-5, 1941-1942 [A 588]. </p>
+              <p>22. Guide périodique de l'Administration française (Centre national d'information économique. Editions Droit social). Paris, 1942-1948 [A 1209]. </p>
+              <p>23. Informations générales. Bulletin hebdomadaire (Etat français. Secrétariat d'Etat à l'Intérieur. Bureau d'études juridiques et de documentation générale). Paris, n° 1-203, 1940-1944 [A 582]. </p>
+              <p>24. Journal officiel de la République Française. Paris, 1938-1948. [Du 4 janvier 1941 (n" 4) au 25 août 1944 (n° 204) devient Journal officiel de l'Etat Français ; L'édition Journal officiel de la République Française (Alger, puis Paris, reprend au 10 juin 1943)]. </p>
+              <p>25. Notes hebdomadaires d'information économique (Centre national d'information économique. Bureau central d'information). Paris, n° 1-14, 1945-1946 [A 786]. </p>
+              <p>26. Nouvelles (Les) économiques. Informations industrielles, commerciales, agricoles et financières. Paris, n° 1, avril 1945 [A 1811]. </p>
+              <p>27. Petit (Le) officiel de l'Industrie et du Commerce français placé sous le patronage officiel du Ministère du Commerce et de l'Industrie. Nancy, 1942 [A 1817]. </p>
+              <p>28. Rapport sur la situation économique (Confidentiel). (Ministère des Finances et de l'Economie nationale. Service national des statistiques. Institut de conjoncture). Paris, 1940-1945 [A 932]. </p>
+              <p>29. Recueil des actes administratifs. Préfecture de Seine-et-Marne. Melun, 1942-1949 [A 792]. </p>
+              <p>30. Revue hebdomadaire de la presse économique (Centre national d'information économique). Paris, n°8-68, 1945-1947 [A 933]. </p>
+              <p>31. Situation économique (Institut national de la statistique et des études économiques. Direction générale). Paris, 1941-1943 [A 1138]. </p>
+              <p>32. Tribune (La) économique, financière, sociale, politique. Paris, n° 2, avril 1945 [A 1810]. </p>
+              <p>33. Verordnungsblatt für die besetzten französischen Gebiete. Journal officiel contenant les ordonnances arrêtées par le Gouverneur militaire pour les territoires français occupés. Paris, juillet-octobre 1940 ; devenu Verordnungsblatt des Militärbefehlshabers in Frankreich. Paris, octobre 1940-1944 [A 581]. </p>
+              <p>34. Vie (La) industrielle, commerciale, agricole, financière. Quotidien économique du soir. Paris, n° 629-783, mai-décembre 1943 [A 596]. </p>
+              <p>Région de Châlons-sur-Marne </p>
+              <p>35. Bulletin officiel du Commissariat de la République française. Région de Châlons-sur-Marne /'Aube Haute-Marne et Marne). Châlons-sur-Marne, n" 1-52, 1944-1946 [A 1092]. </p>
+              <p>36. Guide des Maires (Préfecture de la Marne). Châlons-sur-Marne, 1939-1942 [W 635]. </p>
+              <p>37. Recueil des actes administratifs (Préfecture de l'Aube). Troyes, 1938-1948 [A 599]. </p>
+              <p>38. Recueil des actes administratifs (Préfecture de la Haute-Marne). Chaumont, 1939-1948 [A 598]. </p>
+              <p>39. Recueil des actes administratifs (Préfecture des Ardennes). Charleville, 1944-1949 [A 791]. </p>
+              <p>40. Recueil des actes administratifs (Préfecture de l'Aisne). Laon, 1942-1943 ; devenu Bulletin d'information et recueil des actes administratifs. Département de l'Aisne. Laon, 1943-1949 [A 790]. </p>
+              <p>Recueil des actes administratifs de la Préfecture de la Marne. Châlons-sur-Marne, 1939-1948 [W 624]. </p>
+              <p>II - TRAVAIL ET MAIN-D'&#x0152;UVRE</p>
+              <p>42. Bibliographie des ouvrages reçus par la bibliothèque du Centre d'information interprofessionnel. [Paris], 1941-1944 [A 680]. </p>
+              <p>43. Bulletin de documentation (République française. Ministère du Travail et de la Sécurité sociale). Paris, n°l-4, avril-juillet 1945 [A 746]. </p>
+              <p>44. Bulletin de la Charte du travail. Paris, n° 2-12, 1943-1944 [A 676]. </p>
+              <p>45 Bulletin de la Section de documentation professionnelle et de placement de Paris (Délégation du Ministre-Secrétaire d'Etat à la Guerre). Paris, n° 1. juillet 1941 [A 1819]. </p>
+              <p>4G. Bulletin du centre d'information du travail français en Allemagne. Paris, 1943-1944 [A 339]. </p>
+              <p>47. Bulletin du Centre d'orientation et de réemploi (Ministère du Travail et de la Sécurité sociale. Direction de la main-d'&#x0153;uvre). Paris, 1946-1949 [A 1801]. </p>
+              <p>48. Bulletin du Ministère du Travail et de la Prévoyance sociale (ancien Bulletin de l'Office du travail). Paris, 1939-1946 [W 446]. </p>
+              <p>49. Bulletin social du Maréchal " Le travail des Français est la ressource suprême de la Patrie ". Paris, lre année, n" 2, juin 1942 [A 687]. </p>
+              <p>50. Cadres de France. Bulletin d'information de la Confédération générale des cadres. Paris, n° 16, mars 1946 [A 1809]. </p>
+              <p>51. Centre national de documentation professionnel (Secrétariat d'Etat à l'Education nationale et à la Jeunesse. Conservatoire des Arts-et-Métiers). Paris, 1942 [A 847]. </p>
+              <p>52. Chronique de jurisprudence (Centre d'information interprofessionnel...). Paris, n° 1-2, 1943 [A 1712]. </p>
+              <p>53. Circulaire d'information générale du Centre d'information interprofessionnel. Paris, n° 10-36, 1942-1944 [A 1850]. </p>
+              <p>54. Groupements (Les) patronaux et les entreprises devant la loi du 16 août 1940 (Comité central de l'organisation professionnelle. Documents n° 21). Paris, [1940] [A 1816]. </p>
+              <p>55. Information (L') artisanale, publication mensuelle de l'Office commercial et technique de l'Artisanat, Paris, n° 1-8, 1942 [A 1813]. </p>
+              <p>56. Information (L') ouvrière éditée par le Bureau d'études de la propagande ouvrière (Etat français. </p>
+              <p>? Ministère de l'Information). Paris, n° 8, mars 1944 [A 1807]. </p>
+              <p>57. Métier de chef. Paris, n° 31, 1944 [A 186]. </p>
+              <p>58. Métiers de France. Revue mensuelle de l'artisanat. Paris, n° 4-5, 1942 [A 1795]. </p>
+              <p>59. Note (Centre d'Information interprofessionnel). [Paris], n° 1, 15 juillet 1941 [A 1823]. </p>
+              <p>60. Note d'orientation hebdomadaire (Ministère de l'Information. Centre d'information du travail français en Allemagne). Paris, n" 1-78, 1942-1944 [A 1704]. </p>
+              <p>61. Office des Comités sociaux. Circulaire. Paris n° 2-8, 1942 [A 1797]. </p>
+              <p>62. Procès-verbaux de la réunion... (Commission permanente exécutive des Commissions départementales du Travail de France). Paris, 1938-1943 [A 874]. </p>
+              <p>63. Questions pratiques de législation du travail. Paris, 1943-1949 [A 1659]. </p>
+              <p>64. Revue française du Travail (Ministère du Travail et de la Sécurité sociale). Paris, n° 1-7, avril-octobre 1946 [A 872]. </p>
+              <p>65. Service fiscal (Centre d'information interprofessionnel). Paris, sept.-nov. 1941 [A 772]. </p>
+              <p>66. Travailleurs français en Allemagne. Note d'information (Centre d'Information interprofessionnel). Paris, n" 1-8, 1942-1943 [A 686]. </p>
+              <p>Région de Châlons-sur-Marne </p>
+              <p>67. Bulletin d'information bimensuel-juridique, social, fiscal, économique (G.I.P.E.R. Groupement interprofessionnel patronal d'Epernay et de la région). Epernay, 1938-1943 [A 1606]. </p>
+              <p>68. Bulletin d'information des groupements interprofessionnels de la Marne. Reims, 1943-1948 [A 678]. </p>
+              <p>69. Bulletin d'information du groupement interprofessionnel des syndicats patronaux de Reims et de la région. Reims, n" 95-138, 1940-1942 [A 744]</p>
+              <p>70. Bulletin d'information du Groupement interprofessionnel patronal (Centre interprofessionnel et social). Châlons-sur-Marne, janv.-mars 1944 [A 1833]. </p>
+              <p>72. Secrétariat d'informations économiques de Reims et de la région. Reims, n°l-19, 1942-1943 [A 797].</p>
+              <p>III - PRIX ET CONTROLE ECONOMIQUE</p>
+              <p>73. Bulletin officiel des Services des Prix (Ministère de l'Economie nationale). Paris, 1941-1949 [A 936]. </p>
+              <p>74. Circulaire (Ministère des Finances et des Affaires économiques. Direction générale des prix et du Contrôle économique). Paris, n° 8-47, 1941-1948 [A 1854]. </p>
+              <p>74. Informations confidentielles sur les prix (Ministère de l'Economie nationale. Direction des Prix. Bureau de Documentation). Paris, n° 1-16, 1945-1946 [A 1834]. </p>
+              <p>Revue trimestrielle de liaison et de documentation de la Direction générale du Contrôle des Prix (Contrôle économique IV - AGRICULTURE ET RAVITAILLEMENT). Paris, 1943-1944 [A 1789]. </p>
+              <p>76. Annuaire betteravier publié par la Confédération générale des planteurs de betteraves industrielles. Paris, 1945-1946 [A 1100]. </p>
+              <p>77. Aviculture-Basse-Cour. Revue mensuelle de la production avicole française. Paris, 1945-1948 [A 1468]. </p>
+              <p>78. Bétail et viande. Bulletin de documentation sur le marché de la viande. Organe officiel de la Commission d'organisation du Groupe spécialisé de l'élevage et de la production des animaux de boucherie. Paris, n° 242, mai 1942 [A 1846]. </p>
+              <p>79. Bulletin d'information et de liaison (Comité d'organisation des commerces de l'alimentation). Nancy, n° 2-5, 1943 [A 1836]. </p>
+              <p>80. Bulletin d'information sur le marché mondial des céréales (Office national interprofessionnel des céréales O.N.I.C.), Paris, n° 3-32, 1945-1948 [A 1541]. </p>
+              <p>81. Bulletin d'information sur les questions laitières en France et dans le monde (Présidence du Conseil. Haut-Commissariat au Ravitaillement. Direction de l'approvisionnement. Service du lait). Paris, 1949 [A 689]. </p>
+              <p>82. Bulletin de documentation (Comité central des groupements interprofessionnels laitiers). Paris, 1942 1945 [A 1682]. </p>
+              <p>83. Bulletin de documentation (Ministère de l'Agriculture et du Ravitaillement, Comité central des groupements interprofessionnels laitiers). Paris, 1941-1944 [A 587]. </p>
+              <p>84. Bulletin de documentation sur le marché du blé (Association générale des producteurs de blé et autres céréales).. Paris, 1941-1946 [A 1843]. </p>
+              <p>85. Bulletin de l'Office de renseignements agricoles (Ministère de l'Agriculture). Paris, 1939-1941 [A 378]. </p>
+              <p>86. Bulletin de la Commission nationale d'organisation corporative (Corporation nationale paysanne). Paris, 1941 [A 614]. </p>
+              <p>87. Bulletin de renseignements agricoles (Ministère de l'Agriculture). Paris, 1938-1941 [A 964]. </p>
+              <p>88. Bulletin de statistique agricole à l'usage des services de Vagriculture (Publications du Secrétariat d'Etat à VAgriculture et du Ravitaillement, puis du Ministère de l'Agriculture). Paris, t. I-IV, 1942-1945 [A 589]. </p>
+              <p>89. Bulletin du Syndicat national des vétérinaires de France et des colonies. Paris, 1938-1942 devenu Bulletin de l'Ordre des vétérinaires. Conseil supérieur de l'Ordre. Paris, 1942-1946 devenu Bulletin de l'Ordre et du Syndicat national des vétérinaires de France et des colonies. Paris, 1947-1948 [A 1463]. </p>
+              <p>90. Bulletin intérieur d'information et de documentation (Service provisoire de l'économie laitière). Paris, 1947-1949 [A 1550]. </p>
+              <p>91. Bulletin mensuel d'information sur le marché mondial des céréales (Ministère de l'Agriculture. Office national interprofessionnel des céréales). Paris, 1946-1947 [A 927]. </p>
+              <p>92. Bulletin sanitaire (Ministère de VAgriculture. Service des épizooties). Paris, 1938-1949 [W 417]. </p>
+              <p>93. Cahier statistique du Comité central (Comité central des groupements interprofessionnels laitiers). Paris, ri" 1-34, 1941-1944 [A 590]. </p>
+              <p>94. Circulaire d'information à Vusage des Directions des services agricoles (Ministère de l'Agriculture. Direction de la Production agricole). Paris, n° 2-4, 1945-1946 [A 1798]. </p>
+              <p>95. Circulaire d'information et de coordination viti-vinicole. Paris, n° 3, mai 1946 [A 1841]. </p>
+              <p>96. Communiqué périodique de la Société d'étude et de réalisation des traitements du lait et de ses dérivés. Paris, n° 1-10, 1942-1944 [A 1681]. </p>
+              <p>97. Courrier corporatif des Chambres professionnelles du Nord, Pas-de-Calais, Somme, Aisne, Ardennes et Oise des hôteliers, restaurateurs et débitants de boissons. Lille, oct. 1942 [A 1815]]. </p>
+              <p>98. Courrier de la Presse syndicale paysanne. [Paris], n° 3, juin 1942 [A 1844]. </p>
+              <p>99. Fédération nationale (La), organe corporatif mensuel des Syndicats des expéditeurs de volailles, beurre et &#x0153;ufs. Montargis, 1941-1943 [A 1548]. </p>
+              <p>100. Fédération nationale de la Mutualité et de la Coopération agricoles. Paris, 1943-1945 [A 1847]. </p>
+              <p>101. Fermier (Le). Le Messager du Commerce. L'Agriculture nouvelle. Paris, 1943-1944 [A 1554]</p>
+              <p>102. Industrie (V) laitière. Organe officiel de l'Association laitière française pour le développement de la production et des industries du lait. Paris, n° 24-25, sept.-oct. 1948 [A 1796]. </p>
+              <p>103. Instructions hebdomadaires (Comité central des groupements interprofessionnels laitiers). Paris, 1942-1944 [A 1683]. </p>
+              <p>104. Journal de l'Alimentation. Bulletin d'information professionnelle. Supplément bi-mensuel. Organe du Comité d'organisation des Commerces de l'alimentation et de ses comités de branche. Paris, n° 2-29, 1943-1944 [A 1553]. </p>
+              <p>105. Lait (Le). Revue générale des questions laitières. Paris, 1938-1948 [A 1*72]. </p>
+              <p>106. Meunerie (La) française. Bulletin officiel de l'Association nationale de la meunerie française. Paris, n° 15-42, 1947-1949 [A 1539]. </p>
+              <p>107. Mouton (Le). Revue mensuelle interprofessionnelle. Paris, 1946-1948 [A 1466]. </p>
+              <p>108. Pomme (La) de terre française, organe de documentation technique de la production des plants de pommes de terre sélectionnées. Lille, 1942-1944 [A 1849]. </p>
+              <p>109. Presse agricole étrangère (Ministère de l'Agriculture. Service d'études et de Documentation. Bureau des études). Paris, 1945-1946 [A 1799]. </p>
+              <p>110. Relevé statistique des différentes catégories de consommateurs, édité à l'usage des services du ravitaillement (Publication du Ministère du Ravitaillement). Paris, 1942-1945 [A 1547]. </p>
+              <p>111. Répertoire de documentation administrative à l'usage des services de l'Agriculture et du Ravitaillement (Etat français. Publications du ministère de l'Agriculture et du Ravitaillement). Paris, 1942-1944 [A 591]. </p>
+              <p>112. Revue de presse (Comité central de ravitaillement des fruits et légumes (C.C.R.F.L.). Paris, n° 20-53, 1943 [A 1892]. </p>
+              <p>113. Revue (La) des boissons. Le grand hebdomadaire illustré de la production et du commerce des vins, cidres et eaux-de-vie de France. Paris, n° 388, déc. 1942 [A 1840]. </p>
+              <p>114. Revue des céréales et de la meunerie. Bulletin mensuel de l'Office national interprofessionnel des céréales. Paris, n" 122, juillet 1944 [A 1842]. </p>
+              <p>115. Revue mensuelle de la jurisprudence intéressant l'agriculture et les agriculteurs (Ministère de l'Agriculture et du Ravitaillement). Paris, 1915-1946 [A 1845]. </p>
+              <p>116. Statistique agricole annuelle (Ministère de l'Agriculture. Direction de l'agriculture. Service de la statistique). Paris, 1939-1948 [A 542]. </p>
+              <p>117. Syndicats corporatifs paysans, organe de la Corporation nationale paysanne. Paris, n° 14-17, 1941 [A 1812]. </p>
+              <p>118. Textes législatifs, circulaires officielles, circulaires du Comité central, communications diverses concernant l'organisation de la production laitière (Comité central des groupements interprofessionnels. Ministère de l'Agriculture. Direction de la production agricole). Paris, 1940-1943 [A 709]. </p>
+              <p>119. Union corporative professionnelle des glaciers de France. Paris, sept. 1943 [A 1708]. </p>
+              <p>120. Union (V) ovine. Revue de l'élevage du mouton et du commerce de ses produits. Paris, 1939-1944 [W 425]. </p>
+              <p>Région de Châlons-sur-Marne </p>
+              <p>121. Brdletin d'information du comité d'action agricole de la Marne. Châlons-sur-Marne, déc. 1944 [A 156]. </p>
+              <p>122. Bulletin d'informations (Syndicat départemental de la boulangerie de la Marne). Châlons-sur-Marne, 1940-1948 [A 851]. </p>
+              <p>123. Bulletin trimestriel d'information et de documentation (Comité interprofessionnel du vin de Champagne). Epernay, 1947-1949 [A 1034]. </p>
+              <p>124. Champagne. Organe interprofessionnel du vin de Champagne). Reims, n° 7-10, août-novembre 1943 [A 698]. </p>
+              <p>125. Circulaire (Groupement professionnel de l'Alimentation du département de la Marne). Reims, n° 1-6, sept.-nov. 1939 [A 1814]. </p>
+              <p>126. Circulaire de liaison et d'information pour les commerçants de l'alimentation. Comité général d'organisation du commerce. Comité d'organisation des commerces de l'alimentation. Délégation régionale </p>
+              <p>Lorraine-Champagne. Nancy, 1943-1944 devenu Circulaire d'informations. Comité général d'organisation du commerce. Délégation régionale Lorraine-Champagne. Nancy, 1944-1945 [A 774]. </p>
+              <p>127. Cours agricoles et viticoles de la Champagne. Reims, n° 4-5, 1941 [A 1794]. </p>
+              <p>128. Marne (La), organe de liaison de la famille rurale. Epernay, n° 1, janv. 1945 devenu Chez nous, chez vous, organe de liaison de la famille rurale. Epernay, n° 2, fév. 1945 [A 165]. </p>
+              <p>129. Marne (La) agricole et viticole. Or g arie de l'Union régionale corporative. Reims, n° 1-80, 1941-1944 devenu Marne (La) agricole, organe départemental de la Confédération générale de l'agriculture (C.G.A.). Reims, n° 10-103, 1946-1949 [A 697]. </p>
+              <p>130. Mutuelles (Les) agricoles de l'Est. Compte rendu des assemblées générales de... Langres, 1943 [A 675]. </p>
+              <p>131. Revue (La) Goulet-Turpin. Reims, n° [A 585]. </p>
+              <p>132. Vigneron (Le) champenois. Viticulture, agriculture, horticulture, commerce et industrie. Epernay, 1938-1940, 1945-1948 [W 564]. </p>
+              <p>INDUSTRIES ET PRODUITS INDUSTRIELS</p>
+              <p>133. Annuaire de la Fédération nationale des Syndicats des industries et commerces de la Récupération. Paris, 1947-1948 [A 1055]. </p>
+              <p>134. Bulletin confidentiel de la vie industrielle. Direction - de la Vie industrielle (Bureau de la Conjoncture). </p>
+              <p>Paris, n° 2-10, janv.-août 1945 [A 900]. </p>
+              <p>135. Bulletin d'information de la Direction des industries mécaniques et électriques. Paris, 1943-1944 [A 1685]. </p>
+              <p>136. Bulletin d'information (Comité d'organisation de l'équipement et des branches annexes de l'électricité C.O.E.B.A.). Paris, n° 1-7, 1944-1945 [A 1694]. </p>
+              <p>137. Bulletin d'informations (Office professionnel du commerce des matériaux de construction). Paris, n° 2-14, 1945-1946 [A 1697]. </p>
+              <p>138. Bulletin de documentation (Ministère de la produc tion industrielle. Service central de statistique et de documentation industrielles). Paris, n° 1-11, 1944-1945 [A 930]. </p>
+              <p>139. Bulletin [mensuel] de la Direction des industries chimiques. Paris, 1942-1944 [A 1698]. </p>
+              <p>140. Bulletin de renseignements (Commissariat général aux économies de matières. Ministère de la Production industrielle). Paris, n° 16, janvier 1945 [A 1831]. </p>
+              <p>141. Bulletin de renseignements destiné aux délégués régionaux (Ministère de la Production industrielle. Direction des industries mécaniques et électriques). Paris, 1943 devenu Bulletin de renseignements destiné aux délégués de province (Ministère de la Production industrielle. Direction des industries mécaniques et électriques). Paris, 1944-1946 [A 1684]. </p>
+              <p>142. Bulletin de renseignements destinés aux délégués régionaux (Ministère de la Production industrielle et des communications. Direction du bois, des industries diverses et des transports industriels). Paris, n° 2-7, </p>
+              <p>1944 [A 1719]. </p>
+              <p>143. Bulletin mensuel d'information du Syndicat général des fondeurs de France. Paris, 1943-1945 [A 1688]. </p>
+              <p>144. Bulletin mensuel de l'Office central de répartition de produits industriels (Service de la coordination de l'information, de la documentation). Paris, n° 17-32, 1943-1944 [A 822]. </p>
+              <p>145. Bulletin mensuel de statistique industrielle (Ministère de la production industrielle. Direction de la coordination industrielle. Service central de statistique et de documentation industrielles). Paris, 1943-1947 [A 902]. </p>
+              <p>146. Bulletin officiel de la section de récupération et de mobilisation de l'Office central de répartition des produits industriels. Paris, n° 1-52, 1941-1945 [A 679]. </p>
+              <p>147. Bulletin officiel de la Section textile et de l'Office de répartition des produits industriels et de l'Office professionnel de l'industrie textile. Paris, n° 1-49, mars 1945-fév. 1946 [A 766]. </p>
+              <p>148. Bulletin officiel du service de la récupération et de l'utilisation des déchets et vieilles matières. Paris, n° 1-47, août 1941-mars 1944 [A 167]. </p>
+              <p>149. Carburants (Les) nationaux. Informations officielles du Comité d'organisation de l'industrie des gazogènes pour moteurs à explosion et à combustion interne. Paris, 1943-1944 [A 1689]. </p>
+              <p>150. Circulaire (Comités professionnels provisoires du Bâtiment, de la Construction métallique et des Travaux publics. Institut technique du bâtiment et des travaux publics). Paris, n° 11, juin 1945 [A 1828]. </p>
+              <p>151. Circulaire à MM. les Commissaires régionaux de la République et à MM. les Préfets (Section du Pétrole et des Carburants de l'Office central de répartition des Produits industriels). Paris, mars 1945 [A 1832]</p>
+              <p>152. Circulaire d'information (Comité d'organisation de l'industrie aéronautique). Paris, n° 19-20, mars-juin </p>
+              <p>1945 [A 1713]. </p>
+              <p>153. Circulaire d'information de l'office professionnel des commerces d'art (O.P.C.A.). Commerces d'horlogerie, bijouterie, joaillerie, orfèvrerie, objets d'art, commerces des antiquités et objets de collection. Paris, n° 3, sept.-oct. 1945 [A 1705]. </p>
+              <p>154. Circulaire d'information du Comité d'organisation de l'habillement. Paris, juin 1945 [A 1827]. </p>
+              <p>155. Circulaire du Comité d'organisation des industries, arts et commerces du livre. Paris, n° 2-82, 1941-1944 devenu Office professionnel des industries, arts et commerces du livre. Paris, n° 3-7, 1945 [A 1714]. </p>
+              <p>156. Circulaire générale (Office professionnel général de la transformation des métaux). Paris, 1945-1946 [A 1692]. </p>
+              <p>157. Circulaire officielle (Comité social national des industries chimiques). Paris, n° 2-6, 1943-1944 [A 1722]. </p>
+              <p>158. Circulaire périodique du Comité d'organisation des machines thermiques, hydrauliques et pneumatiques. Paris, 1941-1942 devenu CORMAT. Circulaire générale du Comité d'organisation des machines thermiques, hydrauliques et pneumatiques. Paris, 1942-1945 [A 1686]. </p>
+              <p>159. Comité d'organisation de l'industrie et du commerce des appareils de levage et manutention, des matériels de travaux publics, mines et usines sidérurgiques. Paris, 1943-1944 [A 1687]. </p>
+              <p>160. Comité d'organisation des industries de la construction électrique C.O.C.E.L.E.C. Paris, n° 23-40, 1943-1945 devenu Office professionnel des industries de la construction électrique I.N.D.E.L.E.C. Paris, n° 41-54, 1945-1946 [A 1693]. </p>
+              <p>161. Compte rendu d'activité de la Direction de la laine (Comité général d'organisation de l'industrie textile). Paris, 1942 [A 1716]. </p>
+              <p>162. Corps gras. Savons. Revue technique et professionnelle éditée par les Presses documentaires sous le patronage du Comité général d'organisation des corps gras. Paris, t. III, 1943-1944 [A 903]. </p>
+              <p>163. Journal des textiles. Bulletin officiel de la Section textile de l'Office central de répartition des produits industriels. Paris, n° 80-155, 1943-1944 [A 1695]. </p>
+              <p>164. Note d'information (Office central de répartition des produits industriels). Paris, n° 1-23, 1944-1945 [A 1700]. ... </p>
+              <p>165. Note d'information (Office central de répartiition des produits industriels. Section des matériaux de construction et des produits divers. Groupe de matériaux de construction). Paris, n° 1, 1941 [A 1717]. </p>
+              <p>166. Note d'information des comités d'organisation des industries et métiers d'art et des commerces d'horlogerie, bijouterie, joaillerie, orfèvrerie et objets d'art. Paris, 1942-1944 devenu Note d'information du groupe des industries et métiers d'art (Office professionnel des industries et métiers d'art et de création). Paris, 1945 [A 1706]. </p>
+              <p>167. Note bi-mensuelle de la Section de documentation économique et juridique de la Bibliothèque centrale. (Ministère de la production industrielle. Service central de statistique et de documentation industrielle). Paris, n" 1-34, 1944-1945 [A 928]. </p>
+              <p>168. Note hebdomadaire sur la situation de l'industrie (Ministère de la Production industrielle). Paris, n" 8-73, 1945-1946 [A 1699]. </p>
+              <p>169. Pouls (Le) du bois. Feuille de liaison des spécialistes des industries du bois (Direction générale du Contrôle économique). Paris, n° 5, 1946 [A 1839]. </p>
+              <p>170. Rapports semestriels sur la réalisation du plan de modernisation et d'équipement (Commissariat général du plan de modernisation et d'équipement). Paris, 1947-1948 [A 1213]. </p>
+              <p>171. Recueil C.O.F.E.R.A. (Comité d'organisation de l'industrie et du commerce des ferrailles). Paris, 1941-1944 [A 1715]. </p>
+              <p>172. Recueil de documentation, puis Bulletin (Comité d'organisation de l'industrie et du commerce de l'automobile et du cycle). Paris, 1942-1945 [A 1690]. </p>
+              <p>173. Recueil de documentation technique (Ministère de la production industrielle. Bureau de documentation). Paris, n° 1-19, 1945-1946 [A 929]. </p>
+              <p>174. Recueil mensuel de documentation pratique édité par l'Office professionnel de la, mécanique de précision et de l'optique. Paris, n° 1-4, 1945-1946 [A 1691]. </p>
+              <p>175. Relevés des attributions de combustibles liquides (O.C.R.P.I. Section du Pétrole et des Carburants). S. 1., 1945-1946 [A 1663]. </p>
+              <p>176. Résumé des rapports de MM. les Inspecteurs généraux de la Production industrielle. Service central de l'Inspection générale. Paris, 1945-1946 [A 901]. </p>
+              <p>177. Statistique de la production et de la distribution de l'énergie électrique en France (Ministère de la Production industrielle. Service central de l'Electricité). Paris, 1939-1945 [A 1793]. </p>
+              <p>178. Supplément du Bulletin mensuel (Office central de répartition des produits industriels. Service de l'information et de la documentation). Paris, 1942-1944 [A 1720]. </p>
+              <p>179. Textiles. Bulletin du Comité général d'organisation de l'Industrie textile. Paris, 1941-1942 [A 1329]. </p>
+              <p>Région de Châlons-sur-Marne </p>
+              <p>180. Assemblée générale et communications (Alliance corporative des industries et commerces textiles de Reims et de la Région). Reims, 1942 [A 1852]. </p>
+              <p>VI - COMMERCE</p>
+              <p>181. Bulletin central du Comité général d'organisation du commerce. Paris, n° 4-23, 1942-1944 devenu Bulletin d'information de l'Office interprofessionnel de la distribution, organisation professionnelle des commerces alimentaires et non alimentaires. Paris, n° 1-6, 1945-1946 [A 743]. , </p>
+              <p>182. Informations pour les commençants. Comité général d'Organisation du Commerce. Paris, n° 2-19, 1941-1942 [A 1837]. </p>
+              <p>183. Circulaire du comité d'organisation des professions de la publicité. Paris, n° 2-8, 1942-1944 devenu Circulaire de l'Office professionnel de la publicité. Paris, n" 1, 1945 [A 1707]. </p>
+              <p>Région de Châlons-sur-Marne </p>
+              <p>184. Bulletin d'information (Chambre de commerce de Châlons-sur-Marne). Châlons-sur-Marne, n° 14-24, 1945-1947 [A 1696]. </p>
+              <p>185. Bulletin d'informations pour les commerçants (Comité général d'organisation du commerce). (Loi du 16 août 19i0). Délégation régionale Lorraine-Champagne). Nancy, n° 1-25, 1942-1944 [A 592]. </p>
+              <p>Bulletin hebdomadaire de la Délégation régionale pour la région de l'Est du C.G.O.C. (Comité générald'organisation du commerce). Nancy, 1943 devenu Note d'information pour les bureaux départementaux de la Délégation régionale Lorraine-Champagne du C.G.O.C. Nancy, 1943-1944 [A 1701]. </p>
+              <p>187. Bulletin mensuel de la Chambre de Commerce de Chdlons-sur-Marne (Arrondissements de Chilons-sur-Marne, Sainte-Menehould et Vitry-le-François). Châ-lons-sur-Marne, 1938-1940 devenu Procès-verbaux des séances (Chambre de Commerce de Châlons-sur-Marne). Châlons-sur-Marne, 1941-1949 [W 403]. </p>
+              <p>188. Bulletin périodique de la Fédération des commerçants en détail de Reims et de la Région. Reims, n° 34-61, 1945-1949 [A 1021]. </p>
+              <p>189 Bulletin trimestriel (Chambre de commerce de Troyes). Troyes, 1941-1946 [A 773]. </p>
+              <p>190. Champagne (La) économique. Revue mensuelle éditée par la Chambre de commerce de Reims-Epernay. Reims, 1946-1949 [A 839]. </p>
+              <p>191. Compte rendu des séances (Chambre de commerce de Nancy). Nancy, 1941-1946 [A 1545]. </p>
+              <p>192. Comptes rendus des reunions (Chambre de Commerce de Troyes). Troyes, 1942-1946 [A 1802]. </p>
+              <p>193. Comptes rendus des séances (Chambre de Commerce de Charleville). Charleville, 1944-1945 [A 1803]. </p>
+              <p>194. Informations destinées aux délégués départementaux et chefs de groupes relais d'arrondissement du C.G.O.C. (Comité général d'organisation du commerce). Nancy, n° 4-10, 1941-1944 [A 1703]. </p>
+              <p>195. Informations pour les ressortissants du C.G.O.C. (Comité général d'organisation du commerce. Délégation de l'Est. Etat Français). Nancy, 1941-1943 [A 775]. </p>
+              <p>196. iVofe d'information pour les délégués départementaux de la Délégation régionale du C.G.O.C. Lorraine et Champagne (Comité général d'organisation du commerce). Nancy, 1943-1944 [A 1702]. </p>
+              <p>197. Procès-verbaux des séances. Groupements professionnels (Chambre de Commerce de Chdlons-sur-Marne). Châlons-sur-Marne, 1941-1944 [A 1805]. </p>
+              <p>198. Procès-verbaux des séances (Chambre de Commerce de Sedan). Sedan, 1943-1946 [A 1804]. </p>
+              <p>199. Région économique de l'Est. Réunion régionale. Assemblée générale. Nancy, 1940-1943 [A 1710]. </p>
+              <p>200. Séances et travaux (Chambre de Commerce de Reims). Reims, 1938-1945 [W 409].</p>
+              <p>VII - TRANSPORTS</p>
+              <p>201. Bulletin des Transports et du Commerce, organe de la Ligue de défense industrielle et commerciale. Paris. 1946-1948 [A 1090]. </p>
+              <p>202. Circulaire d'information du C.O.T.B. [Comité d'Organisation des transports routiers]. Paris, mai-juillet 1942 [A 1838]. </p>
+              <p>Région de Châlons-sur-Marne </p>
+              <p>203. Bulletin de renseignements du Groupement départemental des transports routiers de la Marne. Châlons-sur-Marne, 1941 devenu Bulletin d'informations du Groupement départemental des transports routiers de la Marne (Comité d'organisation des transports routiers). Châlons-sur-Marne, 1941-1943 [A 1800]. </p>
+              <p>204. Bulletin trimestriel de la Région économique de l'Est et de l'Office des transports de l'Est. Nancy, n°l., oct.-déc. 1946 [A 887]. </p>
+              <p>Documentation (Syndicat des transports routiers de la Marne et de la Haute-Marne). Châlons-sur-Marne, 1945-1949 [A 1019].</p>
+            </bibliography>
+            <processinfo>
+              <processinfo type="rédacteur description">
+
+                <head>Rédacteur de la description</head>
+                <p>
+                  <persname role="auteur_description">René Gandilhon avec la collaboration dévouée de tout le personnel des Archives de la Marne et tout particulièrement de Mme Cavanelle, sous-archiviste, de MM. Ferrand, sous-archiviste et Michelet, commis principal, de Mme Bloquel et de M. Lemoine, employés de bureau.</persname>
+                </p>
+              </processinfo>
+            </processinfo>
+            <controlaccess>
+
+              <head>Descripteurs</head>
+              <subject source="contexte-historique">GUERRE 1939-1945</subject>
+              <genreform type="typir">Recherche détaillée</genreform>
+            </controlaccess>
+            <dsc type="in-depth">
+              <c id="a011466673043OiEzoO" level="otherlevel" otherlevel="groupe-de-fonds">
+                <did>
+                  <unitid label="Cotes extrêmes">
+                    <extptr xlink:href="http://portail.cg51.mnesys.fr/ark:/86869/a011466673043OiEzoO" />204 M 1-1749</unitid>
+                  <unittitle type="titre" label="Intitulé de l'unité documentaire">Fonds régionaux</unittitle>
+                  <unitdate label="Date de l'unité documentaire" normal="1940-01-01/1944-12-31" type="inclusive">1940-1944</unitdate>
+                </did>
+                <c id="a011466673043hvaWYo" level="fonds">
+                  <did>
+                    <unitid label="Cotes extrêmes">
+                      <extptr xlink:href="http://portail.cg51.mnesys.fr/ark:/86869/a011466673043hvaWYo" />204 M 1-56</unitid>
+                    <unittitle type="titre" label="Intitulé de l'unité documentaire">Préfecture régionale de Châlons-sur-Marne devenue commissariat de la République française pour la région de Châlons-sur-Marne</unittitle>
+                    <unitdate label="Date de l'unité documentaire" normal="1939-01-01/1954-12-31" type="inclusive">1939-1954</unitdate>
+                    <physdesc label="Description physique">
+                      <extent type="nombre elements" label="Nombre d'éléments">56 articles.</extent>
+                      <lb/>
+                    </physdesc>
+                    <origination label="Origine">
+                      <corpname role="producteur" altrender="administration">Préfecture régionale de Châlons-sur-Marne, devenue Commissariat de la République française pour la Région de Châlons-sur-Marne.</corpname>
+                    </origination>
+                  </did>
+                  <bioghist>
+
+                    <head>Biographie ou histoire</head>
+                    <p>La Préfecture régionale de Châlons-sur-Marne a été créée en application de la loi du 19 avril 1941, par décret du 26 août 1941. L'ordonnance du 10 janvier 1944 du Comité français de Libération nationale, puis l'ordonnance du Gouvernement provisoire de la République Française du 3 juin 1944 prévoyaient la suppression des Préfectures régionales et leur transformation en Commissariat de la République Française. Le changement eut lieu pour la Région de Châlons-sur-Marne le 29 août 1944. Le Commissariat de la République Française fut à son tour supprimé par la loi du 26 mars 1946.</p>
+                    <p>Compétence territoriale : Aube, Marne, Haute-Marne.</p>
+                    <p>Siège : Châlons-sur-Marne, rue Carnot.</p>
+                  </bioghist>
+                  <c id="a01146667304327Wjje" level="recordgrp">
+                    <did>
+                      <unitid label="Cotes extrêmes">
+                        <extptr xlink:href="http://portail.cg51.mnesys.fr/ark:/86869/a01146667304327Wjje" />204 M 1-6</unitid>
+                      <unittitle type="titre" label="Intitulé de l'unité documentaire">Généralités</unittitle>
+                      <unitdate label="Date de l'unité documentaire" normal="1942-01-01/1946-12-31" type="inclusive">1942-1946</unitdate>
+                    </did>
+                    <c id="a011466673043On0ZlI" level="file">
+                      <did>
+                        <unitid label="Cotes extrêmes">
+                          <extptr xlink:href="http://portail.cg51.mnesys.fr/ark:/86869/a011466673043On0ZlI" />204 M 1</unitid>
+                        <unittitle label="Intitulé de l'unité documentaire">Situation matérielle des administrations publiques</unittitle>
+                        <unitdate label="Date de l'unité documentaire" normal="1945-01-01/1945-12-31">1945</unitdate>
+                      </did>
+                      <scopecontent>
+
+                        <head>Présentation du contenu</head>
+                        <p>Résultats de l'enquête du Secrétariat général pour les affaires économiques.</p>
+                      </scopecontent>
+                      <controlaccess>
+
+                        <head>Descripteurs</head>
+                        <subject source="contexte-historique">GUERRE 1939-1945</subject>
+                      </controlaccess>
+                    </c>
+                    <c id="a0114666730436Aq4dF" level="file">
+                      <did>
+                        <unitid label="Cotes extrêmes">
+                          <extptr xlink:href="http://portail.cg51.mnesys.fr/ark:/86869/a0114666730436Aq4dF" />204 M 2</unitid>
+                        <unittitle label="Intitulé de l'unité documentaire">Génie rural</unittitle>
+                        <unitdate label="Date de l'unité documentaire" normal="1944-01-01/1945-12-31" type="inclusive">1944-1945</unitdate>
+                      </did>
+                      <scopecontent>
+
+                        <head>Présentation du contenu</head>
+                        <p>Instructions et correspondance concernant le fonctionnement du service ; affaires particulières avec des communes.</p>
+                      </scopecontent>
+                      <controlaccess>
+
+                        <head>Descripteurs</head>
+                        <subject source="contexte-historique">GUERRE 1939-1945</subject>
+                      </controlaccess>
+                    </c>
+                  </c>
+                </c>
+              </c>
+            </dsc>
+          </archdesc>
+        </ead>
+      </metadata>
+    </record>
+  </ListRecords>
+</OAI-PMH>

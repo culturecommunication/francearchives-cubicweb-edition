@@ -1,0 +1,24 @@
+include *.py
+include */*.py
+recursive-include cubicweb_frarchives_edition *.py
+recursive-include cubicweb_frarchives_edition/data *.css *.eot *.gif *.ico *.js *.map *.png *.pt *.svg *.ttf *.woff *.woff2
+recursive-include cubicweb_frarchives_edition/i18n *.po
+recursive-include cubicweb_frarchives_edition/wdoc *
+include cubicweb_frarchives_edition/alignments/*.json
+include cubicweb_frarchives_edition/views/templates/*.jinja2
+include cubicweb_frarchives_edition/templates/*.sql
+include cubicweb_frarchives_edition/tasks/*.json
+recursive-include test/data bootstrap_cubes *.py
+include tox.ini
+include .coveragerc
+
+recursive-include debian changelog compat control copyright rules
+include cubicweb-frarchives-edition.spec
+
+include package.json
+include .babelrc
+include webpack.config.js
+recursive-include appjs *.js
+
+
+

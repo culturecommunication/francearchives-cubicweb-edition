@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+  <responseDate>2016-12-12T10:03:53Z</responseDate>
+  <request verb="ListRecords" metadataPrefix="ead">http://portail.cg51.mnesys.fr/oai_pmh.cgi</request>
+  <ListRecords>
+    <record>
+      <header>
+        <identifier>86869/a011349628476eWWr7u</identifier>
+        <setSpec>FRAD055_REC</setSpec>
+        <setName>FRAD055</setName>
+        <datestamp>2011-06-24</datestamp>
+      </header>
+      <metadata>
+        <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+          <dc:identifier>https://recherche-archives.doubs.fr/ark:/25993/a011369750208WU2TRM</dc:identifier>
+          <dc:title>62J Ordre et syndicat des architectes</dc:title>
+          <dc:description>description</dc:description>
+          <dc:date>1865-1981</dc:date>
+          <dc:type>fonds</dc:type>
+          <dc:publisher>Archives départementales du Doubs</dc:publisher>
+          <dc:relation>vignette 1</dc:relation>
+          <dc:relation>vignette 2</dc:relation>
+          <dc:rights>Les documents peuvent être reproduits sous réserve de leur bon état de conservation. La reproduction et la réutilisation des documents sont soumises aux dispositions du règlement général de réutilisation des informations publiques des Archives départementales du Doubs. </dc:rights>
+          <dc:language xmlns:dir="http://apache.org/cocoon/directory/2.0">eng</dc:language>
+          <dc:type>fake type</dc:type>
+          <dc:format>8.0</dc:format>
+          <dc:source>62J-105</dc:source>
+          <dc:subject>Architecture</dc:subject>
+          <dc:subject>Livre</dc:subject>
+          <dc:creator>Archives départementales de la Meuse</dc:creator>
+          <dc:coverage>France</dc:coverage>
+          <dc:contributor>Jean Valjean</dc:contributor>
+          <dc:contributor>Victor Hugo</dc:contributor>
+        </oai_dc:dc>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>76769/a011349628476eWWr7u</identifier>
+        <setSpec>FRAD055_REC</setSpec>
+        <setName>FRAD055</setName>
+        <datestamp>2011-06-24</datestamp>
+      </header>
+      <metadata>
+        <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+          <dc:identifier>https://recherche-archives.doubs.fr/ark:/25993/a011369750208WU2TRT</dc:identifier>
+          <dc:title>62J1 Ordre et syndicat des architectes</dc:title>
+          <dc:description>description</dc:description>
+          <dc:date>02/02/1865</dc:date>
+          <dc:type>fonds</dc:type>
+          <dc:publisher>Archives départementales du Doubs</dc:publisher>
+          <dc:rights>Les documents peuvent être reproduits sous réserve de leur bon état de conservation. La reproduction et la réutilisation des documents sont soumises aux dispositions du règlement général de réutilisation des informations publiques des Archives départementales du Doubs. </dc:rights>
+          <dc:language xmlns:dir="http://apache.org/cocoon/directory/2.0">eng</dc:language>
+          <dc:language xmlns:dir="http://apache.org/cocoon/directory/2.0">fra</dc:language>
+          <dc:type>fake type 2</dc:type>
+          <dc:format>12.19</dc:format>
+          <dc:format>text/html</dc:format>
+          <dc:source>62J1-205</dc:source>
+          <dc:subject>France</dc:subject>
+          <dc:creator>Archives départementales de la Meuse</dc:creator>
+          <dc:coverage>Paris</dc:coverage>
+          <dc:contributor>Jean Marais</dc:contributor>
+        </oai_dc:dc>
+      </metadata>
+    </record>
+  </ListRecords>
+</OAI-PMH>

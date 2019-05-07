@@ -1,0 +1,138 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE ead PUBLIC "+//ISBN 1-931666-00-8//DTD ead.dtd (Encoded Archival Description (EAD) Version 2002)//EN" "ead.dtd">
+<ead audience="external">
+  <eadheader>
+    <eadid>FRMAEE_0001MA30</eadid>
+    <filedesc>
+      <titlestmt>
+	<titleproper>MAROC / Secrétariat particulier du résident général</titleproper>
+	<subtitle/>
+	<author/>
+      </titlestmt>
+      <publicationstmt>
+	<publisher>Ministère des Affaires étrangères et du Développement international -
+	Archives diplomatiques</publisher>
+	<address>
+	  <addressline>3 rue Suzanne Masson</addressline>
+	  <addressline>93126 La Courneuve Cedex</addressline>
+        </address>
+	<date normal=""/>
+      </publicationstmt>
+    </filedesc>
+    <profiledesc>
+      <creation>Instrument de recherche produit au moyen du logiciel Mnesys classement de la
+      société Naoned Systèmes</creation>
+      <langusage>Instrument de recherche rédigé en <language langcode="fre"
+      >français</language></langusage>
+    </profiledesc>
+  </eadheader>
+  <archdesc level="subfonds" id="a011407744957yxLqbG">
+    <runner>MAROC / Secrétariat particulier du résident général</runner>
+    <did>
+      <unittitle>MAROC / Secrétariat particulier du résident général</unittitle>
+      <repository>Centre des archives diplomatiques de Nantes</repository>
+      <unitdate normal="1947-06-15/1950-12-20" type="bulk">15/06/1947-20/12/1950</unitdate>
+      <unitid identifier="1MA/30/1-1MA/30/20">1MA/30/1-20</unitid>
+      <origination>Secrétariat particulier du général Alphonse Juin, résident général de
+      France au Maroc.</origination>
+      <unitdate normal="1945-01-01/1951-12-31" type="inclusive">1945-1951</unitdate>
+    </did>
+    <controlaccess>
+      <geogname>Maroc</geogname>
+    </controlaccess>
+    <relatedmaterial><p><archref
+			    href="medias/Intruments de recherche bureautiques/CADN/MA/Résidence générale/9BIP_1914-1961.pdf"
+			    title="Voir l'instrument de recherche" altrender="icon_pdf">Voir l'instrument de
+    recherche</archref></p></relatedmaterial>
+    <separatedmaterial><p><archref
+			      href="medias/Intruments de recherche bureautiques/CADN/MA/Résidence générale/FRMAEE_MN_179CPCOM_Maroc.pdf"
+			      title="Voir l'instrument de recherche" altrender="icon_pdf">Voir l'instrument de
+    recherche</archref></p></separatedmaterial>
+    <otherfindaid><p><archref
+			 href="medias/Intruments de recherche bureautiques/CADN/MA/Résidence générale/FRMAEE_MN_179CPCOM_Maroc.pdf"
+			 title="Voir l'instrument de recherche" altrender="icon_pdf">Voir l'instrument de
+    recherche</archref></p></otherfindaid>
+    <otherfindaid><p><archref
+			 href="medias/Intruments de recherche bureautiques/CADN/MA/Résidence générale/FRMAEE_MN_179CPCOM_Maroc.pdf"
+			 title="Voir l'instrument de recherche" altrender="icon_pdf">Voir l'instrument de
+    recherche</archref></p></otherfindaid>
+    <note type="mnesysinternal">
+      <p/>
+    </note>
+    <accessrestrict type="formate"/>
+    <custodhist>
+      <p>Ces archives ont été rapatriées dans le désordre avec les minutiers du cabinet civil.
+      Elles portaient, au moment du rapatriement, les numéros 527 à 543 (minutiers) et 565
+      (fichier horizontal) de l'inventaire n°14. Identifiées et provisoirement rangées
+      sous les numéros 435A à 438E lors du reconditionnement de la correspondance en 2000,
+      elles ont été inventoriées et classées séparément en août 2014, en y incluant un
+      résidu de fichier alphabétique non coté.</p>
+      <p>Une collection de courriers confidentiels du secrétariat particulier aurait dû
+      accompagner cette série mais elle n'a pas été retrouvée.</p>
+    </custodhist>
+    <scopecontent>
+      <p>Un fichier alphabétique ouvre la série. Il recense, sur fiches cartonnées, tous les
+      correspondants qui sont entrés en relation avec le secrétariat particulier du
+      général Juin, résident général de France au Maroc, entre juin 1947 et juillet 1951.
+      Pour chacun, la fiche indique sommairement le contenu du courrier, sa référence, sa
+      date, que ce soit pour les courriers à l'arrivée ou au départ. Compte tenu du fait
+      que seuls les courriers au départ nous sont parvenus, ce fichier comble une lacune
+      pour la connaissance des courriers reçus.</p>
+      <p>Les 17 registres qui suivent contiennent les minutes des courriers expédiés par le
+      secrétariat particulier. Ces courriers étaient signés par le général Juin, par son
+      épouse, ou encore par le chef du secrétariat particulier. Le rôle du secrétariat
+      particulier se limite bien souvent à répondre aux sollicitations et autres
+      interventions en vue d'obtenir qui un prêt, qui un emploi, qui... des cartouches de
+      chasse ! Le contexte de l'immédiat aprèsguerre explique le nombre des personnes
+      revenues sur le marché de l'emploi et qui se tournent spontanément vers leurs
+      anciens chefs. Mais le secrétariat particulier est aussi chargé de répondre aux
+      courriers plus&#160; personnels adressés au résident ès qualités, et c'est là, sans
+      doute, le principal intérêt de ces registres.</p>
+      <p>La collection s'interrompt malheureusement le 20 décembre 1950, le jour même où
+      éclate entre le sultan et le Glaoui l'incident qui officialise la rupture entre les
+      deux hommes. Dans les jours qui précèdent, nombreuses sont les lettres de soutien
+      qui parviennent au secrétariat particulier et témoignent des jeux d'influence
+      colonialiste qui entourent le résident.</p>
+    </scopecontent>
+    <arrangement>
+      <p>Classement chronologique des minutes. Outre le fichier alphabétique cartonné, une
+      table alphabétique des correspondants est contenue à la fin de certains
+      registres.</p>
+    </arrangement>
+    <bioghist>
+      <p>L'arrivée du général Juin au Maroc répond à une volonté de reprise en main du
+      protectorat et de son turbulent sultan, qui vient, par le fameux discours de Tanger
+      (10 avril 1947), de prendre la tête des revendications nationalistes. Le résident
+      Eirik Labonne aussitôt limogé, celui-ci est remplacé par le général Juin, qui fait
+      son entrée à Rabat le 28 mai 1947.</p>
+      <p>Il y restera jusqu'en juillet 1951, et cette période sera marquée par la crispation
+      des relations entre le palais et la résidence générale, pour aboutir en août 1953 à
+      la destitution du sultan Mohammed ben Youssef et à son exil. Dès l'entrée officielle
+      du général Juin à Rabat, le chef du secrétariat particulier est le
+      lieutenant-colonel de Bernède, qui occupera ce poste jusqu'à sa mort survenue
+      brutalement en septembre 1950. Après cette date, le secrétariat est tenu par G.
+      Stehelin, qui porte le titre de chef par intérim. La série des minutiers
+      s'interrompt à la fin de l'année 1950, sept mois avant le départ du général
+      Juin.</p>
+    </bioghist>
+    <dsc>
+      <c>
+	<did>
+          <unittitle>test composant</unittitle>
+        </did>
+	<otherfindaid>
+	  <p>Répertoire numérique par Damien Heurtebise, conservateur en chef du patrimoine,
+	  Nantes, août 2014.</p>
+	  <p><archref
+		 href="medias/Intruments de recherche bureautiques/CADN/MA/Résidence générale/FRMAEE_MN_179CPCOM_Maroc.pdf"
+		 title="Voir l'instrument de recherche" altrender="icon_pdf">Voir l'instrument de
+	  recherche</archref></p>
+	</otherfindaid>
+	<separatedmaterial><p><archref
+				  href="medias/Intruments de recherche bureautiques/CADN/MA/FRMAEE_1BIP_1919-1994.pdf"
+				  title="Voir l'instrument de recherche" altrender="icon_pdf">Voir l'instrument de
+	recherche</archref></p></separatedmaterial>
+      </c>
+    </dsc>
+  </archdesc>
+</ead>

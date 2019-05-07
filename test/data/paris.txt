@@ -1,0 +1,14 @@
+3006209	Latour-de-France	Latour-de-France	Latour,Latour-de-France	42.7679	2.65356	P	PPL	FR		76	66	662	66096	964		113	Europe/Paris	2016-02-18
+3010353	La Chapelle-du-Mont-de-France	La Chapelle-du-Mont-de-France	Chapelle-du-Mont-de-France,La Chapelle,La Chapelle-du-Mont-de-France	46.38198	4.53554	P	PPL	FR		27	71	715	71091	180		366	Europe/Paris	2016-02-18
+3012873	Île-de-France	Ile-de-France	Ile-de-France,Isle of France,L'Ile-de-France,L’Île-de-France,Île-de-France	49	2.33333	L	RGN	FR	FR	11	95			0		146	Europe/Paris	2016-02-18
+3012874	Île-de-France	Ile-de-France	Ile-de-France,Ile-de-France Region,Ilha de Franca,Ilha de França,Isla de Francia,Region Ile-de-France,Region parisienne,Région parisienne,Région Île-de-France,ildeupeulangseu,Île-de-France,Île-de-France Region,일드프랑스	48.7	2.5	A	ADM1	FR		11				11598866		53	Europe/Paris	2018-04-26
+6450563	Latour-de-France	Latour-de-France	La Tor de Franca,La Tor de França,Latur-de-Frans,la tu de fu lang ke,latwr-dy-franky,Латур-де-Франс,لاتور-دی-فرانکی,拉图德弗朗克	42.76861	2.65306	A	ADM4	FR		76	66	662	66096	1059		120	Europe/Paris	2016-02-18
+6457038	La Chapelle-du-Mont-de-France	La Chapelle-du-Mont-de-France	Chapelle-du-Mont-de-France,La-Shapel'-dju-Mon-de-Frans,Shapel di Mon de Frans,Ла-Шапель-дю-Мон-де-Франс,Шапел ди Мон де Франс,لا شاپیل-ڈو-مونت-ڈی-فرانکی	46.38194	4.53583	A	ADM4	FR		27	71	715	71091	171		366	Europe/Paris	2016-02-18
+6502398	Marriott Village d'Ile-de-France	Marriott Village d'Ile-de-France		48.8466	2.8225	S	HTL	FR		11	77	775	77018	0		135	Europe/Paris	2016-02-18
+7535267	Golf Régional d'Ile-de-France	Golf Regional d'Ile-de-France		48.78407	1.99406	S	RECG	FR		11	78	784	78621	0		166	Europe/Paris	2016-02-18
+8285760	Stade-de-France Saint-Denis Railway Station	Stade-de-France Saint-Denis Railway Station	87164780	48.91826	2.34991	S	RSTN	FR		11	93	933	93066	0		37	Europe/Paris	2016-02-18
+8285761	La Plaine-Stade-de-France Railway Station	La Plaine-Stade-de-France Railway Station	87164798	48.91796	2.36254	S	RSTN	FR		11	93	933	93066	0		40	Europe/Paris	2016-02-18
+11071624	Hauts-de-France	Hauts-de-France	Hauts-de-France,Nord-Pas-de-Calais-Picardie,Nord-Passo di Calais-Piccardia,odeupeulangseu,오드프랑스	49.61232	2.65594	A	ADM1	FR		32				5973098		89	Europe/Paris	2017-11-22
+11777226	Statue Notre-Dame-de-France	Statue Notre-Dame-de-France		45.04743	3.88517	S	MNMT	FR		84	43	432	43157	0		708	Europe/Paris	2017-11-23
+3000074	Les Paris	Les Paris	Les Paris,Paris	45.63972	5.73742	P	PPL	FR		84	73	732	73147	0		503	Europe/Paris	2016-02-18
+241288	Les Parisiennes	Les Parisiennes		-4.3	55.68333	T	ISLS	SC		00				0		22	Indian/Mahe	1993-12-22

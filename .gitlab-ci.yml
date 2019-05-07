@@ -1,0 +1,29 @@
+
+
+variables:
+  POSTGRES_HOST: postgreshost
+  POSTGRES_PORT: 5432
+  POSTGRES_USER: siaftest
+  POSTGRES_PASSWORD: siaftest
+
+stages:
+  - test
+
+py27:
+  image: dorado/py27
+  stage: test
+  services:
+    - name: dorado/postgres:9.6
+      alias: postgreshost
+  script:
+    - apk add --no-cache poppler-utils
+    - pip install -r dev-requirements.txt
+    - pip install .
+    - py.test
+
+flake8:
+  image: dorado/flake8
+  stage: test
+  script:
+    - flake8
+

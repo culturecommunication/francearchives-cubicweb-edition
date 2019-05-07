@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ead>
+    <eadheader>
+        <eadid countrycode="fr">FRAD095_00162</eadid>
+        <filedesc>
+            <titlestmt>
+                <titleproper>
+                    <EMPH>Etat civil Nerville-la-Forêt (1865-1900)</EMPH>
+                </titleproper>
+                <subtitle/>
+                <author/>
+            </titlestmt>
+        </filedesc>
+    </eadheader>
+    <archdesc level="fonds" otherlevel="Série_organique">
+        <did>
+            <unitid countrycode="fr">3E123 1 - 3</unitid>
+            <unittitle>Commune de Nerville-la-Forêt : naissances, mariages, décès.</unittitle>
+            <unitdate>1865-1900</unitdate>
+            <physdesc>
+                <extent unit="">3 registres</extent>
+                <genreform/>
+                <dimensions/>
+            </physdesc>
+        </did>
+        <note type="notes">
+            <p>Nerville-la-forêt qui faisait partie de la paroisse puis de la commune de Presles, fut érigée en commune distincte le 26 décembre 1863.</p>
+        </note>
+        <controlaccess>
+            <geogname>Nerville-la-Forêt (Val-d'Oise)</geogname>
+            <subject>ETAT CIVIL</subject>
+            <subject type="acte">naissances</subject>
+            <subject type="acte">mariages</subject>
+            <subject type="acte">décès</subject>
+            <genreform>REGISTRE D'ETAT CIVIL</genreform>
+        </controlaccess>
+        <dsc type="in-depth">
+
+
+            <c level="otherlevel" otherlevel="Pièce">
+                <did>
+                    <unitid countrycode="fr">3E123 1</unitid>
+                    <unitdate>1865-1872</unitdate>
+                    <physdesc>
+                        <extent>1 registre</extent>
+                    </physdesc>
+                    <daogrp>
+                        <daoloc role="dossier" href="/Registres_EtatCivil/FRAD095_445/FRAD095_445_3E123_1" />
+                        <daoloc role="prefixe" href="FRAD095_3E123_1_" />
+                        <daoloc role="extension" href="jpg" />
+                        <daoloc role="premier" href="0001" />
+                        <daoloc role="dernier" href="0109" />
+                    </daogrp>
+                </did>
+                <controlaccess>
+                    <subject type="recherche">Généalogie</subject>
+                </controlaccess>
+                <heritedcontrolaccess>
+                    <geogname>Nerville-la-Forêt (Val-d'Oise)</geogname>
+                    <subject>ETAT CIVIL</subject>
+                    <subject type="acte">naissances</subject>
+                    <subject type="acte">mariages</subject>
+                    <subject type="acte">décès</subject>
+                    <genreform>REGISTRE D'ETAT CIVIL</genreform>
+                </heritedcontrolaccess>
+            </c>
+
+            <c level="otherlevel" otherlevel="Pièce">
+                <did>
+                    <unitid countrycode="fr">3E123 2</unitid>
+                    <unitdate>1873-1894</unitdate>
+                    <physdesc>
+                        <extent>1 registre</extent>
+                    </physdesc>
+                    <daogrp>
+                        <daoloc role="dossier" href="/Registres_EtatCivil/FRAD095_445/FRAD095_445_3E123_2" />
+                        <daoloc role="prefixe" href="FRAD095_3E123_2_" />
+                        <daoloc role="extension" href="jpg" />
+                        <daoloc role="premier" href="0001" />
+                        <daoloc role="dernier" href="0261" />
+                    </daogrp>
+                </did>
+                <controlaccess>
+                    <subject type="recherche">Généalogie</subject>
+                </controlaccess>
+                <heritedcontrolaccess>
+                    <geogname>Nerville-la-Forêt (Val-d'Oise)</geogname>
+                    <subject>ETAT CIVIL</subject>
+                    <subject type="acte">naissances</subject>
+                    <subject type="acte">mariages</subject>
+                    <subject type="acte">décès</subject>
+                    <genreform>REGISTRE D'ETAT CIVIL</genreform>
+                </heritedcontrolaccess>
+            </c>
+
+            <c level="otherlevel" otherlevel="Pièce">
+                <did>
+                    <unitid countrycode="fr">3E123 3</unitid>
+                    <unitdate>1895-1900</unitdate>
+                    <physdesc>
+                        <extent>1 registre</extent>
+                    </physdesc>
+                    <daogrp>
+                        <daoloc role="dossier" href="/Registres_EtatCivil/FRAD095_445/FRAD095_445_3E123_3" />
+                        <daoloc role="prefixe" href="FRAD095_3E123_3_" />
+                        <daoloc role="extension" href="jpg" />
+                        <daoloc role="premier" href="0001" />
+                        <daoloc role="dernier" href="0070" />
+                    </daogrp>
+                </did>
+                <controlaccess>
+                    <subject type="recherche">Généalogie</subject>
+                    <geogname>Nerville-la-Forêt</geogname>
+                </controlaccess>
+                <heritedcontrolaccess>
+                    <geogname>Nerville-la-Forêt (Val-d'Oise)</geogname>
+                    <subject>ETAT CIVIL</subject>
+                    <subject type="acte">naissances</subject>
+                    <subject type="acte">mariages</subject>
+                    <subject type="acte">décès</subject>
+                    <genreform>REGISTRE D'ETAT CIVIL</genreform>
+                </heritedcontrolaccess>
+            </c>
+        </dsc>
+    </archdesc>
+</ead>

@@ -1,0 +1,40 @@
+extends:
+  - eslint:recommended
+  - plugin:react/recommended
+parserOptions:
+  sourceType: "module"
+  ecmaVersion: 2018
+  ecmaFeatures:
+    jsx: true
+    arrowFunctions: true
+    blockBindings: true
+    defaultParams: true
+    destructuring: true
+    forOf: true
+    generators: true
+    modules: true
+    spread: true
+    templateStrings: true
+env:
+  browser: true
+  es6: true
+  node: true
+rules:
+  react/no-multi-comp: off
+  react/jsx-indent-props: [2, 4]
+  object-curly-spacing: ["error", "never"]
+  object-shorthand: off
+  no-unused-vars: ["error", {"argsIgnorePattern": "_$"}]
+  indent: ["off", 4, {"VariableDeclarator": 1}]
+  quotes: [0]
+  key-spacing: [0]
+  new-cap: [0]
+  no-console: ["error", {"allow": ["warn", "error"]}]
+  no-multi-spaces: [0]
+  no-shadow: [0]
+  no-use-before-define: [2, "nofunc"]
+  eqeqeq: [1]
+  comma-dangle: ["error", "always-multiline"]
+  space-before-function-paren: ["error", "never"]
+plugins:
+  - react

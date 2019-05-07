@@ -1,0 +1,18 @@
+[Unit]
+Description=%i python rq worker
+After=syslog.target redis-server.target
+
+[Service]
+ExecStart=/usr/bin/cubicweb-ctl rq-worker %i
+User=www-data
+Group=www-data
+Restart=on-failure
+# first send SIGTERM
+# then after TimeoutStopSec (default to 90s) send SIGKILL
+KillSignal=SIGTERM
+StandardError=syslog
+NotifyAccess=all
+Environment=http_proxy=http://10.0.2.2:3128 https_proxy=http://10.0.2.2:3128
+
+[Install]
+WantedBy=multi-user.target

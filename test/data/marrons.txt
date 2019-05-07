@@ -1,0 +1,4 @@
+2977998	Saint-Michel-de-Chaillol	Saint-Michel-de-Chaillol	Chaillol-la-Montagne,Montorcier-de-Chaillol,Saint-Michel,Saint-Michel-de-Chaillol,Sant Micheu,Sant Michèu,Sen-Mishel'-de-Shajol',sheng mi she de xie luo,Сен-Мишель-де-Шайоль,Сен-Мішель-де-Шайоль,سینٹ-مشیل-دے-چیلل,圣米舍德谢洛	44.67025	6.17087	P	PPL	FR		93	05	052	05153	323		1355	Europe/Paris	2016-02-18
+6425641	Saint-Michel-de-Chaillol	Saint-Michel-de-Chaillol		44.6823	6.1676	A	ADM4	FR		93	05	052	05153	330		1461	Europe/Paris	2016-02-18
+2980668	Sainte-Consorce	Sainte-Consorce	Les Marrons,Sainte-Consorce	45.77706	4.69735	P	PPL	FR		84	69	691	69190	1794		366	Europe/Paris	2016-02-18
+3000378	Les Marrons	Les Marrons		44.68333	6.16667	P	PPL	FR		93	05	052	05153	0		1468	Europe/Paris	2016-02-18

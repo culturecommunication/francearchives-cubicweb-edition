@@ -1,0 +1,37 @@
+Source: cubicweb-frarchives-edition
+Section: web
+Priority: optional
+Maintainer: LOGILAB S.A. (Paris, FRANCE) <contact@logilab.fr>
+Build-Depends:
+ debhelper (>= 9),
+ python (>= 2.6.5),
+ python-setuptools,
+ dh-python,
+ dh-systemd,
+ nodejs (>= 6),
+Standards-Version: 3.9.3
+X-Python-Version: >= 2.6
+
+Package: cubicweb-frarchives-edition
+Architecture: all
+Depends:
+ python-cubicweb-pyramid (>= 3.24.1),
+ python-six (>= 1.4.0),
+ cubicweb-jsonschema,
+ cubicweb-francearchives (>= 1.21.0),
+ python-jsl,
+ python-jinja2,
+ python-rq,
+ pyramid-chameleon,
+ cubicweb-jsonschema,
+ cubicweb-pwd-policy,
+ python-nazca,
+ ${python:Depends},
+ ${misc:Depends},
+Description: Edition components for FranceArchives
+ CubicWeb is a semantic web application framework.
+ .
+ Edition components for FranceArchives
+ .
+ This package will install all the components you need to run the
+ cubicweb-frarchives-edition application (cube :)..

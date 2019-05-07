@@ -1,0 +1,60 @@
+6029331	Lac Le Breuil	Lac Le Breuil		59.66829	-74.86928	H	LK	CA		10	10			0		142	America/Toronto	2016-03-22
+11545987	Le Breuil	Le Breuil	Le Breuil	46.89247	6.60061	S	HSE	CH		NE	2406	6512		0		954	Europe/Zurich	2017-07-27
+3004983	Le Breuil-sur-Couze	Le Breuil-sur-Couze	Le Breuil,Le Breuil-sur-Couze	45.46886	3.26344	P	PPL	FR		84	63	633	63052	1020		393	Europe/Paris	2016-02-18
+3004984	Le Breuil-sous-Argenton	Le Breuil-sous-Argenton	Le Breuil,Le Breuil-sous-Argenton	46.99193	-0.42949	P	PPL	FR		75	79	791	79013	429		109	Europe/Paris	2017-05-29
+3004985	Le Breuil-Mingot	Le Breuil-Mingot	Breuil-Mingot,Le Breuil-Mingot	46.58783	0.39912	P	PPL	FR		75	86	863	86194	0		120	Europe/Paris	2016-02-18
+3004986	Le Breuillat	Le Breuillat		46.79362	2.90439	P	PPL	FR		24	18	182	18242	0		222	Europe/Paris	2016-02-18
+3004987	Le Breuil l’Abbesse	Le Breuil l'Abbesse		46.56378	0.40518	P	PPL	FR		75	86	863	86157	0		122	Europe/Paris	2016-02-18
+3004988	Le Breuil-en-Bessin	Le Breuil-en-Bessin	Le Breuil,Le Breuil-en-Bessin	49.25744	-0.86183	P	PPL	FR		28	14	141	14103	271		23	Europe/Paris	2016-02-18
+3004989	Le Breuil-en-Auge	Le Breuil-en-Auge	Le Breuil,Le Breuil-en-Auge	49.22878	0.22483	P	PPL	FR		28	14	143	14102	891		33	Europe/Paris	2016-02-18
+3004990	Le Breuil-de-Gorre	Le Breuil-de-Gorre	Breuil-la-Gorre,Le Breuil-de-Gorre	45.856	0.84542	P	PPL	FR		75	87	873	87126	0		202	Europe/Paris	2016-02-18
+3004991	Le Breuil-Bernard	Le Breuil-Bernard	Breuil-Bernard,Le Breuil-Bernard	46.72012	-0.55274	P	PPL	FR		75	79	793	79051	437		202	Europe/Paris	2016-02-18
+3004992	Le Breuil	Le Breuil		50.62153	1.75331	P	PPL	FR		32	62	623	62773	0		56	Europe/Paris	2016-02-18
+3004993	Le Breuil	Le Breuil	Le Breuil	48.97702	3.64844	P	PPL	FR		44	51	512	51085	348		105	Europe/Paris	2016-02-18
+3004994	Le Breuil	Le Breuil		48.82386	1.77973	P	PPL	FR		11	78	782	78265	0		98	Europe/Paris	2016-02-18
+3004995	Le Breuil	Le Breuil		48.56566	0.42985	P	PPL	FR		28	61	613	61087	0		170	Europe/Paris	2016-02-18
+3004996	Le Breuil	Le Breuil		48.35296	1.23856	P	PPL	FR		24	28	281	28234	0		181	Europe/Paris	2016-02-18
+3004997	Le Breuil	Le Breuil		48.01135	3.96997	P	PPL	FR		44	10	103	10099	0		142	Europe/Paris	2016-02-18
+3004998	Le Breuil	Le Breuil		47.68865	1.19522	P	PPL	FR		24	41	411	41281	0		121	Europe/Paris	2016-02-18
+3004999	Le Breuil	Le Breuil		47.32929	-0.62845	P	PPL	FR		52	49	491	49022	0		96	Europe/Paris	2016-02-18
+3005000	Le Breuil	Le Breuil		47.16933	3.37857	P	PPL	FR		27	58	584	58218	0		258	Europe/Paris	2016-02-18
+3005001	Le Breuil	Le Breuil	Le Breuil	46.80654	4.46953	P	PPL	FR		27	71	711	71059	3529		359	Europe/Paris	2016-02-18
+3005002	Le Breuil	Le Breuil		46.78609	2.26467	P	PPL	FR		24	18	182	18114	0		178	Europe/Paris	2016-02-18
+3005003	Le Breuil	Le Breuil		46.65	3.38333	P	PPL	FR		84	03	032	03121	0		250	Europe/Paris	2016-02-18
+3005004	Le Breuil	Le Breuil		46.62653	0.97605	P	PPL	FR		24	36	361	36178	0		109	Europe/Paris	2016-02-18
+3005005	Le Breuil	Le Breuil		46.33425	2.12791	P	PPL	FR		75	23	232	23064	0		323	Europe/Paris	2016-02-18
+3005006	Le Breuil	Le Breuil		46.21667	2.6	P	PPL	FR		84	03	031	03280	0		456	Europe/Paris	2016-02-18
+3005007	Le Breuil	Le Breuil	Le Breuil	46.18346	3.65898	P	PPL	FR		84	03	033	03042	0		362	Europe/Paris	2016-02-18
+3005008	Le Breuil	Le Breuil		46.13235	2.49584	P	PPL	FR		75	23	231	23203	0		501	Europe/Paris	2016-02-18
+3005009	Le Breuil	Le Breuil		45.93333	1.81161	P	PPL	FR		75	23	231	23227	0		610	Europe/Paris	2016-02-18
+3005010	Le Breuil	Le Breuil	Le Breuil	45.89379	4.58687	P	PPL	FR		84	69	692	69026	385		252	Europe/Paris	2016-02-18
+3005011	Le Breuil	Le Breuil		45.84926	1.16007	P	PPL	FR		75	87	872	87201	0		342	Europe/Paris	2016-02-18
+3005012	Le Breuil	Le Breuil		45.76667	1.13333	P	PPL	FR		75	87	872	87166	0		233	Europe/Paris	2016-02-18
+3005013	Le Breuil	Le Breuil		45.70133	0.84936	P	PPL	FR		75	87	873	87054	0		343	Europe/Paris	2016-02-18
+3005014	Le Breuil	Le Breuil		45.56667	2.18333	P	PPL	FR		75	19	193	19136	0		762	Europe/Paris	2016-02-18
+3005015	Le Breuil	Le Breuil		45.56667	0.28333	P	PPL	FR		75	16	161	16119	0		147	Europe/Paris	2016-02-18
+3005016	Le Breuil	Le Breuil		45.37572	1.19077	P	PPL	FR		75	24	242	24526	0		313	Europe/Paris	2016-02-18
+3005017	Le Breuil	Le Breuil		45.24946	2.21293	P	PPL	FR		75	19	192	19264	0		528	Europe/Paris	2017-01-04
+3005018	Le Breuil	Le Breuil		45.14555	1.02067	P	PPL	FR		75	24	243	24004	0		229	Europe/Paris	2016-02-18
+3005019	Le Breuil	Le Breuil		45.1309	0.60771	P	PPL	FR		75	24	243	24295	0		175	Europe/Paris	2016-02-18
+3005020	Le Breuil	Le Breuil		45.10383	1.64324	P	PPL	FR		75	19	191	19105	0		399	Europe/Paris	2016-02-18
+3005021	Le Breuil	Le Breuil	Breuil,Le Breuil	45.04718	1.09659	P	PPL	FR		75	24	244	24552	0		196	Europe/Paris	2016-02-18
+3005022	Le Breuil	Le Breuil		44.99246	1.76566	P	PPL	FR		75	19	191	19280	0		227	Europe/Paris	2016-02-18
+3005023	Le Breuil	Le Breuil		44.94523	0.48998	P	PPL	FR		75	24	241	24259	0		133	Europe/Paris	2016-02-18
+3005024	Le Breuil	Le Breuil		44.75914	1.08535	P	PPL	FR		75	24	244	24206	0		207	Europe/Paris	2016-02-18
+3005025	Le Breuil	Le Breuil		44.72458	1.01512	P	PPL	FR		75	24	244	24517	0		251	Europe/Paris	2016-02-18
+3030220	Château Breuil	Chateau Breuil	Chateau Breuil,Château Breuil,Le Breuil	47.38634	0.4445	S	HSEC	FR		24	37	371	37150	0		89	Europe/Paris	2016-02-18
+3030223	Breuil	Breuil	Breuil,Le Breuil	49.55503	1.00335	P	PPL	FR		28	76	763	76287	0		120	Europe/Paris	2016-02-18
+6455545	Le Breuil-en-Auge	Le Breuil-en-Auge	Le-Brej-an-Ozh,Le-Brjoj-an-Ozh,ao ge de qu lei bu lei yi,Ле-Брей-ан-Ож,Ле-Брёй-ан-Ож,奥格地区勒布勒伊	49.22694	0.22611	A	ADM4	FR		28	14	143	14102	958		38	Europe/Paris	2016-02-18
+6455546	Le Breuil-en-Bessin	Le Breuil-en-Bessin	Le Bray-an Besen,Le-Brej-an-Bessen,Le-Brjoj-an-Bessen,bei sang de qu lei bu lei yi,Ле-Брей-ан-Бессен,Ле-Брёй-ан-Бессен,Լե Բրայ-ան Բեսեն,贝桑地区勒布勒伊	49.255	-0.85889	A	ADM4	FR		28	14	141	14103	386		23	Europe/Paris	2016-02-18
+6457007	Le Breuil-sur-Couze	Le Breuil-sur-Couze	Breuil-sur-Couze,Le Bruelh,Le-Brej-sjur-Kuz,Lo Brelh,ku ci he pan lei bu lei yi,Ле-Брей-сюр-Куз,库兹河畔勒布勒伊	45.46861	3.26306	A	ADM4	FR		84	63	633	63052	956		395	Europe/Paris	2016-02-18
+6457024	Le Breuil	Le Breuil	Brej,Breuil,Le-Brej,Бреј,Ле-Брей	45.89417	4.5875	A	ADM4	FR		84	69	692	69026	449		247	Europe/Paris	2016-02-18
+6457096	Le Breuil-Bernard	Le Breuil-Bernard		46.71917	-0.55333	A	ADM4	FR		75	79	793	79051	466		199	Europe/Paris	2016-02-18
+6457097	Le Breuil-sous-Argenton	Le Breuil-sous-Argenton		46.9925	-0.43111	A	ADM4H	FR		75	79	791	79053	422		116	Europe/Paris	2016-07-15
+6614558	Le Breuil	Le Breuil	Brej,Breuil,Le-Brej,Бреј,Ле-Брей	46.79444	4.48333	A	ADM4	FR		27	71	711	71059	3591		332	Europe/Paris	2016-02-18
+6616930	Le Breuil	Le Breuil		48.9753	3.6476	A	ADM4	FR		44	51	512	51085	400		112	Europe/Paris	2016-02-18
+6618123	Le Breuil	Le Breuil	Brej,Breuil,Brolium,Le-Brej,Le-Brjoj,Lo Bruelh,lei bu lei yi,Бреј,Ле-Брей,Ле-Брёй,勒布勒伊	46.1835	3.6593	A	ADM4	FR		84	03	033	03042	544		362	Europe/Paris	2016-02-18
+6694636	Blois-Le Breuil	Blois-Le Breuil	LFOQ,XBQ	47.68	1.206	S	AIRP	FR		24	41	411	41281	0		121	Europe/Paris	2017-11-03
+7874695	Le Breuil Coiffaud	Le Breuil Coiffaud		46.10609	0.02472	P	PPL	FR		75	79	792	79140	0		151	Europe/Paris	2016-02-18
+8288102	Le Breuil sur Couze Railway Station	Le Breuil sur Couze Railway Station	87734228	45.46775	3.262	S	RSTN	FR		84	63	633	63052	0		392	Europe/Paris	2016-02-18
+8295788	Bureau de Poste de Le Breuil	Bureau de Poste de Le Breuil		46.80832	4.46752	S	PO	FR		27	71	711	71059	0		358	Europe/Paris	2016-02-18

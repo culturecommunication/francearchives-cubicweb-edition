@@ -1,0 +1,457 @@
+msgid ""
+msgstr ""
+"PO-Revision-Date: YEAR-MO-DA HO:MI +ZONE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "\"label\" is required"
+msgstr ""
+
+#, python-format
+msgid "A department archive with \"%s\" code already exists"
+msgstr ""
+
+msgid ""
+"CSV file invalid. It must contain \"Code_insee\", \"URL\", \"Couleur\" and "
+"\"Legende\" headerscolumns separated by \",\""
+msgstr ""
+"Fichier CSV invalide. Ce fichier doit contenir les colonnes \"Code_insee\", "
+"\"URL\", \"Couleur\" et \"Legende\"séparées par \",\""
+
+msgid "Following files are empty : {}"
+msgstr ""
+
+msgid "Following files does not start with \"{}\" : {}"
+msgstr ""
+
+msgid "Home"
+msgstr ""
+
+msgid "Impossible to delete this card"
+msgstr ""
+
+msgid "Intitules de la rubrique presentation"
+msgstr ""
+
+msgid "Missing data"
+msgstr ""
+
+msgid "New RqTask"
+msgstr ""
+
+msgid "PDF/metadata.csv is missing from zip"
+msgstr ""
+
+# schema pot file, generated on 2017-07-04 06:39:53
+#
+# singular and plural forms for each entity type
+msgid "RqTask"
+msgstr ""
+
+msgid "RqTask_plural"
+msgstr ""
+
+msgid "Section"
+msgstr ""
+
+msgid ""
+"Service \"{}\" does not exist. Check the ziped file name \"{}\" or create a "
+"new service before uploading the file again"
+msgstr ""
+
+msgid "This RqTask"
+msgstr ""
+
+msgid "This RqTask:"
+msgstr ""
+
+msgid "This archive contains no csv files."
+msgstr ""
+
+msgid "This archive contains no files."
+msgstr ""
+
+msgid "This file in not a zip file"
+msgstr ""
+
+msgid "This file is empty"
+msgstr ""
+
+msgid "Uri field is mandatory"
+msgstr ""
+
+msgid "add RqTask output_file File subject"
+msgstr ""
+
+msgid "add a RqTask"
+msgstr ""
+
+msgid "bad service code should be one of: "
+msgstr ""
+
+msgid "bad task eid"
+msgstr ""
+
+msgid "compare strictly authority label"
+msgstr ""
+
+msgid "compute_alignment"
+msgstr ""
+
+msgid "compute_location_authorities_to_group"
+msgstr ""
+
+msgid "creating File (RqTask %(linkto)s output_file File)"
+msgstr ""
+
+# subject and object forms for each relation type
+# (no object form for final or symmetric relation types)
+msgid "cssimage"
+msgstr ""
+
+msgctxt "Section"
+msgid "cssimage"
+msgstr ""
+
+msgid "cssimage_object"
+msgstr ""
+
+msgctxt "CssImage"
+msgid "cssimage_object"
+msgstr ""
+
+msgid "csv file to import"
+msgstr ""
+
+msgid "dedupe_authorities"
+msgstr ""
+
+# subject and object forms for each relation type
+# (no object form for final or symmetric relation types)
+msgid "ended_at"
+msgstr ""
+
+msgctxt "RqTask"
+msgid "ended_at"
+msgstr ""
+
+msgid "enqueued_at"
+msgstr ""
+
+msgctxt "RqTask"
+msgid "enqueued_at"
+msgstr ""
+
+msgid "export_ape"
+msgstr ""
+
+msgid "fatask_findingaid"
+msgstr ""
+
+msgctxt "RqTask"
+msgid "fatask_findingaid"
+msgstr ""
+
+msgid "fatask_findingaid_object"
+msgstr ""
+
+msgctxt "FindingAid"
+msgid "fatask_findingaid_object"
+msgstr ""
+
+msgid "findingaid eid"
+msgstr ""
+
+msgid "force-delete-old-findingaids"
+msgstr ""
+
+msgid "force-import-oai"
+msgstr ""
+
+msgid "group_location_authorities"
+msgstr ""
+
+msgid "import_alignment"
+msgstr ""
+
+msgid "import_csv"
+msgstr ""
+
+msgid "import_ead"
+msgstr ""
+
+msgid "import_oai"
+msgstr ""
+
+msgid "in_state_facet"
+msgstr ""
+
+msgid "line {}: missing value for {} columns"
+msgstr ""
+
+msgctxt "RqTask"
+msgid "log"
+msgstr ""
+
+msgid "missing \"ead-services-dir\" parameter in all-in-one.conf"
+msgstr ""
+
+msgctxt "RqTask"
+msgid "name"
+msgstr ""
+
+msgid "no XML files found in zip"
+msgstr ""
+
+msgid "no findingaid with this id"
+msgstr ""
+
+msgid "not allowed"
+msgstr ""
+
+msgid "not authorized"
+msgstr ""
+
+msgid "oai repository identifier"
+msgstr ""
+
+msgid "output_descr"
+msgstr ""
+
+msgctxt "RqTask"
+msgid "output_descr"
+msgstr ""
+
+msgid "output_descr_format"
+msgstr ""
+
+msgctxt "RqTask"
+msgid "output_descr_format"
+msgstr ""
+
+msgid "output_file"
+msgstr ""
+
+msgctxt "RqTask"
+msgid "output_file"
+msgstr ""
+
+msgid "output_file_object"
+msgstr ""
+
+msgctxt "File"
+msgid "output_file_object"
+msgstr ""
+
+msgid "progress bar"
+msgstr ""
+
+msgid "publish_findingaid"
+msgstr ""
+
+msgid "referenced_files"
+msgstr ""
+
+msgctxt "BaseContent"
+msgid "referenced_files"
+msgstr ""
+
+msgctxt "Card"
+msgid "referenced_files"
+msgstr ""
+
+msgctxt "CommemoCollection"
+msgid "referenced_files"
+msgstr ""
+
+msgctxt "CommemorationItem"
+msgid "referenced_files"
+msgstr ""
+
+msgctxt "ExternRef"
+msgid "referenced_files"
+msgstr ""
+
+msgctxt "Map"
+msgid "referenced_files"
+msgstr ""
+
+msgctxt "NewsContent"
+msgid "referenced_files"
+msgstr ""
+
+msgctxt "Section"
+msgid "referenced_files"
+msgstr ""
+
+msgid "referenced_files_object"
+msgstr ""
+
+msgctxt "File"
+msgid "referenced_files_object"
+msgstr ""
+
+msgid "service code"
+msgstr ""
+
+msgid "service code (required only for xml, optional for zip)"
+msgstr ""
+
+msgid "service code from which you want to generate APE files"
+msgstr ""
+
+msgid "started_at"
+msgstr ""
+
+msgctxt "RqTask"
+msgid "started_at"
+msgstr ""
+
+msgctxt "RqTask"
+msgid "status"
+msgstr ""
+
+msgid "subtasks"
+msgstr ""
+
+msgctxt "RqTask"
+msgid "subtasks"
+msgstr ""
+
+msgid "subtasks_object"
+msgstr ""
+
+msgctxt "RqTask"
+msgid "subtasks_object"
+msgstr ""
+
+msgid "task eid"
+msgstr ""
+
+msgid "task_logs"
+msgstr "Task logs"
+
+msgid "task_name"
+msgstr ""
+
+msgid "title"
+msgstr ""
+
+msgctxt "RqTask"
+msgid "title"
+msgstr ""
+
+msgid "type of task"
+msgstr ""
+
+msgid "wfs_cmsobject_draft"
+msgstr ""
+
+msgid "wfs_cmsobject_published"
+msgstr ""
+
+msgid "wfs_faimport_completed"
+msgstr "completed"
+
+msgid "wfs_faimport_failed"
+msgstr "failed"
+
+msgid "wfs_faimport_pending"
+msgstr "pending"
+
+msgid "wfs_faimport_running"
+msgstr "running"
+
+msgid "wft_cmsobject_publish"
+msgstr ""
+
+msgid "wft_cmsobject_unpublish"
+msgstr ""
+
+msgid "wft_faimport_complete"
+msgstr "complete"
+
+msgid "wft_faimport_fail"
+msgstr "cancel"
+
+msgid "wft_faimport_run"
+msgstr "run"
+
+msgid "zip file"
+msgstr ""
+
+#~ msgid "FAFileImport"
+#~ msgstr "Finding aid file import"
+
+#~ msgid "FAFileImport_plural"
+#~ msgstr "Finding aid file imports"
+
+#~ msgid "FAOAIPMHImport"
+#~ msgstr "Finding aid OAI-PMH import"
+
+#~ msgid "FAOAIPMHImport_plural"
+#~ msgstr "Finding aid OAI-PMH imports"
+
+#~ msgid "New FAFileImport"
+#~ msgstr "New finding aid file import"
+
+#~ msgid "add a FAFileImport"
+#~ msgstr "add a finding aid file import"
+
+#~ msgid "harvest_url"
+#~ msgstr "harvest URL"
+
+#~ msgid "import_file"
+#~ msgstr "file to import"
+
+#~ msgid "imported_findingaid"
+#~ msgstr "imported finding aid"
+
+#~ msgid "non-compliant-to-pwd_policy"
+#~ msgstr ""
+#~ "Password is too weak. Password must contain at least : 12 letters,  "
+#~ "lowcase lettres, uppercase letters, numeric characters and special "
+#~ "characters"
+
+#~ msgid "pwd_policy"
+#~ msgstr ""
+#~ "Password must contain at least : 12 letters,  lowcase lettres, uppercase "
+#~ "letters, numeric characters and special characters"
+
+#~ msgctxt "FAFileImport"
+#~ msgid "startyear"
+#~ msgstr "start year"
+
+#~ msgctxt "FAFileImport"
+#~ msgid "stopyear"
+#~ msgstr "stop year"
+
+#~ msgid "wfs_findingaid_initialized"
+#~ msgstr "initialized"
+
+#~ msgid "wfs_findingaid_invalid"
+#~ msgstr "invalid"
+
+#~ msgid "wfs_findingaid_published"
+#~ msgstr "published"
+
+#~ msgid "wfs_findingaid_unpublished"
+#~ msgstr "unpublished"
+
+#~ msgid "wfs_findingaid_valid"
+#~ msgstr "valid"
+
+#~ msgid "wft_findingaid_invalidate"
+#~ msgstr "invalidate"
+
+#~ msgid "wft_findingaid_publish"
+#~ msgstr "publish"
+
+#~ msgid "wft_findingaid_unpublish"
+#~ msgstr "unpublish"
+
+#~ msgid "wft_findingaid_validate"
+#~ msgstr "validate"

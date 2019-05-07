@@ -1,0 +1,92 @@
+2354130	Toulonga	Toulonga		12.30394	1.61919	P	PPL	BF		08	42			0		240	Africa/Ouagadougou	1993-12-30
+7654100	Toulong	Toulong	Toulong,tou long,头龙	19.73511	109.80388	P	PPL	CN		31				0		64	Asia/Shanghai	2012-01-21
+10001641	Toulongtan	Toulongtan	Toulongtan,tou long tan,头龙潭	40.76512	117.26489	P	PPL	CN		10				0		400	Asia/Shanghai	2015-02-08
+10160605	Toulong	Toulong	Toulong,tou long,透龙	31.2153	106.559	P	PPL	CN		32				0		369	Asia/Shanghai	2015-03-10
+11001930	Toulon Square	Toulon Square	Toulonplatz	49.4883	8.46154	S	SQR	DE		01	082	08222	08222000	0		102	Europe/Berlin	2015-12-20
+2969618	Vert-Toulon	Vert-Toulon	Vert,Vert-la-Gravelle	48.85	3.91667	P	PPL	FR	FR	44	51	511	51611	0		146	Europe/Paris	2016-02-18
+2972320	Toulon-sur-Arroux	Toulon-sur-Arroux	Bel-Air-sur-Arroux,Toulon,Toulon-sur-Arroux,Tulon-sjur-Arru,Тулон-сюр-Арру	46.69345	4.13869	P	PPL	FR		27	71	713	71542	1655		264	Europe/Paris	2016-02-18
+2972321	Toulon-sur-Allier	Toulon-sur-Allier	Mont-la-Loi,Tolonium,Toulon,Tulon-sjur-Al'e,a li ye he pan tu long,Тулон-сюр-Алье,Тулон-сюр-Альє,阿利耶河畔图隆	46.51845	3.35989	P	PPL	FR		84	03	032	03286	1106		233	Europe/Paris	2016-02-18
+2972322	Toulon-la-Montagne	Toulon-la-Montagne	Toulon,Toulon-la-Montagne	48.85654	3.88072	P	PPL	FR		44	51	511	51611	313		214	Europe/Paris	2016-02-18
+2972323	Toulonjac	Toulonjac	Tolonjac,Toulonjac,Tulonzhak,tu long ya ke,Тулонжак,图隆雅克	44.38107	2.00024	P	PPL	FR		76	12	123	12281	680		305	Europe/Paris	2016-02-18
+2972324	Rade de Toulon	Rade de Toulon		43.08333	5.93333	H	RDST	FR		93	83			0		47	Europe/Paris	2016-02-18
+2972325	Mont Toulon	Mont Toulon	Mont Toulon	48.84357	6.20431	T	HLL	FR		44	54	543	54059	0		359	Europe/Paris	2018-12-05
+2972326	Arrondissement de Toulon	Arrondissement de Toulon	Arrondissement de Toulon	43.25	6	A	ADM3	FR		93	83	832		570375		222	Europe/Paris	2016-09-09
+2972327	Toulon	Toulon		46.49233	0.64056	P	PPL	FR		75	86	862	86233	0		71	Europe/Paris	2016-02-18
+2972328	Toulon	Toulon	Gorad Tulon,Port-la-Montagne,TLN,Telo Martius,Tolo,Tolon,Tolone,Toló,Tolón,Toulon,Toulon-sur-Mer,Tulon,Tulona,Tulonas,Tuluni,to~uron,tu lng,tu lun,tulam,tullong,tulom,tulon,twlwn,Τουλόν,Горад Тулон,Тулон,Տուլոն,טולון,تولون,طولون,तुलाँ,तुलों,துலோன்,ടൂളാൻ,ตูลง,ტულონი,トゥーロン,土伦,土倫,툴롱	43.12442	5.92836	P	PPLA2	FR		93	83	832	83137	168701		12	Europe/Paris	2017-05-23
+2976368	Salles-en-Toulon	Salles-en-Toulon	Salles,Salles-en-Toulon	46.47924	0.63084	P	PPL	FR		75	86	862	86233	0		79	Europe/Paris	2016-02-18
+2987707	Petite Rade	Petite Rade	Petite Rade,Petite Rade de Toulon	43.11667	5.91667	H	RDST	FR	FR	93				0		-9999	Europe/Paris	2016-02-18
+3009223	La Garde	La Garde	La Garde,La Garde-pres-Toulon,La Garde-près-Toulon	43.12277	6.00745	P	PPL	FR		93	83	832	83062	28257		23	Europe/Paris	2016-02-18
+3015183	Grande Rade	Grande Rade	Grande Rade,Grande Rade de Toulon	43.08333	5.93333	H	RDST	FR	FR	93	83			0		47	Europe/Paris	2016-02-18
+6299477	Toulon-Hyères Airport	Toulon-Hyeres Airport	Aeroport de Toulon - Hyeres - Le Palyvestre,Aeroport de Toulon-Hyeres-Le Palyvestre,Aéroport de Toulon - Hyères - Le Palyvestre,Aéroport de Toulon-Hyères-Le Palyvestre,Flughafen Toulon-Hyeres,Flughafen Toulon-Hyères,Hyeres Le Palyvestre Airport,Hyères Le Palyvestre Airport,LFTH,TLN,Toulon-Hyeres Airport,Toulon-Hyères Airport	43.09734	6.14603	S	AIRP	FR		93	83	832	83069	0	2	2	Europe/Paris	2016-02-18
+6425491	Toulon-sur-Allier	Toulon-sur-Allier		46.51845	3.35993	A	ADM4	FR		84	03	032	03286	1125		233	Europe/Paris	2016-02-18
+6427066	Toulonjac	Toulonjac		44.38167	2.00056	A	ADM4	FR		76	12	123	12281	698		312	Europe/Paris	2016-02-18
+6442512	Toulon-sur-Arroux	Toulon-sur-Arroux		46.69306	4.13778	A	ADM4	FR		27	71	713	71542	1607		260	Europe/Paris	2016-02-18
+6473789	Holiday Inn Garden Court Toulon	Holiday Inn Garden Court Toulon		43.1269	5.9228	S	HTL	FR		93	83	832	83137	0		11	Europe/Paris	2016-02-18
+6491244	Premiere Classe Toulon - La Seyne sur Mer	Premiere Classe Toulon - La Seyne sur Mer		43.1073	5.8505	S	HTL	FR		93	83	832	83129	0		31	Europe/Paris	2016-02-18
+6498386	Campanile Toulon 6 Fours	Campanile Toulon 6 Fours		43.1215	5.8482	S	HTL	FR		93	83	832	83090	0		24	Europe/Paris	2016-12-10
+6507016	Mercure Toulon Ctre Congres 3	Mercure Toulon Ctre Congres 3		43.12666	5.9336	S	HTL	FR		93	83	832	83137	0		23	Europe/Paris	2016-02-18
+6508590	Novotel Toulon La Seyne	Novotel Toulon La Seyne		43.1204	5.8641	S	HTL	FR		93	83	832	83126	0		31	Europe/Paris	2016-12-10
+6508890	Ibis Toulon La Valette	Ibis Toulon La Valette		43.1424	5.9936	S	HTL	FR		93	83	832	83144	0		74	Europe/Paris	2016-02-18
+6527410	Kyriad - Toulon La Garde	Kyriad - Toulon La Garde		43.1362	6.0272	S	HTL	FR		93	83	832	83062	0		33	Europe/Paris	2016-02-18
+6612862	Toulon	Toulon	Toulon	43.125	5.93056	A	ADM4	FR		93	83	832	83137	165514		16	Europe/Paris	2016-12-28
+6616969	Vert-Toulon	Vert-Toulon	Ver-Tulon,wei er tu long,Вер-Тулон,韦尔图隆	48.8439	3.9122	A	ADM4	FR		44	51	511	51611	302		145	Europe/Paris	2016-02-18
+8288281	Toulon Railway Station	Toulon Railway Station	87755009,Gare de Toulon,Toulon Railway Station,XZV	43.12836	5.92972	S	RSTN	FR		93	83	832	83137	0		23	Europe/Paris	2016-02-18
+8290803	Bureau de Poste de Perigueux Le Toulon	Bureau de Poste de Perigueux Le Toulon		45.19319	0.70629	S	PO	FR		75	24	243	24322	0		89	Europe/Paris	2016-02-18
+8295873	Bureau de Poste de Toulon Sur Arroux	Bureau de Poste de Toulon Sur Arroux		46.69387	4.13955	S	PO	FR		27	71	713	71542	0		259	Europe/Paris	2016-02-18
+8297120	Bureau de Poste de Toulon Armand Barbes	Bureau de Poste de Toulon Armand Barbes		43.1346	5.91666	S	PO	FR		93	83	832	83137	0		24	Europe/Paris	2016-02-18
+8297164	Bureau de Poste de Toulon Brunet	Bureau de Poste de Toulon Brunet		43.1267	5.96116	S	PO	FR		93	83	832	83137	0		28	Europe/Paris	2016-02-18
+8297217	Bureau de Poste de Toulon La Rode Principal	Bureau de Poste de Toulon La Rode Principal		43.1202	5.94271	S	PO	FR		93	83	832	83137	0		9	Europe/Paris	2016-02-18
+8297232	Bureau de Poste de Toulon Claret	Bureau de Poste de Toulon Claret		43.13194	5.92453	S	PO	FR		93	83	832	83137	0		32	Europe/Paris	2016-02-18
+8297235	Bureau de Poste de Toulon La Serinette	Bureau de Poste de Toulon La Serinette		43.1159	5.96039	S	PO	FR		93	83	832	83137	0		42	Europe/Paris	2016-02-18
+8297236	Bureau de Poste de Toulon Ste Musse	Bureau de Poste de Toulon Ste Musse		43.122	5.98123	S	PO	FR		93	83	832	83137	0		37	Europe/Paris	2016-02-18
+8297245	Bureau de Poste de Toulon Saint Jean	Bureau de Poste de Toulon Saint Jean		43.12381	5.95355	S	PO	FR		93	83	832	83137	0		22	Europe/Paris	2016-02-18
+8297246	Bureau de Poste de Toulon Mourillon	Bureau de Poste de Toulon Mourillon		43.11162	5.93806	S	PO	FR		93	83	832	83137	0		13	Europe/Paris	2016-02-18
+8297247	Bureau de Poste de Toulon Louis Blanc	Bureau de Poste de Toulon Louis Blanc		43.12049	5.9331	S	PO	FR		93	83	832	83137	0		13	Europe/Paris	2016-02-18
+8297258	Bureau de Poste de Toulon La Beaucaire	Bureau de Poste de Toulon La Beaucaire		43.1323	5.88229	S	PO	FR		93	83	832	83137	0		49	Europe/Paris	2016-02-18
+8297263	Bureau de Poste de Toulon La Loubiere	Bureau de Poste de Toulon La Loubiere		43.12727	5.94167	S	PO	FR		93	83	832	83137	0		34	Europe/Paris	2016-02-18
+8297265	Bureau de Poste de Toulon Les Routes	Bureau de Poste de Toulon Les Routes		43.13931	5.9024	S	PO	FR		93	83	832	83137	0		29	Europe/Paris	2016-02-18
+8297268	Bureau de Poste de Toulon Liberte	Bureau de Poste de Toulon Liberte		43.12452	5.93011	S	PO	FR		93	83	832	83137	0		17	Europe/Paris	2016-02-18
+9173006	Balladins Toulon La Valette	Balladins Toulon La Valette		43.14067	6.00499	S	HTL	FR		93	83	832	83144	0		59	Europe/Paris	2016-02-18
+9173518	Campanile - Toulon - Six-Fours	Campanile - Toulon - Six-Fours		43.12164	5.84779	S	HTL	FR		93	83	832	83090	0		23	Europe/Paris	2016-02-18
+9177045	Ibis Styles Toulon Centre Congres	Ibis Styles Toulon Centre Congres		43.11954	5.93558	S	HTL	FR		93	83	832	83137	0		13	Europe/Paris	2016-02-18
+9177482	Kyriad Prestige Toulon - L S S M - Centre Port	Kyriad Prestige Toulon - L S S M - Centre Port		43.09447	5.88286	S	HTL	FR		93	83	832	83126	0		18	Europe/Paris	2016-02-18
+9178165	Novotel Toulon La Seyne Sur Mer	Novotel Toulon La Seyne Sur Mer		43.1212	5.85004	S	HTL	FR		93	83	832	83126	0		27	Europe/Paris	2016-02-18
+9253703	Toulon Port	Toulon Port	Toulon Ferry Port	43.11919	5.93309	L	PRT	FR		93	83	832	83137	0		5	Europe/Paris	2016-02-18
+9969901	Holiday Inn Toulon City Centre	Holiday Inn Toulon City Centre		43.12703	5.92347	S	HTL	FR		93	83	832	83137	0		12	Europe/Paris	2016-02-18
+10173582	Toulon Est La Garde	Toulon Est La Garde		43.137	6.028	S	HTL	FR		93	83	832	83062	0		35	Europe/Paris	2016-02-18
+10173604	Toulon Six Fours Sanary	Toulon Six Fours Sanary		43.122	5.848	S	HTL	FR		93	83	832	83090	0		24	Europe/Paris	2016-02-18
+10247913	Holiday Inn Express Toulon Sainte Musse	Holiday Inn Express Toulon Sainte Musse		43.12527	5.97361	S	HTL	FR		93	83	832	83137	0		29	Europe/Paris	2016-02-18
+10297793	Holiday Inn Garden Court Toulon City Centre	Holiday Inn Garden Court Toulon City Centre		43.12723	5.92339	S	HTL	FR		93	83	832	83137	0		15	Europe/Paris	2016-02-18
+10344861	Holiday Inn G C Toulon City Centre	Holiday Inn G C Toulon City Centre		43.12699	5.92275	S	HTL	FR		93	83	832	83137	0		11	Europe/Paris	2016-02-18
+3380149	Roche de la Toulonnaise	Roche de la Toulonnaise	Roche de la Toulonnaise,Roche dela Tolonnaise	5.4	-53.03333	T	RK	GF	GF	00				0		10	America/Cayenne	2012-01-18
+2132969	Mailu Island	Mailu Island	Mailu Island,Maliu Kolo,Toulon Island,Toulori	-10.38683	149.35556	T	ISL	PG		01				0		44	Pacific/Port_Moresby	2012-01-17
+2244245	Toulon Guindé	Toulon Guinde	Toulon Guinde,Toulon Guindé	14.86254	-12.51509	T	HLL	SN		05				0		92	Africa/Dakar	2018-12-04
+2363582	Toulong	Toulong		10.86667	0.13333	P	PPL	TG		00				0		304	Africa/Lome	1993-12-23
+4280530	Toulon	Toulon		38.85168	-99.24149	P	PPL	US		KS	051	06650		0	610	617	America/Chicago	2017-05-23
+4343749	Toulon Bayou	Toulon Bayou	Toulon Bayou,Toulon Creek	32.39571	-93.34628	H	STM	US		LA	013			0	43	52	America/Chicago	2006-01-15
+4343751	Toulon Bayou	Toulon Bayou	Bayou Toulon,Toulon Bayou	32.21488	-93.42101	H	STM	US		LA	081			0	37	45	America/Chicago	2010-02-15
+4343752	Toulon Bayou Gas Field	Toulon Bayou Gas Field		32.21599	-93.39045	L	OILF	US		LA	081			0	55	62	America/Chicago	2010-02-15
+4343755	Toulon Bayou Number One Dam	Toulon Bayou Number One Dam		32.24682	-93.38017	S	DAM	US		LA	013			0	71	75	America/Chicago	2010-02-15
+4663029	Toulon Post Office (historical)	Toulon Post Office (historical)		35.74035	-89.41618	S	PO	US		TN	075			0	104	105	America/Chicago	2006-01-15
+4663032	Toulon	Toulon	Saint Luke,Toulon,Tulon	35.73841	-89.41563	P	PPL	US		TN	075			0	102	104	America/Chicago	2006-01-15
+4912400	Stark County High School	Stark County High School	Stark County High School,Toulon High School	41.0892	-89.86372	S	SCH	US		IL	175	75796		0	222	224	America/Chicago	2017-05-23
+4913799	Toulon	Toulon	Millers Point,Toulon	41.09365	-89.86483	P	PPLA2	US		IL	175	75796		1248	222	225	America/Chicago	2017-05-23
+4913800	Toulon Cemetery	Toulon Cemetery		41.09781	-89.85705	S	CMTY	US		IL	175	75796		0	222	231	America/Chicago	2017-05-23
+4913801	Toulon Public Library	Toulon Public Library		41.09281	-89.86733	S	LIBR	US		IL	175	75796		0	223	229	America/Chicago	2017-05-23
+4913802	Toulon Public School (historical)	Toulon Public School (historical)		41.09531	-89.86094	S	SCH	US		IL	175	75796		0	223	226	America/Chicago	2017-05-23
+4913803	Toulon United Methodist Church	Toulon United Methodist Church	First Methodist Episcopal Church,Toulon United Methodist Church	41.0942	-89.86677	S	CH	US		IL	175	75796		0	225	229	America/Chicago	2017-05-23
+4913804	Township of Toulon	Township of Toulon	Toulon Township	41.10517	-89.81126	A	ADM3	US		IL	175	75796		0	222	223	America/Chicago	2017-05-14
+4913805	Toulon-Lafayette Grade School	Toulon-Lafayette Grade School		41.08976	-89.86372	S	SCH	US		IL	175	75796		0	222	225	America/Chicago	2017-05-23
+5709449	Toulon	Toulon		40.06269	-118.64487	P	PPL	US		NV	027			0	1197	1201	America/Los_Angeles	2006-01-15
+5709450	Toulon Drain	Toulon Drain		40.09824	-118.54876	H	CNL	US		NV	027			0	1198	1199	America/Los_Angeles	2006-01-15
+5709451	Toulon Lake	Toulon Lake	Toulon Lake,Tulon Lake	40.03971	-118.63837	H	LK	US		NV	027			0	1188	1194	America/Los_Angeles	2011-12-11
+5709452	Toulon Peak	Toulon Peak		40.10713	-118.74293	T	MT	US		NV	027			0	2124	2094	America/Los_Angeles	2006-01-15
+5709453	Toulon Spring	Toulon Spring		40.08593	-118.69907	H	SPNG	US		NV	027			0	1414	1429	America/Los_Angeles	2011-12-11
+7164995	City of Toulon	City of Toulon		41.09337	-89.86318	A	ADMD	US		IL	175			1292	223	226	America/Chicago	2013-03-08
+7219766	Toulon	Toulon		28.0299	-82.3275	P	PPL	US		FL	057			0	8	15	America/New_York	2010-02-06
+8089797	Toulon Fire Protection District	Toulon Fire Protection District		41.0972	-89.86412	S	BLDG	US		IL	175	75796		0	226	231	America/Chicago	2017-05-23
+948306	Toulon	Toulon		-24.93333	31.55	S	RSTNQ	ZA		07	DC32	MP325		0		309	Africa/Johannesburg	2012-07-12
+948307	Toulon	Toulon		-28.16667	26.68333	S	FRM	ZA		03	DC18	FS184		0		1322	Africa/Johannesburg	2012-07-12
+948308	Toulon	Toulon		-24.9357	31.58359	S	FRM	ZA		07	DC32	MP325		0		300	Africa/Johannesburg	2012-07-12
+948309	Toulon	Toulon		-23.95984	27.65182	S	FRM	ZA		09	DC36	LIM362		0		1032	Africa/Johannesburg	2012-07-12
+948310	Toulon	Toulon		-23.65356	27.89419	S	FRM	ZA		09	DC36	LIM362		0		894	Africa/Johannesburg	2012-07-12

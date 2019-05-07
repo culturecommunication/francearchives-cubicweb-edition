@@ -1,0 +1,17 @@
+5999308	Lac Baignolet	Lac Baignolet		47.00972	-77.67667	H	LK	CA		10	07			0		410	America/Toronto	2013-07-21
+3035374	Baignolet	Baignolet	Baignolet	48.17397	1.62224	P	PPL	FR		24	28	281	28406	120		132	Europe/Paris	2016-12-10
+6447990	Baignolet	Baignolet	Ben'ole,Benole,bai ni ao lai,Беньоле,Бењоле,拜尼奥莱	48.17278	1.62222	A	ADM4H	FR		24	28	281	28020	131		135	Europe/Paris	2016-07-15
+3002038	Les Bagnolets	Les Bagnolets		46.44361	3.11409	P	PPL	FR		84	03	032	03069	0		407	Europe/Paris	2016-02-18
+3002039	Les Bagnolets	Les Bagnolets		46.33017	3.13504	P	PPL	FR		84	03	032	03281	0		438	Europe/Paris	2016-02-18
+3035402	Forêt de Bagnolet	Foret de Bagnolet		46.64361	3.18144	V	FRST	FR		84	03			0		239	Europe/Paris	2016-02-18
+3035403	Bagnolet	Bagnolet	Bagnolet,Ban'ole,Banole,ba ni ao lei,banyolle,banyore,bnywlh,Баньоле,Бањоле,بنیوله,バニョレ,巴尼奥雷,바뇰레	48.86667	2.41667	P	PPL	FR		11	93	931	93006	33504		82	Europe/Paris	2016-02-18
+6464973	Campanile Paris Est - Porte de Bagnolet	Campanile Paris Est - Porte de Bagnolet		48.866	2.4174	S	HTL	FR		11	93	931	93006	0		83	Europe/Paris	2016-02-18
+6488947	Quality Hôtel Golf de Rosny sous Bois (Paris - Porte Bagnolet)	Quality Hotel Golf de Rosny sous Bois (Paris - Porte Bagnolet)		48.87649	2.47429	S	HTL	FR		11	93	931	93064	0		74	Europe/Paris	2016-02-18
+6509002	Ibis Paris Bagnolet	Ibis Paris Bagnolet		48.8674	2.4143	S	HTL	FR		11	93	931	93006	0		88	Europe/Paris	2016-12-10
+6531016	Mister Bed City Paris Bagnolet	Mister Bed City Paris Bagnolet		48.86628	2.41788	S	HTL	FR		11	93	931	93006	0		78	Europe/Paris	2016-02-18
+6613166	Bagnolet	Bagnolet		48.86667	2.41667	A	ADM4	FR		11	93	931	93006	33839		82	Europe/Paris	2016-02-18
+6696408	Porte de Bagnolet	Porte de Bagnolet		48.86447	2.40854	S	GATE	FR		11	75	751	75056	0		81	Europe/Paris	2016-02-18
+8298016	Bureau de Poste de Bagnolet Principal	Bureau de Poste de Bagnolet Principal		48.86806	2.41588	S	PO	FR		11	93	931	93006	0		91	Europe/Paris	2016-02-18
+8298085	Bureau de Poste de Bagnolet Malassis	Bureau de Poste de Bagnolet Malassis		48.8756	2.42537	S	PO	FR		11	93	931	93006	0		108	Europe/Paris	2016-02-18
+10056318	Misterbed City Bagnolet	Misterbed City Bagnolet		48.86617	2.41757	S	HTL	FR		11	93	931	93006	0		83	Europe/Paris	2016-02-18
+8957176	Bagnoletto	Bagnoletto	Bagnoletto	45.18974	11.86494	P	PPL	IT		20	PD	028008		88		4	Europe/Rome	2014-04-13

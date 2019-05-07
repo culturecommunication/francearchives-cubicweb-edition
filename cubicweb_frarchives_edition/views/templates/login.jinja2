@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, width=device-width" />
+
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ data_url }}icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="{{ data_url }}icons/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="{{ data_url }}icons/favicon-16x16.png" sizes="16x16">
+    <link rel="manifest" href="{{ data_url }}icons/manifest.json">
+    <link rel="mask-icon" href="{{ data_url }}icons/safari-pinned-tab.svg" color="#5bbad5">
+    <link rel="shortcut icon" href="{{ data_url }}icons/favicon.ico">
+    <meta name="msapplication-config" content="{{ data_url }}icons/browserconfig.xml">
+    <meta name="theme-color" content="#ffffff">
+
+    <title>{{ title }}</title>
+    {% for css in cssfiles %}
+      <link rel="stylesheet" href="{{ css }}" type="text/css" media="all" />
+    {% endfor %}
+
+  </head>
+  <body>
+    <div class="modal" style="display: block;">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form action="{{ post_url }}" method="post" class="form-horizontal">
+            <input name="postlogin_path" type="hidden" value="{{ postlogin_path }}"/>
+            <div class="modal-header">
+              <div class="modal-title"><h2>{{ title }}</h2></div>
+            </div>
+            <div class="modal-body">
+              {% if message %}
+	        <div class="alert alert-danger">{{ message }}</div>
+              {% endif %}
+              <div class="form-group row">
+                <label for="__login" class="control-label col-xs-3">
+                  login
+                </label>
+                <div class="col-xs-9">
+                  <input id="__login" name="__login" type="text" class="form-control"/>
+                </div>
+              </div>
+              <div class="form-group row">
+                <label for="__password" class="control-label col-xs-3">password</label>
+                <div class="col-xs-9">
+                  <input id="__password" name="__password" type="password" class="form-control"/>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <input name="" type="submit" value="login" class="btn btn-primary"/>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

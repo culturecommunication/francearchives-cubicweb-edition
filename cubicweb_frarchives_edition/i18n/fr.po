@@ -1,0 +1,566 @@
+msgid ""
+msgstr ""
+"PO-Revision-Date: 2017-07-06 11:55+0200\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "\"label\" is required"
+msgstr "le champ \"label\" est requis"
+
+#, python-format
+msgid "A department archive with \"%s\" code already exists"
+msgstr ""
+"Une service d'archives départementales avec le code \"%s\" existe déjà."
+
+msgid ""
+"CSV file invalid. It must contain \"Code_insee\", \"URL\", \"Couleur\" and "
+"\"Legende\" headerscolumns separated by \",\""
+msgstr ""
+"Fichier CSV invalide. Ce fichier doit contenir les colonnes \"Code_insee\", "
+"\"URL\", \"Couleur\" et \"Legende\"séparées par \",\""
+
+msgid "Following files are empty : {}"
+msgstr ""
+
+msgid "Following files does not start with \"{}\" : {}"
+msgstr ""
+
+msgid "Home"
+msgstr ""
+
+msgid "Impossible to delete this card"
+msgstr ""
+
+msgid "Intitules de la rubrique presentation"
+msgstr ""
+
+msgid "Missing data"
+msgstr "Données manquantes"
+
+msgid "New RqTask"
+msgstr ""
+
+msgid "PDF/metadata.csv is missing from zip"
+msgstr "PDF/metadata.csv n'est pas dans le zip"
+
+# schema pot file, generated on 2017-07-04 06:39:53
+#
+# singular and plural forms for each entity type
+msgid "RqTask"
+msgstr "Tâche"
+
+msgid "RqTask_plural"
+msgstr "Tâches"
+
+msgid "Section"
+msgstr "Rubrique"
+
+msgid ""
+"Service \"{}\" does not exist. Check the ziped file name \"{}\" or create a "
+"new service before uploading the file again"
+msgstr ""
+"Le service \"{}\" n'existe pas. Vérifiez l'archive zip \"{}\" ou créez un "
+"nouveau service avant de téléverser à nouveau cette archive"
+
+msgid "This RqTask"
+msgstr "Cette tâche"
+
+msgid "This RqTask:"
+msgstr "Cette tâche :"
+
+msgid "This archive contains no csv files."
+msgstr "Cette archive ne contient aucun fichier au format CSV"
+
+msgid "This archive contains no files."
+msgstr "Cette archive ne contient aucun fichier"
+
+msgid "This file in not a zip file"
+msgstr "Ce fichier n'est pas une archive zip"
+
+msgid "This file is empty"
+msgstr "Ce fichier est vide"
+
+msgid "Uri field is mandatory"
+msgstr "Le champ uri est obligatoire"
+
+msgid "add RqTask output_file File subject"
+msgstr ""
+
+msgid "add a RqTask"
+msgstr "ajouter une tâche"
+
+msgid "bad service code should be one of: "
+msgstr "code de service non valide, ce code devrait être un des suivants : "
+
+msgid "bad task eid"
+msgstr "identifiant de tâche non valide"
+
+msgid "compare strictly authority label"
+msgstr ""
+
+msgid "compute_alignment"
+msgstr ""
+
+msgid "compute_location_authorities_to_group"
+msgstr "[Geonames] générer un CSV avec les candidats au groupement"
+
+msgid "creating File (RqTask %(linkto)s output_file File)"
+msgstr ""
+
+# subject and object forms for each relation type
+# (no object form for final or symmetric relation types)
+msgid "cssimage"
+msgstr "image de la page d'accueil"
+
+msgctxt "Section"
+msgid "cssimage"
+msgstr ""
+
+msgid "cssimage_object"
+msgstr ""
+
+msgctxt "CssImage"
+msgid "cssimage_object"
+msgstr ""
+
+msgid "csv file to import"
+msgstr ""
+
+msgid "dedupe_authorities"
+msgstr ""
+
+# subject and object forms for each relation type
+# (no object form for final or symmetric relation types)
+msgid "ended_at"
+msgstr ""
+
+msgctxt "RqTask"
+msgid "ended_at"
+msgstr "terminé à"
+
+msgid "enqueued_at"
+msgstr "ajouté dans la file à"
+
+msgctxt "RqTask"
+msgid "enqueued_at"
+msgstr "ajouté dans la file à"
+
+msgid "export_ape"
+msgstr "[export ApeEAD] exporter des instruments de recherche en ApeEAD"
+
+msgid "fatask_findingaid"
+msgstr "IR importés"
+
+msgctxt "RqTask"
+msgid "fatask_findingaid"
+msgstr ""
+
+msgid "fatask_findingaid_object"
+msgstr ""
+
+msgctxt "FindingAid"
+msgid "fatask_findingaid_object"
+msgstr ""
+
+msgid "findingaid eid"
+msgstr ""
+
+msgid "force-delete-old-findingaids"
+msgstr "supprimer les éventuels IR déjà présents"
+
+msgid "force-import-oai"
+msgstr ""
+
+msgid "group_location_authorities"
+msgstr "[Geonames] grouper les location authorities"
+
+msgid "import_alignment"
+msgstr ""
+
+msgid "import_csv"
+msgstr "[import CSV] importer des descriptions"
+
+msgid "import_ead"
+msgstr "[import EAD/PDF] importer des instruments de recherche"
+
+msgid "import_oai"
+msgstr "importer des intruments de recherche depuis un dépôt OAI (import_oai)"
+
+msgid "in_state_facet"
+msgstr "états"
+
+msgid "line {}: missing value for {} columns"
+msgstr "ligne {} : valeur manquante pour {}."
+
+msgctxt "RqTask"
+msgid "log"
+msgstr "log"
+
+msgid "missing \"ead-services-dir\" parameter in all-in-one.conf"
+msgstr ""
+"le paramètre \"ead-services-dir\" est absent du fichier all-in-one.conf"
+
+msgctxt "RqTask"
+msgid "name"
+msgstr ""
+
+msgid "no XML files found in zip"
+msgstr ""
+
+msgid "no findingaid with this id"
+msgstr ""
+
+msgid "not allowed"
+msgstr ""
+
+msgid "not authorized"
+msgstr "non authorisé"
+
+msgid "oai repository identifier"
+msgstr ""
+
+msgid "output_descr"
+msgstr "description du résultat"
+
+msgctxt "RqTask"
+msgid "output_descr"
+msgstr ""
+
+msgid "output_descr_format"
+msgstr ""
+
+msgctxt "RqTask"
+msgid "output_descr_format"
+msgstr ""
+
+msgid "output_file"
+msgstr ""
+
+msgctxt "RqTask"
+msgid "output_file"
+msgstr ""
+
+msgid "output_file_object"
+msgstr ""
+
+msgctxt "File"
+msgid "output_file_object"
+msgstr ""
+
+msgid "progress bar"
+msgstr "barre de progression"
+
+msgid "publish_findingaid"
+msgstr "publication d'instruments de recherche (publish_findingaid)"
+
+msgid "referenced_files"
+msgstr ""
+
+msgctxt "BaseContent"
+msgid "referenced_files"
+msgstr ""
+
+msgctxt "Card"
+msgid "referenced_files"
+msgstr ""
+
+msgctxt "CommemoCollection"
+msgid "referenced_files"
+msgstr ""
+
+msgctxt "CommemorationItem"
+msgid "referenced_files"
+msgstr ""
+
+msgctxt "ExternRef"
+msgid "referenced_files"
+msgstr ""
+
+msgctxt "Map"
+msgid "referenced_files"
+msgstr ""
+
+msgctxt "NewsContent"
+msgid "referenced_files"
+msgstr ""
+
+msgctxt "Section"
+msgid "referenced_files"
+msgstr ""
+
+msgid "referenced_files_object"
+msgstr ""
+
+msgctxt "File"
+msgid "referenced_files_object"
+msgstr ""
+
+msgid "service code"
+msgstr ""
+
+msgid "service code (required only for xml, optional for zip)"
+msgstr ""
+
+msgid "service code from which you want to generate APE files"
+msgstr ""
+"le code du service pour lequel vous souhaitez générer les fichiers APE-EAD"
+
+msgid "started_at"
+msgstr "démarré à"
+
+msgctxt "RqTask"
+msgid "started_at"
+msgstr "démarré à"
+
+msgctxt "RqTask"
+msgid "status"
+msgstr "statut"
+
+msgid "subtasks"
+msgstr ""
+
+msgctxt "RqTask"
+msgid "subtasks"
+msgstr ""
+
+msgid "subtasks_object"
+msgstr ""
+
+msgctxt "RqTask"
+msgid "subtasks_object"
+msgstr ""
+
+msgid "task eid"
+msgstr ""
+
+msgid "task_logs"
+msgstr "Logs de tâche"
+
+msgid "task_name"
+msgstr "type de tâche"
+
+msgid "title"
+msgstr "titre"
+
+msgctxt "RqTask"
+msgid "title"
+msgstr "titre de la tâche"
+
+msgid "type of task"
+msgstr "type de tâche"
+
+msgid "wfs_cmsobject_draft"
+msgstr "brouillon"
+
+msgid "wfs_cmsobject_published"
+msgstr "publié"
+
+msgid "wfs_faimport_completed"
+msgstr "terminé"
+
+msgid "wfs_faimport_failed"
+msgstr "échec"
+
+msgid "wfs_faimport_pending"
+msgstr "prêt"
+
+msgid "wfs_faimport_running"
+msgstr "en cours"
+
+msgid "wft_cmsobject_publish"
+msgstr "publier"
+
+msgid "wft_cmsobject_unpublish"
+msgstr "dépublier"
+
+msgid "wft_faimport_complete"
+msgstr "terminer"
+
+msgid "wft_faimport_fail"
+msgstr "annuler"
+
+msgid "wft_faimport_run"
+msgstr "lancer"
+
+msgid "zip file"
+msgstr "archive zip"
+
+#~ msgid "Add locations"
+#~ msgstr "Ajouter des lieux"
+
+#~ msgid "Add persons"
+#~ msgstr "Ajouter des personnes"
+
+#~ msgid "Add themes"
+#~ msgstr "Ajoutes des thèmes"
+
+#~ msgid ""
+#~ "An annex of department archive \"%s\" with \"%s\" code already exists"
+#~ msgstr ""
+#~ "Une annexe de service d'archives départementales \"%s\" avec le code \"%s"
+#~ "\" existe déjà."
+
+#~ msgid "FAFileImport"
+#~ msgstr "Import d'instrument recherche"
+
+#~ msgid "FAFileImport_plural"
+#~ msgstr "Imports d'instruments de recherche"
+
+#~ msgid "FAOAIPMHImport"
+#~ msgstr "Moissonnage OAI-PMH d'instrument de recherche"
+
+#~ msgid "FAOAIPMHImport_plural"
+#~ msgstr "Moissonnages OAI-PMH d'instrument de recherche"
+
+#~ msgid "New FAFileImport"
+#~ msgstr "Nouvel import d'instrument de recherche"
+
+#~ msgid "No circular with circ_id \"{}\" has been found"
+#~ msgstr "Aucun cirulaire avec l'identifant (circ_id) \"{}\" n'a été trouvé"
+
+#~ msgctxt "inlined:Service.service_social_network.subject"
+#~ msgid "SocialNetwork"
+#~ msgstr "réseaux sociaux"
+
+#~ msgid "This archive contains too many csv files : {}"
+#~ msgstr "Cette archive ne contient trop de fichiers au format CSV : {}"
+
+#~ msgid "This file has no name"
+#~ msgstr "Ce fichier n'a pas de nom"
+
+#~ msgid "add RqTask fatask_findingaid FindingAid subject"
+#~ msgstr "ajouter un lien entre un tâche et un instrument de recherche"
+
+#~ msgctxt "inlined:FAFileImport.import_file.subject"
+#~ msgid "add a File"
+#~ msgstr "ajouter un fichier"
+
+#~ msgctxt "inlined:Section.section_image.subject"
+#~ msgid "add a Image"
+#~ msgstr "ajouter une image"
+
+# schema pot file, generated on 2016-12-06 14:40:21
+#
+# singular and plural forms for each entity type
+#~ msgctxt "inlined:BaseContent.metadata.subject"
+#~ msgid "add a Metadata"
+#~ msgstr "ajouter des metadonnées"
+
+#~ msgctxt "inlined:CmsObject.metadata.subject"
+#~ msgid "add a Metadata"
+#~ msgstr "ajouter des metadonnées"
+
+#~ msgctxt "inlined:CommemoCollection.metadata.subject"
+#~ msgid "add a Metadata"
+#~ msgstr "ajouter des metadonnées"
+
+#~ msgctxt "inlined:CommemorationItem.metadata.subject"
+#~ msgid "add a Metadata"
+#~ msgstr "ajouter des metadonnées"
+
+#~ msgctxt "inlined:ExternRef.metadata.subject"
+#~ msgid "add a Metadata"
+#~ msgstr "ajouter des metadonnées"
+
+#~ msgctxt "inlined:Map.metadata.subject"
+#~ msgid "add a Metadata"
+#~ msgstr "ajouter des metadonnées"
+
+#~ msgctxt "inlined:Section.metadata.subject"
+#~ msgid "add a Metadata"
+#~ msgstr "ajouter des metadonnées"
+
+#~ msgctxt "inlined:Service.service_social_network.subject"
+#~ msgid "add a SocialNetwork"
+#~ msgstr "ajouter un réseaux social"
+
+#~ msgid "bad xpath expression: "
+#~ msgstr "xpath non valide"
+
+#~ msgid "date"
+#~ msgstr "date"
+
+#~ msgid "harvest_url"
+#~ msgstr "URL de moissonnage"
+
+#~ msgid "import_file"
+#~ msgstr "fichier à importer"
+
+#~ msgid "imported_findingaid"
+#~ msgstr "instrument de recherche importé"
+
+#~ msgctxt "FAFileImport"
+#~ msgid "keywords"
+#~ msgstr "mots-clés"
+
+#~ msgid "metadata attached to findingaid"
+#~ msgstr "metadonnées attachées à un instrument de recherche"
+
+#~ msgctxt "FAFileImport"
+#~ msgid "name"
+#~ msgstr "nom"
+
+#~ msgid "non-compliant-to-pwd_policy"
+#~ msgstr ""
+#~ "Mot de passe trop faible. Le mot de passe doit avoir : 12 caractères "
+#~ "minimum, des majuscules, des minuscules, des chiffres et des caractères "
+#~ "spéciaux"
+
+#~ msgctxt "FAFileImport"
+#~ msgid "publisher"
+#~ msgstr "diffuseur"
+
+#~ msgid "pwd_policy"
+#~ msgstr ""
+#~ "Le mot de passe doit avoir : 12 caractères minimum, des majuscules, des "
+#~ "minuscules, des chiffres et des caractères spéciaux"
+
+#~ msgctxt "FAFileImport"
+#~ msgid "startyear"
+#~ msgstr "année de début"
+
+#~ msgctxt "FAFileImport"
+#~ msgid "stopyear"
+#~ msgstr "année de fin"
+
+#~ msgid "task eid of type `import_ead`"
+#~ msgstr "identifiant d'une tâche de type \"import d'intrument de recherche\""
+
+#~ msgid "this data can not be linked"
+#~ msgstr "cette donnée ne peut pas être liée."
+
+#~ msgid "time"
+#~ msgstr "temps"
+
+#~ msgid "wfs_findingaid_initialized"
+#~ msgstr "initialisé"
+
+#~ msgid "wfs_findingaid_invalid"
+#~ msgstr "invalide"
+
+#~ msgid "wfs_findingaid_published"
+#~ msgstr "publié"
+
+#~ msgid "wfs_findingaid_unpublished"
+#~ msgstr "dépublié"
+
+#~ msgid "wfs_findingaid_valid"
+#~ msgstr "valide"
+
+#~ msgid "wft_findingaid_invalidate"
+#~ msgstr "invalider"
+
+#~ msgid "wft_findingaid_publish"
+#~ msgstr "publier"
+
+#~ msgid "wft_findingaid_unpublish"
+#~ msgstr "dépublier"
+
+#~ msgid "wft_findingaid_validate"
+#~ msgstr "valider"
+
+#~ msgid "xpath to select text that will send to elasticsearch"
+#~ msgstr "xpath permettant de selectionner le texte à indexer"

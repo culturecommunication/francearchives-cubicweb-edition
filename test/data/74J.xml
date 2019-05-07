@@ -1,0 +1,180 @@
+<?xml version='1.0' encoding='iso-8859-1'?>
+<!DOCTYPE ead PUBLIC "+//ISBN 1-931666-00-8//DTD ead.dtd (Encoded Archival Description (EAD) Version 2002)//EN" "ead.dtd">
+<ead>
+<eadheader>
+<eadid>FRAD021_000000615</eadid>
+<filedesc>
+<titlestmt>
+<titleproper>Répertoire 74 J (Société de l'imprimerie de la Bourgogne républicaine)</titleproper>
+<subtitle>sous-série 74 J</subtitle>
+<author>par A. Roelly ; sous la direction de G. Moyse</author>
+</titlestmt>
+<publicationstmt>
+<publisher>Archives départementales de la Côte-d'Or</publisher>
+<address><addressline>Dijon</addressline></address>
+<date normal="2004">2004</date>
+</publicationstmt>
+</filedesc>
+<profiledesc>
+<creation>Instrument de recherche produit au moyen du logiciel Arkhéïa Aide au classement de la société Anaphore sarl, version 3-4 du <date normal="2010-02-01">lundi 1 février 2010</date>. 
+Date de l'export : <date normal="2010-09-15">mercredi 15 septembre 2010</date> (16:51 h)</creation>
+<langusage>Instrument de recherche rédigé en <language langcode="fre">français</language></langusage>
+</profiledesc>
+</eadheader>
+<archdesc level="fonds">
+<runner>Société de l'imprimerie de la Bourgogne républicaine</runner>
+<did><unitdate label="Date de l'unité documentaire" normal="1946/1958">1946-1958</unitdate>
+<physdesc label="Description physique">
+<genreform source="liste-typedocAC">Document d'archives</genreform><lb/>
+<lb/>
+<extent type="unités description" label="Nombre d'unités de niveau bas">7</extent><lb/>
+<extent label="Métrage linéaire" unit="ml">0.15</extent><lb/>
+</physdesc>
+<repository label="Organisme responsable de l’accès intellectuel">Archives départementales de la Côte-d'Or</repository>
+<origination label="Origine">
+<corpname role="producteur" altrender="entreprise privée">Société de l'imprimerie de la Bourgogne républicaine</corpname>
+</origination>
+</did>
+<bioghist>
+<head>Biographie ou histoire</head>
+<p>Société anonyme constituée en octobre 1936 pour la publication du journal "La Bourgogne républicaine", organe du parti socialiste. </p><p>Le 11 octobre 1936 se tient la première assemblée générale des actionnaires qui élit Robert Jardillier, alors ministre des PTT, président du conseil d'administration tandis que Jean Bouhey, député de Côte-d'Or, est nommé directeur. Le journaliste Henri Anger devient rédacteur en chef. Le premier numéro sort des presses le 1er janvier 1937.</p><p>De 7.038 abonnés en janvier 1937, on passe à 10.000 en juin et 13.000 en septembre. A cette époque la Bourgogne républicaine ("BR") étend sa diffusion au département de l'Yonne. Puis elle s'installe dans le Jura, le Doubs, la Haute-Saône et le Territoire de Belfort où elle devient La Franche-Comté républicaine.</p><p>A la veille de la guerre, le tirage est de 32.000 exemplaires et les abonnés 14.000. Pendant la guerre la publication du journal est suspendue. Dès septembre 1944 la "BR" paraît à nouveau. Son tirage atteint 50.000 exemplaires en 1946. </p><p>En 1948, elle absorbe Les Dernières Dépêches, puis La République du Doubs en 1957 et en 1958 s'associe avec Le Comtois. Le 1er septembre, elle devient La Bourgogne-Les Dépêches puis bientôt Les Dépêches, journal régional s'étendant sur la Bourgogne, la Franche-Comté et la Champagne.</p>
+</bioghist>
+<custodhist>
+<head>Historique de la conservation</head>
+<p>Quand le journal "Les Dépêches" (qui avait pris la suite de la Bourgogne républicaine) déménagea de l'avenue Foch pour la rue de Colmar (1972), de nombreux dossiers ont été éliminés. Les documents objets de cet inventaire ont été sauvés de la destruction par M. Jean-François Bazin.</p>
+</custodhist>
+<acqinfo>
+<head>Informations sur les modalités d'entrée</head>
+<p>Don de M. Jean-François Bazin le 2 août 2004</p>
+<p altrender="date entrée"><date normal="2004-08-02">lundi 2 août 2004</date></p>
+<p altrender="type entrée">Don</p>
+</acqinfo>
+<accessrestrict>
+<head>Modalités d'accès</head>
+<p>Communicable suivant les délais légaux (loi du 3 janvier 1979 et ses décrets d'application)</p>
+</accessrestrict>
+<relatedmaterial>
+<head>Sources complémentaires</head>
+<relatedmaterial type="sources-internes">
+<head>Sources internes</head>
+<p>Fonds de la préfecture : </p><p>- 27 X e 239 d 75 Dijon. Sociétés de secours mutuels à caractère professionnel, personnel des maisons dijonnaises et des administrations : personnel de Imprimerie La Bourgogne républicaine (n°551), 1947-1948</p><p>- 1189 W 675 États des tirages de la Bourgogne Républicaine et du Bien Public, 1952-1957</p><p>Microfilms :</p><p>4 Mi 11-16, Mi 251 : microfilm du journal "La Bourgogne républicaine", janvier-février 1937 ; mars-mai 1937 ; juillet-10 octobre 1938 ; 11 octobre-décembre 1938 ; 1er septembre 1945-1er janvier 1946 ; janvier-septembre 1946 ; octobre-décembre 1946.</p>
+</relatedmaterial>
+</relatedmaterial>
+<separatedmaterial>
+<head>Documents séparés</head>
+<p>1 J 5285/1-2 : Journal "La Bourgogne Républicaine", constitution et affaires générales, 1936-1939, 1944-1954 (don de M. Garreta, du 25 novembre 1982).</p>
+</separatedmaterial>
+<processinfo>
+<processinfo type="rédacteur description">
+<head>Rédacteur de la description</head>
+<p><persname role="auteur_description">AR</persname></p>
+</processinfo>
+<processinfo type="information description">
+<head>Informations sur la description</head>
+<p>Historique du producteur d'après le cahier spécial du Bien Public du 24/12/1999.</p>
+</processinfo>
+</processinfo>
+<controlaccess>
+<head>Descripteurs</head>
+<genreform type="typir">Recherche détaillée</genreform>
+</controlaccess>
+<dsc type="in-depth">
+<c id="tt1-1">
+<!--titre niveau 1-->
+<did>
+<unittitle type="titre" label="Intitulé de l'unité documentaire">Constitution de l'affaire</unittitle>
+</did>
+<c id="de-1" level="file">
+<did>
+<unitid label="Cotes extrêmes">74 J 1</unitid>
+<unittitle label="Intitulé de l'unité documentaire">Actionnaires. Registres à souche d'actions.</unittitle>
+<unitdate label="Date de l'unité documentaire" normal="1950/1957">1950-1957</unitdate>
+</did>
+</c>
+</c>
+<c id="tt1-4">
+<!--titre niveau 1-->
+<did>
+<unittitle type="titre" label="Intitulé de l'unité documentaire">Administration générale</unittitle>
+</did>
+<c id="tt2-1">
+<!--titre niveau 2-->
+<did>
+<unittitle type="titre" label="Intitulé de l'unité documentaire">Conseils et comités</unittitle>
+</did>
+<c id="de-6" level="file">
+<did>
+<unitid label="Cotes extrêmes">74 J 2</unitid>
+<unittitle label="Intitulé de l'unité documentaire">Conseil d'administration : ordre du jour, comptes rendus, pièces annexes (bilan, rapport).</unittitle>
+<unitdate label="Date de l'unité documentaire" normal="1946/1949">1946-1949</unitdate>
+</did>
+</c>
+<c id="de-7" level="file">
+<did>
+<unitid label="Cotes extrêmes">74 J 3</unitid>
+<unittitle label="Intitulé de l'unité documentaire">Comité de direction : comptes rendus.</unittitle>
+<unitdate label="Date de l'unité documentaire" normal="1948/1949">1948-1949</unitdate>
+</did>
+</c>
+</c>
+<c id="tt2-2">
+<!--titre niveau 2-->
+<did>
+<unittitle type="titre" label="Intitulé de l'unité documentaire">Correspondance générale</unittitle>
+</did>
+<c id="de-5" level="file">
+<did>
+<unitid label="Cotes extrêmes">74 J 4</unitid>
+<unittitle label="Intitulé de l'unité documentaire">Correspondance.</unittitle>
+<unitdate label="Date de l'unité documentaire" normal="1951/1956">1951-1956</unitdate>
+</did>
+</c>
+</c>
+</c>
+<c id="tt1-5">
+<!--titre niveau 1-->
+<did>
+<unittitle type="titre" label="Intitulé de l'unité documentaire">Patrimoine</unittitle>
+</did>
+<c id="tt2-3">
+<!--titre niveau 2-->
+<did>
+<unittitle type="titre" label="Intitulé de l'unité documentaire">Bâtiments</unittitle>
+</did>
+<c id="de-3" level="file">
+<did>
+<unitid label="Cotes extrêmes">74 J 5</unitid>
+<unittitle label="Intitulé de l'unité documentaire">Assurances : estimation détaillée (avec plans) par la société Galtier Frères et Cie de la SA Imprimerie "La Bourgogne républicaine", janvier <unitdate label="Date de l'unité documentaire" normal="1955">1955</unitdate> (1er groupe, 12 avenue du maréchal Foch : administration et imprimerie ; 2e groupe, 10 avenue du maréchal Foch : comprend notamment un hôtel restaurant, un magasin Auger, des locaux d'habitation, des ateliers).</unittitle>
+</did>
+</c>
+</c>
+<c id="tt2-4">
+<!--titre niveau 2-->
+<did>
+<unittitle type="titre" label="Intitulé de l'unité documentaire">Matériel d'exploitation</unittitle>
+</did>
+<c id="de-2" level="file">
+<did>
+<unitid label="Cotes extrêmes">74 J 6</unitid>
+<unittitle label="Intitulé de l'unité documentaire">Inventaire du matériel (atelier de composition, photogravure, etc.).</unittitle>
+<unitdate label="Date de l'unité documentaire" normal="1946/1958">1946-1958</unitdate>
+</did>
+</c>
+</c>
+</c>
+<c id="tt1-6">
+<!--titre niveau 1-->
+<did>
+<unittitle type="titre" label="Intitulé de l'unité documentaire">Ventes</unittitle>
+</did>
+<c id="de-4" level="file">
+<did>
+<unitid label="Cotes extrêmes">74 J 7</unitid>
+<unittitle label="Intitulé de l'unité documentaire">Abonnements et ventes journalières : états mensuels, août 1955-novembre 1956, avril 1957.</unittitle>
+<unitdate label="Date de l'unité documentaire" normal="1955/1957">1955-1957</unitdate>
+</did>
+</c>
+</c>
+</dsc>
+</archdesc>
+</ead>

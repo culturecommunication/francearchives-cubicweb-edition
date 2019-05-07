@@ -1,0 +1,204 @@
+
+.ReactModalPortal > * {
+  z-index: 2000;
+}
+
+#admin-panel {
+  position: fixed;
+  z-index: 1000;
+  overflow-y: auto;
+  background-color: #eee;
+  height: 100%;
+  border: 1px solid #CCC;
+  box-shadow: 0px 1px 0px rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  font-size: 80%;
+}
+
+/* this will allow to disable react-select in bootstrap table on service page */
+.react-bs-table .annex-td {
+    overflow: initial
+}
+
+
+#admin-panel hr {
+  height: 1px;
+  border: 0;
+  background-image: linear-gradient(to right, #ccc, #333, #ccc);
+}
+
+#admin-panel h2 {
+  font-size: 20px;
+}
+
+#admin-panel h3 {
+  font-size: 16px;
+}
+
+#admin-panel > div {
+  width: 300px;
+}
+
+
+/* select all children of body except #admin-panel */
+body #admin-panel ~ * {
+  padding-left: 300px;  /* like max-width in #admin-panel */
+}
+
+body #admin-panel ~ #toTopBtn {
+  padding-left: 0.7em;
+}
+
+
+#admin-panel > div {
+  height: 100%;  /* so border-right in #toolbar take full height */
+}
+
+.pointer {
+  cursor: pointer
+}
+
+#admin-panel > div.panel-unfolded { /* need selector with priority higher of `#admin-panel`  */
+  width: 100%;
+  max-width: none;
+}
+.panel-unfolded {
+  width: 100%;
+}
+
+#admin-panel h3 {
+  text-align: left;
+  padding-left: 1em;
+}
+
+#toolbar {
+  padding: 0px 10px;
+  height: 100%;
+  text-align: center;
+}
+
+#mainpanel {
+  padding: 10px;
+  display: none;
+}
+
+.panel-unfolded #toolbar {
+  border-right: 1px solid grey;
+}
+
+.panel-unfolded #mainpanel {
+  display: block;
+}
+
+
+.form-title {
+  font-weight: 700;
+  display: block;
+}
+
+.login {
+  line-height: 3.125em;  /* come from francearchive #main-menu */
+  margin-right: 1em;
+}
+
+.fa-scale:hover {
+  font-size: 1.3em;
+}
+
+.fa-scale {
+  -webkit-transition: all 0.3s ease-out;
+  -moz-transition: all 0.3s ease-out;
+  -o-transition: all 0.3s ease-out;
+  transition: all 0.3s ease-out;
+}
+
+
+.tree-title {
+    margin-left: 10px;
+}
+
+.tree-title:hover {
+    background-color: yellow;
+}
+
+.formBlock {
+  margin-bottom: 2em;
+}
+
+.rqtask-state--block {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 0.8em;
+  display: block;}
+
+.rqtask-state-queued {
+  background: #f19700;}
+
+.rqtask-state-started {
+  background: #f19700;}
+
+.rqtask-state-finished {
+  background: #01c832;}
+
+.rqtask-state-failed {
+  background: #c80132;}
+
+.rqtask-state {
+  width: 0.8em;
+  height: 0.8em;
+  display: inline-block;
+  border-radius: 50%;}
+
+progress:not([value]) {
+  background: gray;
+}
+
+#logs-table-container .react-bs-table table td, .react-bs-table table th {
+  white-space: normal;
+  overflow: inherit;
+  text-overflow: none;
+}
+
+.form-inline .alignment-input {
+  width: 80%;
+}
+
+.inline {
+  display: inline;
+}
+
+.overlay {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  left: 0px;
+  right: 0px;
+  top: 0px;
+  bottom: 0px;
+  z-index: 1000;
+}
+
+.overlay_background {
+  position: fixed;
+  left: 0px;
+  right: 0px;
+  top: 0px;
+  bottom: 0px;
+  z-index: auto;
+  background-color: #000;
+  opacity: 0.5;
+}
+
+.overlay_body {
+  color: white;
+  margin: 0px;
+  font-size: 10em;
+}
+
+
+div.cms_add_link {
+  font-size: 1.7em;
+  color: #0d4e96;
+  font-weight: 700;
+}

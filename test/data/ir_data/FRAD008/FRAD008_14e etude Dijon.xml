@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ead>
+  <eadheader>
+    <eadid>FRAD001_EC_THOL</eadid>
+    <filedesc>
+      <titlestmt> <author>par V-Technologies - Empreinte Digitale</author></titlestmt>
+      <publicationstmt>
+        <publisher>Archives départementales de l'Ain</publisher>
+        <address>
+          <addressline/>
+        </address>
+        <date normal="2014">2014</date>
+      </publicationstmt>
+    </filedesc>
+    <profiledesc>
+      <creation>Instrument de recherche produit au moyen de Ligéo-Archives.01/07/2014<date normal="2014-07-01">01/07/2014</date></creation>
+      <langusage>Instrument de recherche rédigé en français<language langcode="fra">français</language></langusage>
+    </profiledesc>
+  </eadheader>
+  <archdesc level="fonds" otherlevel="groupe-de-fonds">
+    <did>
+      <unittitle>Etat Civil de la commune de Thol</unittitle>
+      <unitid>FRAD001_EC 2014 </unitid>
+      <unitdate normal=""/>
+      <physdesc> <genreform source="liste-typedocAC">Document d'archives</genreform></physdesc>
+    </did>
+    <dsc type="in-depth">
+
+
+<c> <did> <unittitle>Thol 1793 - 1795</unittitle><unitid>FRAD001_EC LOT108644</unitid><unitdate normal="1793/1795">An II - An III</unitdate></did><daogrp> <daoloc role="dossier" href="/FRAD001_EC/FRAD001_EC_THOL/FRAD001_EC_THOL_1793-1794/FRAD001_EC_THOL_1793-1794_NMD"/><daoloc role="prefixe" href="FRAD001_EC_THOL_1793-1794_NMD_"/><daoloc role="extension" href=".jp2"/><daoloc role="premier" href="001"/><daoloc role="dernier" href="041"/></daogrp><controlaccess> <subject role="type-acte" code="N">N</subject><subject role="type-acte" code="M">M</subject><subject role="type-acte" code="D">D</subject><geogname role="commune">Thol</geogname></controlaccess>
+</c></dsc></archdesc></ead>

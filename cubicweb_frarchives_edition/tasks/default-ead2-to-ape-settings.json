@@ -1,0 +1,315 @@
+{
+    "logger": "glamconv.ead",
+    "steps": [
+        {
+            "id": "xml-reader",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "ead-2002-validator",
+            "log_details": true,
+            "params": {}
+        },
+        {
+            "id": "ead-namespace-remover",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "lowercase-elts",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "empty-elts-eraser",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "eadheader-children-orderer",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "paragraph-adder",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "empty-attrs-eraser",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "identifier-converter",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "unitdate-certainly-converter",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "c-OTHERlevel-converter",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "c-children-orderer",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "archdesc-children-orderer",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "change-children-orderer",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "attributes-eraser",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "normalize-id",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "elements-eraser",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "identifiers-definer",
+            "log_details": false,
+            "params": {
+                "agency_code": "",
+                "country_code": "",
+                "document_id": "",
+                "favour_xml_document_id": true
+            }
+        },
+        {
+            "id": "sponsor-converter",
+            "log_details": false,
+            "params": {
+                "title": "Sponsor : "
+            }
+        },
+        {
+            "id": "editionstmt-converter",
+            "log_details": false,
+            "params": {
+                "title": "Éditions"
+            }
+        },
+        {
+            "id": "notestmt-converter",
+            "log_details": false,
+            "params": {
+                "title": "Notes"
+            }
+        },
+        {
+            "id": "frontmatter-converter",
+            "log_details": false,
+            "params": {
+                "title": "Prolégomènes"
+            }
+        },
+        {
+            "id": "stmt-p-num-eraser",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "descgrp-remover",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "numbered-c-converter",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "hierarchical-arch-elts-collapser",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "arch-elts-links-in-p-mover",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "archdesc-c-note-in-did-mover",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "did-abstract-converter",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "unittitle-unitdate-in-did-copier",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "incorrect-normal-date-eraser",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "def-list-converter",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "chronlist-converter",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "legalstatus-converter",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "address-converter",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "note-remover",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "blockquote-remover",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "list-converter",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "paragraph-remover",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "linkgrp-eraser",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "daodesc-eraser",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "internal-link-transformer",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "external-link-transformer",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "daogrp-transformer",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "archdesc-c-dao-mover",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "dao-content-eraser",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "odd-dao-transformer",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "frarchives-edition-eadid-transformer",
+            "log_details": true,
+            "params": {
+                "eadid_url": "SS"
+            }
+        },
+        {
+            "id": "xlink-setter",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "mixed-content-adjuster",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "archdesc-level-adjuster",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "dsc-type-adjuster",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "emph-render-adjuster",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "list-attribs-adjuster",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "language-langcode-adjuster",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "language-scriptcode-adjuster",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "ead-namespace-adder",
+            "log_details": false,
+            "params": {}
+        },
+        {
+            "id": "ape-ead-validator",
+            "log_details": true,
+            "params": {}
+        },
+        {
+            "id": "xml-writer",
+            "log_details": false,
+            "params": {}
+        }
+ ]
+}

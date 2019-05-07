@@ -1,0 +1,19 @@
+{% extends "maintemplate.jinja2" %}
+
+{% block login %}
+
+  <span class="login">
+    {{ user }}<i class="fa fa-user"></i>
+    <a href="{{ base_url }}/{{ "login" if isanon else "logout" }}?postlogin_path={{ current_url | e }}">
+      <i class="fa fa-{{ "sign-in" if isanon else "sign-out" }}"></i>
+    </a>
+  </span>
+
+{% endblock %}
+
+{% block adminpanel %}
+  {% if not isanon %}
+    <div id="admin-panel"></div>
+    <input id="tinymcefile" type="file" style="display:none" />
+  {% endif %}
+{% endblock %}
