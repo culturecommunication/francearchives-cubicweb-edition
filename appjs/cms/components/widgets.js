@@ -27,14 +27,19 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
+
+const React  = require('react');
+
 const {Component, createElement: ce} = require('react'),
     PropTypes = require('prop-types');
 
 const DateTimePicker = require('react-widgets/lib/DateTimePicker');
+const momentLocalizer = require('react-widgets-moment');
 
 const Moment = require('moment'),
-      _ = require('lodash'),
-      MomentLocalizer = require('react-widgets/lib/localizers/moment');
+      _ = require('lodash');
+Moment.locale('fr');
+momentLocalizer();
 
 const {default: {
     getAvailableTargets,
@@ -42,26 +47,19 @@ const {default: {
 
 }} = require('../api');
 
-Moment.locale('fr');
-MomentLocalizer(Moment);
-
-const _localizers = require('react-widgets/lib/util/localizers');
 
 const Select = require('react-select');
 
 const {spinner} = require('../components/fa');
 
-function isValid(d) {
-    return !isNaN(d.getTime());
+function formatDate(date, format) {
+    const mdate = Moment(date);
+    if (mdate && mdate._isValid) {
+        return Moment(mdate).format(format);
+    }
+    return date;
 }
 
-function formatDate(date, format, culture) {
-    var val = null;
-    if (date instanceof Date && isValid(date)) {
-        val = _localizers.date.format(date, format, culture);
-    }
-    return val;
-}
 
 class DatePicker extends Component {
     constructor(props) {
@@ -77,14 +75,15 @@ class DatePicker extends Component {
     }
 
     render() {
-        return ce(DateTimePicker, {time: false,
-                                   value: this.state.value,
-                                   format: 'DD/MM/YYYY',
-                                   onChange: this.onChange,
-                                  }
-                 );
+        return <DateTimePicker
+            time={false}
+            format={'DD/MM/YYYY'}
+            onChange={this.onChange}
+            value={this.state.value}
+            />
     }
 }
+
 DatePicker.propTypes = {
     value: PropTypes.number,
     onChange: PropTypes.func.isRequired,

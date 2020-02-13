@@ -35,41 +35,34 @@ from cubicweb import _
 
 
 def dataimport_workflow(add_workflow, etype):
-    wf = add_workflow(u'{0} data import workflow'.format(etype), etype)
-    pending = wf.add_state(_('wfs_faimport_pending'), initial=True)
-    running = wf.add_state(_('wfs_faimport_running'))
-    completed = wf.add_state(_('wfs_faimport_completed'))
-    failed = wf.add_state(_('wfs_faimport_failed'))
-    wf.add_transition(_('wft_faimport_run'),
-                      (pending, ), running)
-    wf.add_transition(_('wft_faimport_complete'),
-                      (running, ), completed)
-    wf.add_transition(_('wft_faimport_fail'),
-                      (running, ), failed)
+    wf = add_workflow("{0} data import workflow".format(etype), etype)
+    pending = wf.add_state(_("wfs_faimport_pending"), initial=True)
+    running = wf.add_state(_("wfs_faimport_running"))
+    completed = wf.add_state(_("wfs_faimport_completed"))
+    failed = wf.add_state(_("wfs_faimport_failed"))
+    wf.add_transition(_("wft_faimport_run"), (pending,), running)
+    wf.add_transition(_("wft_faimport_complete"), (running,), completed)
+    wf.add_transition(_("wft_faimport_fail"), (running,), failed)
     return wf
 
 
 def cmsobject_workflow(add_workflow, etype):
-    wf = add_workflow(u'CMS Object workflow', etype)
-    draft = wf.add_state(_('wfs_cmsobject_draft'), initial=True)
-    public = wf.add_state(_('wfs_cmsobject_published'))
-    wf.add_transition(_('wft_cmsobject_publish'),
-                      (draft, ), public,
-                      requiredgroups=('users', 'managers'))
-    wf.add_transition(_('wft_cmsobject_unpublish'),
-                      (public, ), draft,
-                      requiredgroups=('users', 'managers'))
+    wf = add_workflow("CMS Object workflow", etype)
+    draft = wf.add_state(_("wfs_cmsobject_draft"), initial=True)
+    public = wf.add_state(_("wfs_cmsobject_published"))
+    wf.add_transition(
+        _("wft_cmsobject_publish"), (draft,), public, requiredgroups=("users", "managers")
+    )
+    wf.add_transition(
+        _("wft_cmsobject_unpublish"), (public,), draft, requiredgroups=("users", "managers")
+    )
     return wf
 
 
 def section_workflow(add_workflow, etype):
-    wf = add_workflow(u'Section Object workflow', etype)
-    draft = wf.add_state(_('wfs_cmsobject_draft'), initial=True)
-    public = wf.add_state(_('wfs_cmsobject_published'))
-    wf.add_transition(_('wft_cmsobject_publish'),
-                      (draft, ), public,
-                      requiredgroups=('managers',))
-    wf.add_transition(_('wft_cmsobject_unpublish'),
-                      (public, ), draft,
-                      requiredgroups=('managers',))
+    wf = add_workflow("Section Object workflow", etype)
+    draft = wf.add_state(_("wfs_cmsobject_draft"), initial=True)
+    public = wf.add_state(_("wfs_cmsobject_published"))
+    wf.add_transition(_("wft_cmsobject_publish"), (draft,), public, requiredgroups=("managers",))
+    wf.add_transition(_("wft_cmsobject_unpublish"), (public,), draft, requiredgroups=("managers",))
     return wf

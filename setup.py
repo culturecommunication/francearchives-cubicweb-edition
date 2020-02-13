@@ -36,7 +36,7 @@ cubicweb_frarchives_edition/__pkginfo__.py file
 
 from os.path import join, dirname, exists
 import os
-from distutils.command import build
+from setuptools.command.sdist import sdist as orig_sdist
 
 from setuptools import find_packages, setup
 
@@ -45,42 +45,40 @@ here = dirname(__file__)
 
 # load metadata from the __pkginfo__.py file so there is no risk of conflict
 # see https://packaging.python.org/en/latest/single_source_version.html
-pkginfo = join(here, 'cubicweb_frarchives_edition', '__pkginfo__.py')
+pkginfo = join(here, "cubicweb_frarchives_edition", "__pkginfo__.py")
 __pkginfo__ = {}
 with open(pkginfo) as f:
     exec(f.read(), __pkginfo__)
 
 # get required metadatas
-distname = __pkginfo__['distname']
-version = __pkginfo__['version']
-license = __pkginfo__['license']
-description = __pkginfo__['description']
-web = __pkginfo__['web']
-author = __pkginfo__['author']
-author_email = __pkginfo__['author_email']
-classifiers = __pkginfo__['classifiers']
+distname = __pkginfo__["distname"]
+version = __pkginfo__["version"]
+license = __pkginfo__["license"]
+description = __pkginfo__["description"]
+web = __pkginfo__["web"]
+author = __pkginfo__["author"]
+author_email = __pkginfo__["author_email"]
+classifiers = __pkginfo__["classifiers"]
 
-with open(join(here, 'README.rst')) as f:
+with open(join(here, "README.rst")) as f:
     long_description = f.read()
 
 # get optional metadatas
-dependency_links = __pkginfo__.get('dependency_links', ())
+dependency_links = __pkginfo__.get("dependency_links", ())
 
 requires = {}
 for entry in ("__depends__",):  # "__recommends__"):
     requires.update(__pkginfo__.get(entry, {}))
-install_requires = ["{0} {1}".format(d, v and v or "").strip()
-                    for d, v in requires.items()]
+install_requires = ["{0} {1}".format(d, v and v or "").strip() for d, v in requires.items()]
 
 
-class MyBuildCommand(build.build):
-
+class sdist(orig_sdist):
     def run(self):
-        build.build.run(self)
-        if (not os.environ.get('FRARCHIVES_NO_BUILD_DATA_FILES', False) and exists('/usr/bin/npm')):
-            self.spawn(['npm', 'install'])
-            os.environ['NODE_ENV'] = 'production'
-            self.spawn(['npm', 'run', 'build'])
+        if not os.environ.get("FRARCHIVES_NO_BUILD_DATA_FILES", False) and exists("/usr/bin/npm"):
+            self.spawn(["npm", "install"])
+            os.environ["NODE_ENV"] = "production"
+            self.spawn(["npm", "run", "build"])
+        orig_sdist.run(self)
 
 
 setup(
@@ -92,15 +90,11 @@ setup(
     author=author,
     author_email=author_email,
     url=web,
-    cmdclass={'build': MyBuildCommand},
+    cmdclass={"sdist": sdist},
     classifiers=classifiers,
-    packages=find_packages(exclude=['test']),
+    packages=find_packages(exclude=["test"]),
     install_requires=install_requires,
     include_package_data=True,
-    entry_points={
-        'cubicweb.cubes': [
-            'frarchives_edition=cubicweb_frarchives_edition',
-        ],
-    },
+    entry_points={"cubicweb.cubes": ["frarchives_edition=cubicweb_frarchives_edition",],},
     zip_safe=False,
 )

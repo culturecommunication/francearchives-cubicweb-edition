@@ -21,7 +21,6 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 BuildRequires:  %{python} %{python}-setuptools
 Requires:       cubicweb >= 3.22.4
-Requires:       %{python}-six >= 1.4.0
 
 %description
 Edition components for FranceArchives

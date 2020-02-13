@@ -41,37 +41,38 @@ from cubicweb_jsonschema.resources import parent
 from cubicweb_jsonschema.resources.schema import EntitySchema
 
 _orig_eresource_getitem = EntityResource.__getitem__
+
+
 @monkeypatch(EntityResource)  # noqa patch jsonschema EntityResource
 def __getitem__(self, value):
     try:
         entity = self.rset.one()
     except NoResultError:
         raise HTTPNotFound()
-    if value == 'transitions':
-        if 'in_state' not in entity.e_schema.subject_relations():
-            raise HTTPNotFound(
-                'entity type {0} not workflowable'.format(entity.cw_etype))
+    if value == "transitions":
+        if "in_state" not in entity.e_schema.subject_relations():
+            raise HTTPNotFound("entity type {0} not workflowable".format(entity.cw_etype))
         return WorkflowTransitionResource(self.request, parent=self)
     return _orig_eresource_getitem(self, value)
 
 
 _orig_eschema_getitem = EntitySchema.__getitem__
+
+
 @monkeypatch(EntitySchema)  # noqa patch jsonschema EntityShema
 def __getitem__(self, value):
     try:
         entity = self.rset.one()
     except NoResultError:
         raise HTTPNotFound()
-    if value == 'transitions':
-        if 'in_state' not in entity.e_schema.subject_relations():
-            raise HTTPNotFound(
-                'entity type {0} not workflowable'.format(entity.cw_etype))
+    if value == "transitions":
+        if "in_state" not in entity.e_schema.subject_relations():
+            raise HTTPNotFound("entity type {0} not workflowable".format(entity.cw_etype))
         return WorkflowTransitionResource(self.request, parent=self)
     return _orig_eschema_getitem(self, value)
 
 
 class WorkflowTransitionResource(object):
-
     @parent
     def __init__(self, request, **kwargs):
         self.request = request

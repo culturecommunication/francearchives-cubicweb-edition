@@ -12,7 +12,7 @@ const config = module.exports = {
         'rq-table': ['./rq-table'],
     },
     module: {
-        loaders: [
+        rules: [
             {
                 test: /\.js$/,
                 exclude: /node_modules/,
@@ -35,7 +35,7 @@ const config = module.exports = {
             context: '.',
             manifest: require('./vendor-manifest.json'),
         }),
-    ],
+    ]
 };
 
 
@@ -43,7 +43,6 @@ const config = module.exports = {
 if (process.env.NODE_ENV === 'production') {
     // install polyfills for production
     config.plugins.push(
-        new webpack.optimize.UglifyJsPlugin(),
         new webpack.DefinePlugin({
             "process.env": {
                 NODE_ENV: JSON.stringify('production'),

@@ -50,13 +50,13 @@ from cubicweb_jsonschema.api import (
     entities as api_entities,
     schema as api_schema,
     JSONBadRequest,
-    jsonapi_error)
+    jsonapi_error,
+)
 from cubicweb_jsonschema.resources.schema import ETypeSchema
 
 from cubicweb_francearchives.dataimport import sqlutil
 
-from cubicweb_frarchives_edition.resources import (
-    WorkflowTransitionResource)
+from cubicweb_frarchives_edition.resources import WorkflowTransitionResource
 
 
 LOG = logging.getLogger(__name__)
@@ -64,8 +64,8 @@ LOG = logging.getLogger(__name__)
 
 def json_config(**settings):
     """Wraps view_config for JSON rendering."""
-    settings.setdefault('accept', 'application/json')
-    settings.setdefault('renderer', 'json')
+    settings.setdefault("accept", "application/json")
+    settings.setdefault("renderer", "json")
     return view_config(**settings)
 
 
@@ -76,6 +76,7 @@ def entity_from_context(func):
     Will walk through parents of the `context` until an `EntityResource` gets
     found before fetching the `entity`.
     """
+
     @wraps(func)
     def wrapper(context, request):
         entity_context = context
@@ -100,77 +101,71 @@ def entity_from_context(func):
 
 
 def jsonschema_adapter(cnx, **context):
-    return cnx.vreg['adapters'].select('IJSONSchema', cnx, **context)
+    return cnx.vreg["adapters"].select("IJSONSchema", cnx, **context)
 
 
 @json_config(
-    name='uischema',
-    route_name='cwentities',
-    request_method='GET',
-    context=ETypeResource,
+    name="uischema", route_name="cwentities", request_method="GET", context=ETypeResource,
 )
 def etype_json_uischema(context, request):
     """Return the uischema for the entity type bound to `context`."""
-    vreg = request.registry['cubicweb.registry']
-    null_entity = vreg['etypes'].etype_class(context.etype)(request.cw_request)
+    vreg = request.registry["cubicweb.registry"]
+    null_entity = vreg["etypes"].etype_class(context.etype)(request.cw_request)
     kwargs = dict()
-    if 'schema_type' in request.params:
-        kwargs['schema_type'] = request.params['schema_type']
-    adapter = vreg['adapters'].select('IJsonFormEditable', request.cw_request,
-                                      entity=null_entity, **kwargs)
+    if "schema_type" in request.params:
+        kwargs["schema_type"] = request.params["schema_type"]
+    adapter = vreg["adapters"].select(
+        "IJsonFormEditable", request.cw_request, entity=null_entity, **kwargs
+    )
     return adapter.ui_schema()
 
 
 @view_config(
-    route_name='delete_entity',
-    context=Unauthorized,
+    route_name="delete_entity", context=Unauthorized,
 )
 def deletion_unauthorized(exc, request):
     """Exception view for Unauthorized error on JSON request."""
-    LOG.info('%s encountered during processing of %s', exc, request)
+    LOG.info("%s encountered during processing of %s", exc, request)
     _ = request.cw_request._
     request.cw_cnx.rollback()
-    return JSONBadRequest(jsonapi_error(
-        status=401, details=_('not authorized')))
+    return JSONBadRequest(jsonapi_error(status=401, details=_("not authorized")))
 
 
 @json_config(
-    route_name='delete_entity',
-    context=ValidationError,
+    route_name="delete_entity", context=ValidationError,
 )
 def deletion_failed(exc, request):
     """Exception view for ValidationError on JSON request."""
-    LOG.info('%s encountered during processing of %s', exc, request)
+    LOG.info("%s encountered during processing of %s", exc, request)
     _ = request.cw_request._
     request.cw_cnx.rollback()
     exc.translate(_)
-    errors = [jsonapi_error(status=422, details=value, pointer=rolename)
-              for rolename, value in exc.errors.iteritems()]
+    errors = [
+        jsonapi_error(status=422, details=value, pointer=rolename)
+        for rolename, value in list(exc.errors.items())
+    ]
     return JSONBadRequest(*errors)
 
 
-@jsonschema_config(context=ETypeSchema, request_param='role')
+@jsonschema_config(context=ETypeSchema, request_param="role")
 def etype_role_schema(context, request):
     """Schema view for an entity type with specified role."""
     req = request.cw_request
     kwargs = dict(etype=context.etype)
-    if 'schema_type' in request.params:
-        kwargs['schema_type'] = request.params['schema_type']
-    adapted = req.vreg['adapters'].select('IJSONSchema', req, **kwargs)
-    role = request.params['role'].lower()
+    if "schema_type" in request.params:
+        kwargs["schema_type"] = request.params["schema_type"]
+    adapted = req.vreg["adapters"].select("IJSONSchema", req, **kwargs)
+    role = request.params["role"].lower()
     if role == VIEW_ROLE:
         return adapted.view_schema(ordered=True)
     elif role == CREATION_ROLE:
         return adapted.creation_schema(ordered=True)
     else:
-        raise httpexceptions.HTTPBadRequest(
-            'invalid role: {0}'.format(role))
+        raise httpexceptions.HTTPBadRequest("invalid role: {0}".format(role))
 
 
 @json_config(
-    route_name='cwentities',
-    context=ETypeResource,
-    request_method='POST',
+    route_name="cwentities", context=ETypeResource, request_method="POST",
 )
 def create_entity(context, request):
     """Create a new entity from JSON data."""
@@ -179,69 +174,66 @@ def create_entity(context, request):
     # ETypeSchemaResource.
     etype = context.etype
     kwargs = dict(etype=context.etype)
-    if 'schema_type' in request.params:
-        kwargs['schema_type'] = request.params['schema_type']
+    if "schema_type" in request.params:
+        kwargs["schema_type"] = request.params["schema_type"]
     adapter = jsonschema_adapter(request.cw_request, **kwargs)
-    if request.headers.get('content-type') == 'application/json':
+    if request.headers.get("content-type") == "application/json":
         instance = request.json_body
     else:
         # assumed it is a multipart request
-        instance = json.loads(request.POST.get('data'))
-        instance['fileobj'] = request.POST.get('fileobj')
+        data = request.POST.get("data")
+        if isinstance(data, bytes):
+            data = data.decode("utf-8")
+        instance = json.loads(request.POST.get("data"))
+        instance["fileobj"] = request.POST.get("fileobj")
     entity = adapter.create_entity(instance)
     request.cw_cnx.commit()
-    LOG.info('created %s', entity)
+    LOG.info("created %s", entity)
 
-    value = entity.cw_adapt_to('IJSONSchema').serialize()
-    location = request.route_url('cwentities',
-                                 etype=etype,
-                                 traverse=str(entity.eid))
+    value = entity.cw_adapt_to("IJSONSchema").serialize()
+    location = request.route_url("cwentities", etype=etype, traverse=str(entity.eid))
     raise httpexceptions.HTTPCreated(
         location=location,
-        content_type='application/json; charset=UTF-8',
-        body=render('json', value),
+        content_type="application/json; charset=UTF-8",
+        body=render("json", value),
     )
 
 
 @json_config(
-    name='uischema',
-    route_name='cwentities',
-    request_method='GET',
-    context=RelationshipResource,
+    name="uischema", route_name="cwentities", request_method="GET", context=RelationshipResource,
 )
 def relationship_uischema(context, request):
-    vreg = request.registry['cubicweb.registry']
-    entity = vreg['etypes'].etype_class(context.target_type)(request.cw_request)
-    return entity.cw_adapt_to('IJsonFormEditable').ui_schema()
+    vreg = request.registry["cubicweb.registry"]
+    entity = vreg["etypes"].etype_class(context.target_type)(request.cw_request)
+    return entity.cw_adapt_to("IJsonFormEditable").ui_schema()
 
 
 @json_config(
-    name='available-targets',
-    route_name='cwentities',
-    request_method='GET',
+    name="available-targets",
+    route_name="cwentities",
+    request_method="GET",
     context=RelationshipResource,
-    request_param=('q',),
+    request_param=("q",),
 )
 def list_available_entities(context, request):
     params = request.params.copy()
-    params['q'] = u'%{}%'.format(request.params['q'])
+    params["q"] = "%{}%".format(request.params["q"])
     entities = []
     cwreq = request.cw_request
     for tschema in context.target_schemas:
         ttype = tschema.type
-        adapter = cwreq.vreg['adapters'].select('IAvailable', cwreq, etype=ttype,
-                                                **params)
+        adapter = cwreq.vreg["adapters"].select("IAvailable", cwreq, etype=ttype, **params)
         rql = adapter.rql()
         rset = request.cw_request.execute(rql, params)
         for entity in rset.entities():
-            entities.append(entity.cw_adapt_to('IAvailable').serialize())
-    return {'data': entities}
+            entities.append(entity.cw_adapt_to("IAvailable").serialize())
+    return {"data": entities}
 
 
 @json_config(
-    name='targets',
-    route_name='cwentities',
-    request_method='POST',
+    name="targets",
+    route_name="cwentities",
+    request_method="POST",
     context=RelationshipResource,
     decorator=[entity_from_context],
 )
@@ -250,17 +242,16 @@ def relate_targets(context, request):
     entity, rtype = context.entity, context.rtype
     adapter = jsonschema_adapter(cnx, entity=entity, rtype=rtype)
     if any(request.json_body):
-        values = {value['value'] for value in request.json_body}
+        values = {value["value"] for value in request.json_body}
         adapter.add_relation(values)
     else:
         adapter.add_relation(set([]))
-    return httpexceptions.HTTPCreated(content_type='application/json',
-                                      body='null')
+    return httpexceptions.HTTPCreated(content_type="application/json", body=b"null")
 
 
 @json_config(
-    route_name='cwentities',
-    request_method='DELETE',
+    route_name="cwentities",
+    request_method="DELETE",
     context=RelationshipResource,
     decorator=[entity_from_context],
 )
@@ -271,97 +262,89 @@ def delete_relation(context, request):
 
 
 @json_config(
-    route_name='cwentities',
+    route_name="cwentities",
     context=WorkflowTransitionResource,
-    request_method='GET',
+    request_method="GET",
     decorator=[entity_from_context],
 )
 def get_workflow_transitions(context, request):
-    wfentity = context.entity.cw_adapt_to('IWorkflowable')
-    data = [trinfo.cw_adapt_to('IJSONSchema').serialize()
-            for trinfo in wfentity.workflow_history]
+    wfentity = context.entity.cw_adapt_to("IWorkflowable")
+    data = [trinfo.cw_adapt_to("IJSONSchema").serialize() for trinfo in wfentity.workflow_history]
     return data
 
 
 @json_config(
-    route_name='cwentities',
+    route_name="cwentities",
     context=WorkflowTransitionResource,
-    request_method='POST',
+    request_method="POST",
     decorator=[entity_from_context],
 )
 def add_workflow_transition(context, request):
     cnx = request.cw_cnx
     data = request.json_body
     entity = cnx.entity_from_eid(context.entity.eid)
-    wfentity = entity.cw_adapt_to('IWorkflowable')
-    trinfo = wfentity.fire_transition(
-        data['name'], comment=data.get('comment'))
+    wfentity = entity.cw_adapt_to("IWorkflowable")
+    trinfo = wfentity.fire_transition(data["name"], comment=data.get("comment"))
     cnx.commit()
-    return trinfo.cw_adapt_to('IJSONSchema').serialize()
+    return trinfo.cw_adapt_to("IJSONSchema").serialize()
 
 
 @jsonschema_config(
-    context=WorkflowTransitionResource,
-    decorator=[entity_from_context],
+    context=WorkflowTransitionResource, decorator=[entity_from_context],
 )
 def workflow_transition_schema(context, request):
     """Return the JSON schema of TrInfo entity type restricted to possible
     transitions for entity bound to `context`.
     """
-    adapter = jsonschema_adapter(request.cw_request, etype=u'TrInfo',
-                                 for_entity=context.entity)
-    if 'role' not in request.params:
-        raise httpexceptions.HTTPBadRequest(
-            'missing "role" parameter')
+    adapter = jsonschema_adapter(request.cw_request, etype="TrInfo", for_entity=context.entity)
+    if "role" not in request.params:
+        raise httpexceptions.HTTPBadRequest('missing "role" parameter')
     try:
         method = {
-            VIEW_ROLE: 'view_schema',
-            CREATION_ROLE: 'creation_schema',
-            EDITION_ROLE: 'edition_schema',
-        }[request.params['role'].lower()]
+            VIEW_ROLE: "view_schema",
+            CREATION_ROLE: "creation_schema",
+            EDITION_ROLE: "edition_schema",
+        }[request.params["role"].lower()]
     except KeyError:
-        raise httpexceptions.HTTPBadRequest(
-            'invalid "role" parameter')
+        raise httpexceptions.HTTPBadRequest('invalid "role" parameter')
     return getattr(adapter, method)(ordered=True)
 
 
 @view_config(
-    route_name='delete_entity',
+    route_name="delete_entity",
     context=EntityResource,
-    request_method='DELETE',
+    request_method="DELETE",
     decorator=[entity_from_context],
 )
 def delete_entity(context, request):
     """Delete an entity."""
     entity = context.entity
     cnx = request.cw_cnx
-    if entity.cw_etype == 'FindingAid':
-        if not entity.cw_has_perm('delete'):
+    if entity.cw_etype == "FindingAid":
+        if not entity.cw_has_perm("delete"):
             raise httpexceptions.HTTPUnauthorized()
         # XXX add cnx.rollback() ?
-        sqlutil.delete_from_filename(cnx,
-                                     entity.stable_id,
-                                     interactive=False,
-                                     esonly=False,
-                                     is_filename=False)
+        sqlutil.delete_from_filename(
+            cnx, entity.stable_id, interactive=False, esonly=False, is_filename=False
+        )
         # no commit here because it is already done in sqlutil.delete_from_filename
-        sync_service = cnx.vreg['services'].select('sync', cnx)
+        sync_service = cnx.vreg["services"].select("sync", cnx)
         try:
-            sync_service.sync([('delete', entity)])
+            sync_service.sync([("delete", entity)])
         except (ConnectionError, ProtocolError, NotFoundError):
-            op_str = 'delete #{}'.format(entity.eid)
-            cnx.warning('[ES] Failed sync operations %s', op_str)
+            op_str = "delete #{}".format(entity.eid)
+            cnx.warning("[ES] Failed sync operations %s", op_str)
     else:
         entity.cw_delete()
         cnx.commit()
-    LOG.info('deleted %s', entity)
+    LOG.info("deleted %s", entity)
     raise httpexceptions.HTTPNoContent()
 
 
 def includeme(config):
-    config.include('cubicweb.pyramid.predicates')
-    config.include('cubicweb_jsonschema.predicates')
-    config.include('.routes')
-    config.scan(api_entities, ignore=('.delete_entity', '.create_entity'))
-    config.scan(api_schema, ignore=('.etype_role_schema'))
+    config.include("cubicweb.pyramid.predicates")
+    config.include("cubicweb_jsonschema.predicates")
+    config.include(".routes")
+    config.scan(api_entities, ignore=(".delete_entity", ".create_entity"))
+    config.scan(api_schema, ignore=(".etype_role_schema"))
     config.scan(__name__)

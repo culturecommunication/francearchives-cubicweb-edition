@@ -31,45 +31,44 @@
 #
 
 from cubicweb_frarchives_edition.mviews import setup_published_triggers, get_published_tables
-add_cube('pwd_policy')
+
+add_cube("pwd_policy")
 
 
-
-def part_of_setup_published_schema(rtables, sqlschema='published'):
+def part_of_setup_published_schema(rtables, sqlschema="published"):
     sql_parts = []
     for rtable in rtables:
         sql_parts.append(
-            'create table if not exists {schema}.{table} as '
-            '  select * from {table} where null;'.format(
-                table=rtable,
-                schema=sqlschema))
+            "create table if not exists {schema}.{table} as "
+            "  select * from {table} where null;".format(table=rtable, schema=sqlschema)
+        )
         sql_parts.append(
-            'alter table {schema}.{table} '
-            '  add primary key (eid_from, eid_to);'.format(
-                table=rtable,
-                schema=sqlschema))
+            "alter table {schema}.{table} "
+            "  add primary key (eid_from, eid_to);".format(table=rtable, schema=sqlschema)
+        )
     # create indexes on those relation tables
     for rtable in rtables:
-        for col in ('eid_from', 'eid_to'):
-            sql_parts.append('create index {rtable}_{col}_idx on '
-                           '{schema}.{rtable}({col});'.format(
-                               schema=sqlschema,
-                               rtable=rtable,
-                               col=col,
-                           ))
-    sql('\n'.join(sql_parts))
+        for col in ("eid_from", "eid_to"):
+            sql_parts.append(
+                "create index {rtable}_{col}_idx on "
+                "{schema}.{rtable}({col});".format(schema=sqlschema, rtable=rtable, col=col,)
+            )
+    sql("\n".join(sql_parts))
 
 
 expected_rtables = {
-    r + '_relation'
+    r + "_relation"
     for r in get_published_tables(
-        cnx, skipped_etypes=('CWUser', 'CWProperty'), skipped_relations=('in_state',)
+        cnx, skipped_etypes=("CWUser", "CWProperty"), skipped_relations=("in_state",)
     )[-1]
 }
-effected_rtables = {r for r, in sql(
-    "SELECT table_name FROM information_schema.tables WHERE "
-    "table_schema = 'published' AND table_name ILIKE '%_relation'"
-)}
+effected_rtables = {
+    r
+    for r, in sql(
+        "SELECT table_name FROM information_schema.tables WHERE "
+        "table_schema = 'published' AND table_name ILIKE '%_relation'"
+    )
+}
 
 
 part_of_setup_published_schema(expected_rtables - effected_rtables)
@@ -79,25 +78,26 @@ setup_published_triggers(cnx, bootstrap=False)
 
 # modify Section workflow
 
-wf = rql('Any WF WHERE WF is Workflow, ET default_workflow WF, ET name %(et)s',
-         {'et': 'Section'}).one()
+wf = rql(
+    "Any WF WHERE WF is Workflow, ET default_workflow WF, ET name %(et)s", {"et": "Section"}
+).one()
 
-publish = wf.transition_by_name('wft_cmsobject_publish')
-publish.set_permissions(requiredgroups=('managers',),
-                        reset=True)
-unpublish = wf.transition_by_name('wft_cmsobject_unpublish')
-unpublish.set_permissions(requiredgroups=('managers',),
-                          reset=True)
+publish = wf.transition_by_name("wft_cmsobject_publish")
+publish.set_permissions(requiredgroups=("managers",), reset=True)
+unpublish = wf.transition_by_name("wft_cmsobject_unpublish")
+unpublish.set_permissions(requiredgroups=("managers",), reset=True)
 
 commit()
 
 # republish ExternRef to force images synchronization
 
-for ext in rql('Any X WHERE X is ExternRef, X in_state S, S name "wfs_cmsobject_published"').entities():
-    adapted = ext.cw_adapt_to('ImageFileSync')
+for ext in rql(
+    'Any X WHERE X is ExternRef, X in_state S, S name "wfs_cmsobject_published"'
+).entities():
+    adapted = ext.cw_adapt_to("ImageFileSync")
     if adapted:
         adapted.copy()
 
 # delete
-sql('DELETE FROM published.cw_cwproperty where cw_pkey=%(k)s', {'k': 'system.version.pwd_policy'})
+sql("DELETE FROM published.cw_cwproperty where cw_pkey=%(k)s", {"k": "system.version.pwd_policy"})
 commit()

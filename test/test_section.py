@@ -37,13 +37,12 @@ from utils import FrACubicConfigMixIn
 
 
 class SectionTC(FrACubicConfigMixIn, testlib.CubicWebTC):
-
     def test_update_order(self):
         with self.admin_access.cnx() as cnx:
             children = []
             for i in range(10):
-                children.append(cnx.create_entity('BaseContent', order=i, title=u'base'))
-            s = cnx.create_entity('Section', title=u'section')
+                children.append(cnx.create_entity("BaseContent", order=i, title="base"))
+            s = cnx.create_entity("Section", title="section")
             s.cw_set(children=children)
             cnx.commit()
             child = children[5]
@@ -53,11 +52,14 @@ class SectionTC(FrACubicConfigMixIn, testlib.CubicWebTC):
         children.insert(3, child)
         children = [[c.eid, idx] for idx, c in enumerate(children)]
         with self.admin_access.cnx() as cnx:
-            rset = cnx.execute('Any B, O ORDERBY O WHERE S is Section, S eid %(s)s, '
-                               'S children B, B order O', {'s': s.eid})
+            rset = cnx.execute(
+                "Any B, O ORDERBY O WHERE S is Section, S eid %(s)s, " "S children B, B order O",
+                {"s": s.eid},
+            )
             self.assertEqual(rset.rows, children)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from logilab.common.testlib import unittest_main
+
     unittest_main()

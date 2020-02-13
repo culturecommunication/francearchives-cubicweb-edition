@@ -33,14 +33,18 @@ from cubicweb_frarchives_edition import workflows
 
 
 def add_workflow_on_card(add_workflow, rql, sql):
-    workflows.cmsobject_workflow(add_workflow, 'Card')
-    rset = rql('Any S WHERE S is State, S state_of WF, WF workflow_of X, X name %(etype)s, S name ILIKE "%\\_publish%"',
-               {'etype': 'Card'})
+    workflows.cmsobject_workflow(add_workflow, "Card")
+    rset = rql(
+        'Any S WHERE S is State, S state_of WF, WF workflow_of X, X name %(etype)s, S name ILIKE "%\\_publish%"',
+        {"etype": "Card"},
+    )
     if len(rset) != 1:
         print(rset)
         return
-    sql('insert into in_state_relation (eid_from, eid_to) select cw_eid, %(eid_to)s from cw_card',
-        {'eid_to': rset[0][0]})
+    sql(
+        "insert into in_state_relation (eid_from, eid_to) select cw_eid, %(eid_to)s from cw_card",
+        {"eid_to": rset[0][0]},
+    )
 
 
 add_workflow_on_card(add_workflow, rql, sql)

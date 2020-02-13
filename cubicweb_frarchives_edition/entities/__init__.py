@@ -32,15 +32,21 @@
 """cubicweb-frarchives-edition entity's classes"""
 
 import base64
+import re
+import encodings
 
-from six import string_types
-from six.moves.urllib import parse as urllib_parse
+import urllib.parse
 
 from logilab.common.registry import yes
 
 from cubicweb.entities import AnyEntity, fetch_config
 
 from cubicweb_jsonschema.mappers import CollectionItemMapper
+
+from cubicweb_francearchives.entities.indexes import (
+    ExternalId as BaseExternalId,
+    ExternalUri as BaseExternalUri,
+)
 
 
 class FACollectionItemMapper(CollectionItemMapper):
@@ -49,7 +55,7 @@ class FACollectionItemMapper(CollectionItemMapper):
     @staticmethod
     def serialize(entity):
         """Return a dictionary with entity represented as a collection item."""
-        return entity.cw_adapt_to('IJSONSchema').serialize()
+        return entity.cw_adapt_to("IJSONSchema").serialize()
 
 
 def parse_dataurl(url):
@@ -57,31 +63,52 @@ def parse_dataurl(url):
 
     .. _`Data URL`: http://dataurl.net/
     """
-    scheme, data = url.split(':', 1)
-    if scheme != 'data':
-        raise ValueError('invalid scheme {}'.format(scheme))
-    mediatype, data = data.rsplit(',', 1)
-    data = urllib_parse.unquote(data)
-    if mediatype.endswith(';base64'):
+    if isinstance(url, bytes):
+        url = url.decode("utf-8")
+    charset_re = re.compile(
+        r"charset=({})".format(
+            "|".join(sorted(encodings.aliases.aliases.keys(), key=len, reverse=True))
+        )
+    )
+    scheme, data = url.split(":", 1)
+    if scheme != "data":
+        raise ValueError("invalid scheme {}".format(scheme))
+    mediatype, data = data.rsplit(",", 1)
+    charset = charset_re.findall(url)
+    encoding = charset[0] if charset else "utf-8"
+    data = urllib.parse.unquote(data, encoding=encoding)
+    if mediatype.endswith(";base64"):
         data = base64.b64decode(data)
-        mediatype = mediatype[:-len(';base64')]
-    assert isinstance(data, string_types)
+        mediatype = mediatype[: -len(";base64")]
+    if isinstance(data, str):
+        data = data.encode(encoding)
     if not mediatype:
         # default media type, according to RFC
-        mediatype = 'text/plain;charset=US-ASCII'
+        mediatype = "text/plain;charset=US-ASCII"
     try:
-        mediatype, params = mediatype.split(';', 1)
+        mediatype, params = mediatype.split(";", 1)
     except ValueError:
         parameters = {}
     else:
-        parameters = dict(p.split('=') for p in params.split(';'))
+        parameters = dict(p.split("=") for p in params.split(";"))
     return data, mediatype, parameters
 
 
 class RqTask(AnyEntity):
-    __regid__ = 'RqTask'
-    fetch_attrs, cw_fetch_order = fetch_config(['title',
-                                                'name', ])
+    __regid__ = "RqTask"
+    fetch_attrs, cw_fetch_order = fetch_config(["title", "name",])
 
     def dc_title(self):
-        return u'{} ({})'.format(self.title, self.name)
+        return "{} ({})".format(self.title, self.name)
+
+
+class ExternalUri(BaseExternalUri):
+    @property
+    def samesas_history_id(self):
+        return self.uri
+
+
+class ExternalId(BaseExternalId):
+    @property
+    def samesas_history_id(self):
+        return self.extid

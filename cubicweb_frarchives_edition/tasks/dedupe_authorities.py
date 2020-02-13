@@ -28,11 +28,10 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
-from __future__ import print_function
+
 
 import logging
 
-from six import iteritems
 
 from cubicweb_francearchives.dataimport import normalize_entry
 
@@ -46,7 +45,7 @@ def filter_authority(authorities):
     remove entries of authories which have only one authority for a particular label
     """
     result = {}
-    for label, auth in iteritems(authorities):
+    for label, auth in authorities.items():
         if len(auth) <= 1:
             continue
         # sort authorities according to their count of same_as
@@ -65,12 +64,12 @@ def dedupe_one_type(cnx, authtype, log=None, strict=True, service=None):
         log = LOGGER
     if service is None:
         rset = cnx.execute(
-            'Any X, L, COUNT(SA) GROUPBY X, L WHERE X is {}, X label L, '
-            'X same_as SA?'.format(authtype)
+            "Any X, L, COUNT(SA) GROUPBY X, L WHERE X is {}, X label L, "
+            "X same_as SA?".format(authtype)
         )
     else:
         rset = cnx.execute(
-            '''
+            """
             (
                 Any X, L, COUNT(SA) GROUPBY X, L WHERE X is {0}, X label L, X same_as SA?,
                 I authority X, I index FAC, FAC finding_aid FA, FA service S, S code %(s)s
@@ -85,8 +84,10 @@ def dedupe_one_type(cnx, authtype, log=None, strict=True, service=None):
                 Any X, L, COUNT(SA) GROUPBY X, L WHERE X is {0}, X label L, X same_as SA?,
                 NOT EXISTS(I authority X)
             )
-            '''.format(authtype),
-            {'s': service}
+            """.format(
+                authtype
+            ),
+            {"s": service},
         )
     # dict of label as key and list of authority eid with its count of same_as as value
     d = {}
@@ -94,10 +95,10 @@ def dedupe_one_type(cnx, authtype, log=None, strict=True, service=None):
         if not strict:
             label = normalize_entry(label)
         d.setdefault(label, []).append((x, s))
-    log.debug('before filter %s %s', len(d), authtype)
+    log.debug("before filter %s %s", len(d), authtype)
     d = filter_authority(d)
-    log.info('will dedupe %s %s', len(d), authtype)
-    for label, authorities in iteritems(d):
+    log.info("will dedupe %s %s", len(d), authtype)
+    for label, authorities in d.items():
         if any(a[1] > 0 for a in authorities[:-1]):
             # at least 2 authorities with more than 0 same_as link => we can't decide
             # which authority should be kept
@@ -110,20 +111,20 @@ def dedupe_one_type(cnx, authtype, log=None, strict=True, service=None):
                 index.update_es_docs(oldauth=auth.eid, newauth=auth_to_keep)
             # redirect index entities from old authority to new authority
             cnx.execute(
-                'SET I authority A WHERE A eid %(a)s, I authority OLD, OLD eid %(old)s',
-                {'a': auth_to_keep, 'old': autheid}
+                "SET I authority A WHERE A eid %(a)s, I authority OLD, OLD eid %(old)s",
+                {"a": auth_to_keep, "old": autheid},
             )
             # delete old authority
             auth.cw_delete()
 
 
 def dedupe(cnx, log=None, strict=True, service=None):
-    for authtype in ('LocationAuthority', 'SubjectAuthority', 'AgentAuthority'):
+    for authtype in ("LocationAuthority", "SubjectAuthority", "AgentAuthority"):
         dedupe_one_type(cnx, authtype, log=log, strict=strict, service=service)
     cnx.commit()
 
 
 @rqjob
 def dedupe_authorities(cnx, strict=True, service=None):
-    log = logging.getLogger('rq.task')
+    log = logging.getLogger("rq.task")
     dedupe(cnx, log=log, strict=strict, service=service)

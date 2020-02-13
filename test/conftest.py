@@ -29,13 +29,13 @@
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
 
-from __future__ import print_function
 
 import atexit
 import os
 
 from cubicweb.devtools import (
-    DEFAULT_PSQL_SOURCES, startpgcluster,
+    DEFAULT_PSQL_SOURCES,
+    startpgcluster,
     stoppgcluster,
     ApptestConfiguration,
     get_test_db_handler,
@@ -52,18 +52,18 @@ def pytest_xdist_setupnodes(config, specs):
     global is_master
     is_master = True
     # FIRT create template for sqlite
-    testconf = ApptestConfiguration('data', 'fake.py')
+    testconf = ApptestConfiguration("data", "fake.py")
     sqlite_db_handler = get_test_db_handler(testconf)
     sqlite_db_handler.build_db_cache()
     # THEN start pg cluster
     startpgcluster(__file__)
     # FINALLY create template for pg
-    testconf = PostgresApptestConfiguration('data', 'fake.py')
+    testconf = PostgresApptestConfiguration("data", "fake.py")
     pg_db_handler = get_test_db_handler(testconf)
     pg_db_handler.build_db_cache()
     # give slave pg cluster coordinate
-    os.environ['TEST-PG-HOST'] = DEFAULT_PSQL_SOURCES['system']['db-host']
-    os.environ['TEST-PG-PORT'] = DEFAULT_PSQL_SOURCES['system']['db-port']
+    os.environ["TEST-PG-HOST"] = DEFAULT_PSQL_SOURCES["system"]["db-host"]
+    os.environ["TEST-PG-PORT"] = DEFAULT_PSQL_SOURCES["system"]["db-port"]
 
 
 def master_teardown():

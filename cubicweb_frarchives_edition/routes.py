@@ -35,21 +35,30 @@ from cubicweb_jsonschema import JSONSCHEMA_MEDIA_TYPE
 
 
 def includeme(config):
-    config.add_route('cubicweb-jsonschema.entities.root', '/',
-                     factory=RootResource,
-                     strict_accept='application/json')
-    config.add_route('cwentities', '/{etype}/*traverse',
-                     factory=ETypeResource.from_match('etype'),
-                     strict_accept='application/json',
-                     match_is_etype='etype')
-    config.add_route('delete_entity', '/{etype}/*traverse',
-                     factory=ETypeResource.from_match('etype'),
-                     request_method='DELETE',
-                     match_is_etype='etype')
-    config.add_route('downloadable', r'/{eid:\d+}/download',
-                     factory=EntityResource.from_eid())
     config.add_route(
-        'cubicweb-jsonschema',
-        '*traverse',
+        "cubicweb-jsonschema.entities.root",
+        "/",
+        factory=RootResource,
+        strict_accept="application/json",
+    )
+    config.add_route(
+        "cwentities",
+        "/{etype}/*traverse",
+        factory=ETypeResource.from_match("etype"),
+        strict_accept="application/json",
+        match_is_etype="etype",
+    )
+    config.add_route(
+        "delete_entity",
+        "/{etype}/*traverse",
+        factory=ETypeResource.from_match("etype"),
+        request_method="DELETE",
+        match_is_etype="etype",
+    )
+    config.add_route("downloadable", r"/{eid:\d+}/download", factory=EntityResource.from_eid())
+    config.add_route(
+        "cubicweb-jsonschema",
+        "*traverse",
         factory=ApplicationSchema,
-        strict_accept=JSONSCHEMA_MEDIA_TYPE)
+        strict_accept=JSONSCHEMA_MEDIA_TYPE,
+    )

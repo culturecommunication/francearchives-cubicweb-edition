@@ -196,6 +196,15 @@ function getAvailableTargets(etype, rtype, eid = null, q = null, params = {}) {
     return jsonFetchCollection(`${url}?${searchParams.toString()}`);
 }
 
+function getAuthorityToGroup(eid, q = null) {
+    let url = null;
+    url = `/fa/authority/${eid}/group_candidates`;
+    const searchParams = new URLSearchParams();
+    if (q !== null) {
+        searchParams.append('q', q);
+    }
+    return jsonFetchCollection(`${url}?${searchParams.toString()}`);
+}
 
 function getEntity(etype, eid) {
     const url = `/${etype}/${eid}`;
@@ -334,4 +343,5 @@ export default {
     addTransition,
     addRelation,
     deleteRelation,
+    getAuthorityToGroup,
 };

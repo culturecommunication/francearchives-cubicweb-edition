@@ -37,17 +37,23 @@ import re
 
 from logilab.common.decorators import monkeypatch
 
-from cubicweb.server.hook import (DataOperationMixIn, LateOperation)
+from cubicweb import NoResultError
+
+from cubicweb.server.hook import DataOperationMixIn, LateOperation
 from cubicweb.server.sources import storages
 
-GEONAMES_RE = re.compile(
-    r'geonames\.org/(\d+)(?:/.+?\.html)?'
-)
+GEONAMES_RE = re.compile(r"geonames\.org/(\d+)(?:/.+?\.html)?")
 
-CANDIDATE_SEP = '###'
+CANDIDATE_SEP = "###"
+
+ALIGN_IMPORT_DIR = "/tmp/csv"
 
 
-def fspath_for(cnx, eid, attrname='data'):
+class IncompatibleFile(Exception):
+    """Raised when CSV file is incompatible."""
+
+
+def fspath_for(cnx, eid, attrname="data"):
     """Return the current file-system path for attribute `attrname` of
     entity with `eid`.
     """
@@ -59,22 +65,21 @@ def fspath_for(cnx, eid, attrname='data'):
 @monkeypatch(storages.AddFileOp)
 def postcommit_event(self):
     for filepath in self.get_data():
-        FinalDeleteFileOperation.get_instance(self.cnx).add_data(('added', filepath))
+        FinalDeleteFileOperation.get_instance(self.cnx).add_data(("added", filepath))
 
 
 @monkeypatch(storages.DeleteFileOp)  # noqa
 def postcommit_event(self):
     for filepath in self.get_data():
-        FinalDeleteFileOperation.get_instance(self.cnx).add_data(('deleted', filepath))
+        FinalDeleteFileOperation.get_instance(self.cnx).add_data(("deleted", filepath))
 
 
 class FinalDeleteFileOperation(DataOperationMixIn, LateOperation):
-
     def postcommit_event(self):
-        fpaths = {'deleted': set(), 'added': set()}
+        fpaths = {"deleted": set(), "added": set()}
         for data in self.get_data():
             fpaths[data[0]].add(data[1])
-        deleted = fpaths['deleted'].difference(fpaths['added'])
+        deleted = fpaths["deleted"].difference(fpaths["added"])
         for filepath in deleted:
             assert isinstance(filepath, str)  # bytes on py2, unicode on py3
             try:
@@ -85,9 +90,9 @@ class FinalDeleteFileOperation(DataOperationMixIn, LateOperation):
 
 def get_samesas_history(cnx, complete=False):
     if complete:
-        query = 'SELECT * FROM sameas_history'
+        query = "SELECT * FROM sameas_history"
     else:
-        query = 'SELECT sameas_uri, autheid FROM sameas_history'
+        query = "SELECT sameas_uri, autheid FROM sameas_history"
     return cnx.system_sql(query).fetchall()
 
 
@@ -104,12 +109,77 @@ def update_samesas_history(cnx, records):
          - 1 : created entity
          - 0 : deleted entity
     """
-    records = [{'sameas_uri': sauri,
-                'autheid': autheid,
-                'action': act}
-               for sauri, autheid, act in records]
-    cnx.cnxset.cu.executemany('''
+    records = [
+        {"sameas_uri": sauri, "autheid": autheid, "action": act} for sauri, autheid, act in records
+    ]
+    cnx.cnxset.cu.executemany(
+        """
         INSERT INTO sameas_history (sameas_uri, autheid, action)
         VALUES (%(sameas_uri)s, %(autheid)s, %(action)s::boolean)
         ON CONFLICT (sameas_uri, autheid) DO UPDATE SET action = EXCLUDED.action
-    ''', records)
+    """,
+        records,
+    )
+
+
+def compute_leaflet_json(cnx):
+    """compute json for leaflet"""
+    json_data = {"cms": [], "consultation": []}
+    rset = cnx.execute(
+        "Any P, PL, PLAT, PLNG, COUNT(F) GROUPBY P, PL, PLAT, PLNG "
+        "WHERE I authority P, I index F, "
+        "P is LocationAuthority, P latitude PLAT, P longitude PLNG, "
+        "P label PL, NOT P latitude NULL"
+    )
+    consult_base_url = cnx.vreg.config.get("consultation-base-url")
+    for eid, label, lat, lng, count in rset:
+        json_data["cms"].append(
+            {
+                "eid": eid,
+                "label": label,
+                "lat": lat,
+                "lng": lng,
+                "dashLabel": "--" in label,
+                "count": count,
+                "url": cnx.build_url("location/{}".format(eid)),
+            }
+        )
+        json_data["consultation"].append(
+            {
+                "eid": eid,
+                "label": label,
+                "lat": lat,
+                "lng": lng,
+                "dashLabel": "--" in label,
+                "count": count,
+                "url": "{}/location/{}".format(consult_base_url, eid),
+            }
+        )
+    return json_data
+
+
+def get_leaflet_cache_entities(cnx):
+    """access to leaflet json stored in database"""
+    try:
+        return cnx.execute(
+            "Any X, V WHERE X is Caches, X name %(name)s, X values V", {"name": "geomap"}
+        )
+    except NoResultError:
+        return None
+
+
+def load_leaflet_json(cnx):
+    """load json data for leaflet map"""
+    json_data = compute_leaflet_json(cnx)
+    cache_name = "geomap"
+    for instance_type in ("cms", "consultation"):
+        try:
+            cache = cnx.execute(
+                """Any X, V WHERE X is Caches,
+                   X instance_type %(instance_type)s,
+                   X name %(name)s, X values V""",
+                {"name": cache_name, "instance_type": instance_type},
+            ).one()
+        except NoResultError:
+            cache = cnx.create_entity("Caches", name=cache_name, instance_type=instance_type)
+        cache.cw_set(values=json_data[instance_type])

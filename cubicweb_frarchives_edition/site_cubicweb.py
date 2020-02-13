@@ -29,31 +29,59 @@
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
 from logilab.common.configuration import REQUIRED
+from logilab.database import FunctionDescr
+
+from rql.utils import register_function
 
 options = (
-    ('consultation-sync-url',
-     {'type': 'string',
-      'default': REQUIRED,
-      'help': 'base to url to post synchronization orders on',
-      'group': 'sync', 'level': 2,
-      }),
-    ('published-appfiles-dir',
-     {'type': 'string',
-      'default': REQUIRED,
-      'help': 'directory of appfiles for public instance',
-      'group': 'sync', 'level': 2,
-      }),
-    ('published-staticdir-path',
-     {'type': 'string',
-      'default': REQUIRED,
-      'help': 'hero images directory for public instance',
-      'group': 'sync', 'level': 2,
-      }),
-    ('published-index-name',
-     {'type': 'string',
-      'default': REQUIRED,
-      'help': 'Name of public Elastic Search index',
-      'group': 'elasticsearch',
-      'level': 2,
-      }),
+    (
+        "consultation-sync-url",
+        {
+            "type": "string",
+            "default": REQUIRED,
+            "help": "base to url to post synchronization orders on",
+            "group": "sync",
+            "level": 2,
+        },
+    ),
+    (
+        "published-appfiles-dir",
+        {
+            "type": "string",
+            "default": REQUIRED,
+            "help": "directory of appfiles for public instance",
+            "group": "sync",
+            "level": 2,
+        },
+    ),
+    (
+        "published-staticdir-path",
+        {
+            "type": "string",
+            "default": REQUIRED,
+            "help": "hero images directory for public instance",
+            "group": "sync",
+            "level": 2,
+        },
+    ),
+    (
+        "published-index-name",
+        {
+            "type": "string",
+            "default": REQUIRED,
+            "help": "Name of public Elastic Search index",
+            "group": "elasticsearch",
+            "level": 2,
+        },
+    ),
 )
+
+
+class UNACCENT(FunctionDescr):
+    minargs = 1
+    maxargs = 1
+    supported_backends = ("postgres",)
+    rtype = "String"
+
+
+register_function(UNACCENT)

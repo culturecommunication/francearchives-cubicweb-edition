@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<eac-cpf xmlns="urn:isbn:1-931666-33-4"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="urn:isbn:1-931666-33-4 http://www.archivesportaleurope.net/Portal/profiles/apeEAC-CPF.xsd http://www.w3.org/1999/xlink http://www.loc.gov/standards/xlink/xlink.xsd">
+   <control>
+      <recordId>FRAN_NP_150159</recordId>
+      <otherRecordId localType="original">FRAN_NP_050159</otherRecordId>
+      <maintenanceStatus>derived</maintenanceStatus>
+      <maintenanceAgency>
+         <agencyCode>FR-FRAN</agencyCode>
+         <agencyName>Archives nationales de France</agencyName>
+      </maintenanceAgency>
+      <languageDeclaration>
+         <language languageCode="fre">Français</language>
+         <script scriptCode="Latn"/>
+      </languageDeclaration>
+      <conventionDeclaration>
+         <citation xlink:type="simple"> Notice établie conformément à la norme ICA-ISAAR (CPF) 2004, aux normes ISO 8601 pour le système de normalisation des dates utilisé, ainsi que AFNOR NF Z44-061 juin 1986 Catalogage : forme et structure des vedettes noms de personne, des vedettes titres, des rubriques de classement et des titres forgés et NF Z 44-060, décembre 1996 Catalogue d'auteurs et d'anonymes – Forme et structure des vedettes de collectivités-auteurs. </citation>
+      </conventionDeclaration>
+      <localControl localType="niveau_de_detail">
+         <term>Moyenne</term>
+      </localControl>
+      <maintenanceHistory>
+         <maintenanceEvent>
+            <eventType>created</eventType>
+            <eventDateTime>2013-10-17</eventDateTime>
+            <agentType>human</agentType>
+            <agent>Raphael BAUMARD</agent>
+         </maintenanceEvent>
+         <maintenanceEvent>
+            <eventType>revised</eventType>
+            <eventDateTime>2013-12-10</eventDateTime>
+            <agentType>human</agentType>
+            <agent>Raphael BAUMARD</agent>
+         </maintenanceEvent>
+         <maintenanceEvent>
+            <eventType>derived</eventType>
+            <eventDateTime standardDateTime="2015-11-25">2015-11-25</eventDateTime>
+            <agentType>machine</agentType>
+            <agent>Archives Portal Europe</agent>
+            <eventDescription>Converted_apeEAC-CPF_version_unknown</eventDescription>
+         </maintenanceEvent>
+      </maintenanceHistory>
+   </control>
+   <cpfDescription>
+      <identity>
+         <entityType>family</entityType>
+         <nameEntry localType="authorized">
+            <part xml:lang="fre">Maigret (famille de)</part>
+         </nameEntry>
+      </identity>
+      <description>
+         <existDates>
+            <dateRange>
+               <fromDate standardDate="1301-01-01">XIVe siècle</fromDate>
+               <toDate>unknown</toDate>
+            </dateRange>
+         </existDates>
+         <biogHist>
+            <p>Originaire de Bourgogne où elle possède la seigneurie de Chavannes (dans l'actuelle commune de Dommartin- lès-Cuiseaux, Saône-et-Loire), la maison de Maigret voit l'un de ses rameaux s'implanter dans les Pays-Bas espagnols, où elle jouit depuis 1587 du titre de comte du Saint-Empire. À partir de Jean V, comte de Maigret et de Néau [Eupen], baron de Stockem, seigneur de Raveleen, haut drossard du ban de Baelen et grand forestier du duché de Limbourg, décédé en 1678, elle se scinde à nouveau en plusieurs branches, dont une tige lorraine qui a toujours des représentants.</p>
+         </biogHist>
+      </description>
+      <relations/>
+   </cpfDescription>
+</eac-cpf>

@@ -34,15 +34,24 @@ from cubicweb_frarchives_edition.rq import rqjob
 from cubicweb_frarchives_edition.tasks.import_ead import launch_task
 
 
-def process_import_csv(reader, filepath, services_map, log):
+def process_import_csv(reader, filepath, metadata_filepath, services_map, log):
     """this function is called in 'launch_task' in each file"""
     log.debug('called with filepath="%s"', filepath)
-    return reader.import_filepath(services_map, filepath)
+    return reader.import_filepath(services_map, filepath, metadata_filepath=metadata_filepath)
 
 
 @rqjob
-def import_csv(cnx, zip_description, force_delete=True,
-               auto_align=False, auto_dedupe=True, taskeid=None):
-    launch_task(cnx, dc.CSVReader, process_import_csv, zip_description['filepaths'],
-                auto_dedupe=auto_align, auto_align=auto_align,
-                force_delete=force_delete, taskeid=taskeid)
+def import_csv(
+    cnx, zip_description, force_delete=True, auto_align=False, auto_dedupe=True, taskeid=None
+):
+    launch_task(
+        cnx,
+        dc.CSVReader,
+        process_import_csv,
+        zip_description["filepaths"],
+        metadata_filepath=zip_description["metadata"],
+        auto_dedupe=auto_align,
+        auto_align=auto_align,
+        force_delete=force_delete,
+        taskeid=taskeid,
+    )

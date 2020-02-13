@@ -112,7 +112,7 @@ class CmsFormWrapper extends Component {
         this.state = {loading: false, formData: null, errors:null};
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
         this.onCancel = nextProps.onCancel || location_reload;
     }
 

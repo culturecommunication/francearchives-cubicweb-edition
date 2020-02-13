@@ -59,9 +59,10 @@ from utils import FrACubicConfigMixIn
 
 class DefaultTC(FrACubicConfigMixIn, testlib.CubicWebTC):
     def test_something(self):
-        self.skipTest('this cube has no test')
+        self.skipTest("this cube has no test")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from logilab.common.testlib import unittest_main
+
     unittest_main()

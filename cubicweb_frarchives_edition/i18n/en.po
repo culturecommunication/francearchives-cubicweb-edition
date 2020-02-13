@@ -10,6 +10,12 @@ msgstr ""
 msgid "\"label\" is required"
 msgstr ""
 
+msgid "0 document"
+msgstr "0 documents"
+
+msgid "1 document"
+msgstr ""
+
 #, python-format
 msgid "A department archive with \"%s\" code already exists"
 msgstr ""
@@ -27,6 +33,12 @@ msgstr ""
 msgid "Following files does not start with \"{}\" : {}"
 msgstr ""
 
+msgid "Found non-existent service code: "
+msgstr ""
+
+msgid "Found non-existent service codes: "
+msgstr ""
+
 msgid "Home"
 msgstr ""
 
@@ -40,6 +52,9 @@ msgid "Missing data"
 msgstr ""
 
 msgid "New RqTask"
+msgstr ""
+
+msgid "OAIRepository"
 msgstr ""
 
 msgid "PDF/metadata.csv is missing from zip"
@@ -80,7 +95,7 @@ msgstr ""
 msgid "This file is empty"
 msgstr ""
 
-msgid "Uri field is mandatory"
+msgid "ZIP or XML file"
 msgstr ""
 
 msgid "add RqTask output_file File subject"
@@ -89,8 +104,11 @@ msgstr ""
 msgid "add a RqTask"
 msgstr ""
 
-msgid "bad service code should be one of: "
-msgstr ""
+msgid "align-bano"
+msgstr "calculate and import alignments to BANO"
+
+msgid "align-geoname"
+msgstr "calculate alignments to GeoNames"
 
 msgid "bad task eid"
 msgstr ""
@@ -98,8 +116,11 @@ msgstr ""
 msgid "compare strictly authority label"
 msgstr ""
 
-msgid "compute_alignment"
+msgid "compute_alignments"
 msgstr ""
+
+msgid "compute_alignments_all"
+msgstr "[align database] align entire database"
 
 msgid "compute_location_authorities_to_group"
 msgstr ""
@@ -126,7 +147,16 @@ msgstr ""
 msgid "csv file to import"
 msgstr ""
 
+msgid "csv-authorities"
+msgstr "CSV file location authorities"
+
+msgid "csv-finding-aids"
+msgstr ""
+
 msgid "dedupe_authorities"
+msgstr ""
+
+msgid "delete_finding_aids"
 msgstr ""
 
 # subject and object forms for each relation type
@@ -145,7 +175,36 @@ msgctxt "RqTask"
 msgid "enqueued_at"
 msgstr ""
 
+msgid "export-aligned"
+msgstr "export aligned authorities"
+
+msgid "export-nonaligned"
+msgstr "export nonaligned authorities"
+
+msgid "export_agentauthorities"
+msgstr ""
+
 msgid "export_ape"
+msgstr ""
+
+msgid "export_locationauthorities"
+msgstr ""
+
+msgid "export_subjectauthorities"
+msgstr ""
+
+msgid "fatask_authorityrecord"
+msgstr ""
+
+msgctxt "RqTask"
+msgid "fatask_authorityrecord"
+msgstr ""
+
+msgid "fatask_authorityrecord_object"
+msgstr ""
+
+msgctxt "AuthorityRecord"
+msgid "fatask_authorityrecord_object"
 msgstr ""
 
 msgid "fatask_findingaid"
@@ -174,10 +233,13 @@ msgstr ""
 msgid "group_location_authorities"
 msgstr ""
 
-msgid "import_alignment"
-msgstr ""
+msgid "import_authorities"
+msgstr "[import authorities] import location authorities"
 
 msgid "import_csv"
+msgstr ""
+
+msgid "import_eac"
 msgstr ""
 
 msgid "import_ead"
@@ -189,11 +251,26 @@ msgstr ""
 msgid "in_state_facet"
 msgstr ""
 
+msgid "input file must be a ZIP or a XML file"
+msgstr ""
+
+msgid "last_successful_import"
+msgstr ""
+
 msgid "line {}: missing value for {} columns"
 msgstr ""
 
+msgid "list_services"
+msgstr "List of services"
+
+msgid "list_services_descr"
+msgstr "Comma-separated service codes to export. Leave empty to export all"
+
 msgctxt "RqTask"
 msgid "log"
+msgstr ""
+
+msgid "missing \"eac-services-dir\" parameter in all-in-one.conf"
 msgstr ""
 
 msgid "missing \"ead-services-dir\" parameter in all-in-one.conf"
@@ -209,6 +286,9 @@ msgstr ""
 msgid "no findingaid with this id"
 msgstr ""
 
+msgid "no-targets"
+msgstr "please select dataset to align database to"
+
 msgid "not allowed"
 msgstr ""
 
@@ -216,6 +296,20 @@ msgid "not authorized"
 msgstr ""
 
 msgid "oai repository identifier"
+msgstr ""
+
+msgid "oaiimport_task"
+msgstr ""
+
+msgctxt "RqTask"
+msgid "oaiimport_task"
+msgstr ""
+
+msgid "oaiimport_task_object"
+msgstr ""
+
+msgctxt "OAIImportTask"
+msgid "oaiimport_task_object"
 msgstr ""
 
 msgid "output_descr"
@@ -294,14 +388,20 @@ msgctxt "File"
 msgid "referenced_files_object"
 msgstr ""
 
+msgid "service"
+msgstr ""
+
 msgid "service code"
 msgstr ""
 
 msgid "service code (required only for xml, optional for zip)"
 msgstr ""
 
-msgid "service code from which you want to generate APE files"
+msgid "service code of the productor (required only for xml, optional for zip)"
 msgstr ""
+
+msgid "simplified-csv"
+msgstr "do not include Geogname information"
 
 msgid "started_at"
 msgstr ""
@@ -347,6 +447,15 @@ msgstr ""
 msgid "type of task"
 msgstr ""
 
+msgid "update-alignments"
+msgstr "update alignments"
+
+msgid "update-labels"
+msgstr "update authority labels"
+
+msgid "uri field is mandatory"
+msgstr ""
+
 msgid "wfs_cmsobject_draft"
 msgstr ""
 
@@ -383,6 +492,10 @@ msgstr "run"
 msgid "zip file"
 msgstr ""
 
+#, python-brace-format
+msgid "{count} documents"
+msgstr ""
+
 #~ msgid "FAFileImport"
 #~ msgstr "Finding aid file import"
 
@@ -401,8 +514,20 @@ msgstr ""
 #~ msgid "add a FAFileImport"
 #~ msgstr "add a finding aid file import"
 
+#~ msgid "csv-geonames"
+#~ msgstr "CSV file GeoNames alignments"
+
+#~ msgid "export_alignments"
+#~ msgstr "[export geo aligments] export geo alignments"
+
+#~ msgid "export_authorities"
+#~ msgstr "[export authorities] export location authorities"
+
 #~ msgid "harvest_url"
 #~ msgstr "harvest URL"
+
+#~ msgid "import_alignment"
+#~ msgstr "[import geo alignments] import geo alignments"
 
 #~ msgid "import_file"
 #~ msgstr "file to import"

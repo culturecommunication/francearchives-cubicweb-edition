@@ -36,8 +36,8 @@ const {createStore, applyMiddleware} = require('redux'),
 const rootReducer = require('./reducers'),
       {middleware: api} = require('./middleware/api');
 
-
 const middlewares = [thunk, api];
+import {createLogger} from 'redux-logger';
 
 
 function stateTransformer(state) {
@@ -49,16 +49,19 @@ function stateTransformer(state) {
 }
 
 if (process.env.NODE_ENV !== 'production') {
-    const createLogger = require('redux-logger');
     // transform immutable structure to plain object
     // (recipe from redux-logger README.md)
     middlewares.push(createLogger({collapsed: true, stateTransformer}));
 }
 
-module.exports = function configureStore(initialState) {
+function configureStore(initialState) {
   return createStore(
       rootReducer,
       initialState,
       applyMiddleware(...middlewares)
   );
+}
+
+export default {
+    configureStore,
 };

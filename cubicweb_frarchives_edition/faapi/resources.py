@@ -35,14 +35,12 @@ from rql import TypeResolverException
 
 
 class SameAsResource(object):
-
     def __init__(self, request, authority):
         self.request = request
         self.authority = authority
 
 
 class IndexResources(object):
-
     def __init__(self, request, target):
         self.request = request
         self.target = target
@@ -51,7 +49,7 @@ class IndexResources(object):
     def rset(self):
         cnx = self.request.cw_cnx
         return cnx.execute(
-            '''
+            """
             (
               Any X, XL, XT WHERE X index A, A eid %(e)s, X label XL, X type XT, X is AgentName
             )
@@ -63,13 +61,14 @@ class IndexResources(object):
             (
               Any X, XL, 'subject' WHERE X index A, A eid %(e)s, X label XL, X is Subject
             )
-            ''', {'e': self.target.eid}
+            """,
+            {"e": self.target.eid},
         )
 
 
 class AuthorityResource(object):
     known_resources = {
-        'same_as': SameAsResource,
+        "same_as": SameAsResource,
     }
 
     def __init__(self, request, eid):
@@ -80,9 +79,9 @@ class AuthorityResource(object):
     def entity(self):
         cnx = self.request.cw_cnx
         return cnx.execute(
-            'Any X WHERE X eid %(e)s, X is IN '
-            '(LocationAuthority, AgentAuthority, SubjectAuthority)',
-            {'e': self.eid}
+            "Any X WHERE X eid %(e)s, X is IN "
+            "(LocationAuthority, AgentAuthority, SubjectAuthority)",
+            {"e": self.eid},
         ).one()
 
     def __getitem__(self, value):
@@ -91,7 +90,7 @@ class AuthorityResource(object):
 
 class FAComponentResource(object):
     known_resources = {
-        'indexes': IndexResources,
+        "indexes": IndexResources,
     }
 
     def __init__(self, request, eid):
@@ -101,7 +100,7 @@ class FAComponentResource(object):
     @reify
     def entity(self):
         cnx = self.request.cw_cnx
-        return cnx.find('FAComponent', eid=self.eid).one()
+        return cnx.find("FAComponent", eid=self.eid).one()
 
     def __getitem__(self, value):
         return self.known_resources[value](self.request, self.entity)
@@ -109,7 +108,7 @@ class FAComponentResource(object):
 
 class FindingaidResource(object):
     known_resources = {
-        'indexes': IndexResources,
+        "indexes": IndexResources,
     }
 
     def __init__(self, request, eid):
@@ -119,14 +118,13 @@ class FindingaidResource(object):
     @reify
     def entity(self):
         cnx = self.request.cw_cnx
-        return cnx.find('FindingAid', eid=self.eid).one()
+        return cnx.find("FindingAid", eid=self.eid).one()
 
     def __getitem__(self, value):
         return self.known_resources[value](self.request, self.entity)
 
 
 class RelatedAuthorityResource(object):
-
     def __init__(self, request, index):
         self.request = request
         self.index = index
@@ -134,7 +132,7 @@ class RelatedAuthorityResource(object):
 
 class IndexResource(object):
     known_resources = {
-        'authority': RelatedAuthorityResource,
+        "authority": RelatedAuthorityResource,
     }
 
     def __init__(self, request, eid):
@@ -145,8 +143,7 @@ class IndexResource(object):
     def entity(self):
         cnx = self.request.cw_cnx
         return cnx.execute(
-            'Any X WHERE X eid %(e)s, X is IN (AgentName, Geogname, Subject)',
-            {'e': self.eid}
+            "Any X WHERE X eid %(e)s, X is IN (AgentName, Geogname, Subject)", {"e": self.eid}
         ).one()
 
     def __getitem__(self, value):
@@ -154,7 +151,6 @@ class IndexResource(object):
 
 
 class FAComponentsResource(object):
-
     def __init__(self, request):
         self.request = request
 
@@ -171,7 +167,6 @@ class FAComponentsResource(object):
 
 
 class FindingaidsResource(object):
-
     def __init__(self, request):
         self.request = request
 
@@ -188,7 +183,6 @@ class FindingaidsResource(object):
 
 
 class IndexesResource(object):
-
     def __init__(self, request):
         self.request = request
 
@@ -205,7 +199,6 @@ class IndexesResource(object):
 
 
 class AuthoritiesResource(object):
-
     def __init__(self, request):
         self.request = request
 
@@ -223,10 +216,10 @@ class AuthoritiesResource(object):
 
 class RootResource(object):
     known_resources = {
-        'facomponent': FAComponentsResource,
-        'findingaid': FindingaidsResource,
-        'index': IndexesResource,
-        'authority': AuthoritiesResource,
+        "facomponent": FAComponentsResource,
+        "findingaid": FindingaidsResource,
+        "index": IndexesResource,
+        "authority": AuthoritiesResource,
     }
 
     def __init__(self, request):

@@ -32,27 +32,26 @@ from elasticsearch.helpers import bulk
 
 from cubicweb.dataimport.stores import RQLObjectStore
 
-from cubicweb_francearchives.dataimport.ead import (
-    Reader, readerconfig, load_services_map)
+from cubicweb_francearchives.dataimport.ead import Reader, readerconfig, load_services_map
 
 
 def import_file(cnx, appid, filepath, metadata=None):
     config = readerconfig(cnx.vreg.config, appid, esonly=False)
     store = RQLObjectStore(cnx)
-    indexer = cnx.vreg['es'].select('indexer', cnx)
+    indexer = cnx.vreg["es"].select("indexer", cnx)
     r = Reader(config, store)
     services_map = load_services_map(cnx)
-    if filepath.endswith('.xml'):
+    if filepath.endswith(".xml"):
         es_docs = r.import_ead_xml(filepath, services_map)
-    elif filepath.endswith('.pdf'):
+    elif filepath.endswith(".pdf"):
         es_docs = r.import_pdf(filepath, services_map, metadata)
     else:
-        raise ValueError('unhandled file type {0}'.format(filepath))
+        raise ValueError("unhandled file type {0}".format(filepath))
     es = indexer.get_connection()
     if es is not None:
         bulk(es, es_docs, stats_only=True)
     store.flush()
     store.finish()
     store.commit()
-    findingaid_eid = es_docs[0]['_source']['eid']
+    findingaid_eid = es_docs[0]["_source"]["eid"]
     return findingaid_eid

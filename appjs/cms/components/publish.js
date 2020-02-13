@@ -28,7 +28,9 @@
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-const {createElement: ce, Component, PropTypes} = require('react');
+const {createElement: ce, Component} = require('react'),
+      PropTypes = require('prop-types');
+
 
 const {default: {addTransition, getTransitionsSchema}} = require('../api');
 

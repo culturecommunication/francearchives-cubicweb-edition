@@ -38,30 +38,29 @@ from cubicweb_frarchives_edition.rq import update_progress, rqjob
 
 @rqjob
 def publish_findingaid(cnx, imported_task_eid, taskeid=None):
-    log = logging.getLogger('rq.task')
-    rset = cnx.find('RqTask', eid=imported_task_eid)
+    log = logging.getLogger("rq.task")
+    rset = cnx.find("RqTask", eid=imported_task_eid)
     if not rset:
-        log.warning('no task with this eid "%s"',
-                    imported_task_eid)
+        log.warning('no task with this eid "%s"', imported_task_eid)
         return
     importead_task = rset.one()
     job = rq.get_current_job()
-    current_progress = update_progress(job, 0.)
+    current_progress = update_progress(job, 0.0)
     imported_findingaids = importead_task.fatask_findingaid
-    log.info('Importead_findingaid number : %r', len(importead_task.fatask_findingaid))
+    log.info("Importead_findingaid number : %r", len(importead_task.fatask_findingaid))
     if importead_task.fatask_findingaid:
-        progress_step = 1. / len(importead_task.fatask_findingaid)
+        progress_step = 1.0 / len(importead_task.fatask_findingaid)
         for fa in importead_task.fatask_findingaid:
-            adapted = fa.cw_adapt_to('IWorkflowable')
-            adapted.fire_transition_if_possible('wft_cmsobject_publish')
+            adapted = fa.cw_adapt_to("IWorkflowable")
+            adapted.fire_transition_if_possible("wft_cmsobject_publish")
             current_progress = update_progress(job, current_progress + progress_step)
         # link published IR to the current task
         job = rq.get_current_job()
         if job is not None and taskeid is None:
             taskeid = int(job.id)
-        log.info('taskeid : %r', taskeid)
+        log.info("taskeid : %r", taskeid)
         if taskeid is not None:
             entity = cnx.entity_from_eid(taskeid)
             entity.cw_set(fatask_findingaid=imported_findingaids)
-            log.info('set %r fatask_findingaid', taskeid)
+            log.info("set %r fatask_findingaid", taskeid)
     cnx.commit()

@@ -71,6 +71,7 @@ CREATE INDEX geonames_admin2code_idx ON geonames(admin2_code);
 CREATE INDEX geonames_country_code_idx ON geonames(country_code);
 CREATE INDEX geonames_fclass_idx ON geonames(fclass);
 
+
 DROP TABLE IF EXISTS geonames_altnames;
 
 CREATE TEMPORARY TABLE tmp_geonames_altnames (
@@ -90,8 +91,8 @@ CREATE INDEX tmp_geonames_altnames_isolanguage_idx ON tmp_geonames_altnames(isol
 
 
 CREATE TABLE geonames_altnames (
-    alternateNameId integer  PRIMARY KEY,
-    geonameid integer not null,
+    alternateNameId integer PRIMARY KEY,
+    geonameid integer references geonames(geonameid),
     isolanguage varchar(7),
     alternate_name varchar(400),
     isPreferredName boolean,
@@ -134,3 +135,8 @@ CREATE INDEX geonames_altnames_isolanguage_idx ON geonames_altnames(isolanguage)
 CREATE INDEX geonames_altnames_rank_idx ON geonames_altnames(rank);
 CREATE INDEX geonames_altnames_name_gin_idx ON geonames_altnames USING gin (alternate_name gin_trgm_ops);
 CREATE INDEX geonames_altnames_name_lower_unaccent_gin_idx ON geonames_altnames USING gin (lower(f_unaccent((alternate_name)::text)) gin_trgm_ops);
+
+{% if owner %}
+ALTER TABLE geonames OWNER TO {{ owner }};
+ALTER TABLE geonames_altnames OWNER TO {{ owner }};
+{% endif %}

@@ -32,10 +32,14 @@
 
 from jinja2 import Environment, PackageLoader, ChoiceLoader
 
-env = Environment(loader=ChoiceLoader([
-    PackageLoader('cubicweb_frarchives_edition.views'),
-    PackageLoader('cubicweb_francearchives.views')
-]))
+env = Environment(
+    loader=ChoiceLoader(
+        [
+            PackageLoader("cubicweb_frarchives_edition.views"),
+            PackageLoader("cubicweb_francearchives.views"),
+        ]
+    )
+)
 
 
 def get_template(template_name):

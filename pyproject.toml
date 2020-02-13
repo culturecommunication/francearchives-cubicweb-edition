@@ -1,0 +1,16 @@
+[tool.black]
+line-length = 100
+target-version = ['py34']
+exclude = '''(
+    \(
+        dist
+        | sphinx
+        | \.tox
+        | \.hg
+        | \.eggs
+        | \.pytest_cache
+        | \.bundle
+        | \.scannerwork
+    \)
+    -    | setup.py
+)'''

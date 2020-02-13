@@ -34,65 +34,86 @@ from cubicweb_francearchives.schema.cms import CMS_OBJECTS
 from cubicweb_jsonschema.views import jsonschema_section
 
 
-jsonschema_section.tag_subject_of(('FAFileImport', 'imported_findingaid', '*'), 'hidden')
+jsonschema_section.tag_subject_of(("FAFileImport", "imported_findingaid", "*"), "hidden")
 
-jsonschema_section.tag_object_of(('*', 'imported_findingaid', 'FindingAid'), 'hidden')
-jsonschema_section.tag_subject_of(('FindingAid', 'findingaid_support', '*'), 'inlined')
+jsonschema_section.tag_object_of(("*", "imported_findingaid", "FindingAid"), "hidden")
+jsonschema_section.tag_subject_of(("FindingAid", "findingaid_support", "*"), "inlined")
 
-for rtype in ('fa_header', 'did', 'service', 'findingaid_support'):
-    jsonschema_section.tag_subject_of(('FindingAid', rtype, '*'), 'hidden')
+for rtype in ("fa_header", "did", "service", "findingaid_support"):
+    jsonschema_section.tag_subject_of(("FindingAid", rtype, "*"), "hidden")
 
-jsonschema_section.tag_object_of(('*', 'import_file', 'File'), 'hidden')
-jsonschema_section.tag_object_of(('*', 'image_file', 'File'), 'hidden')
-for rel in ('findingaid_support', 'alignment_result',
-            'ape_ead_file', 'additional_attachment', 'attachment'):
-    jsonschema_section.tag_object_of(('*', rel, 'File'), 'hidden')
+jsonschema_section.tag_object_of(("*", "import_file", "File"), "hidden")
+jsonschema_section.tag_object_of(("*", "image_file", "File"), "hidden")
+for rel in (
+    "findingaid_support",
+    "alignment_result",
+    "ape_ead_file",
+    "additional_attachment",
+    "attachment",
+):
+    jsonschema_section.tag_object_of(("*", rel, "File"), "hidden")
 
-for rel in ('basecontent_image', 'commemoration_image',
-            'map_image', 'section_image', 'service_image',
-            'news_image', 'externref_image'):
-    jsonschema_section.tag_object_of(('*', rel, 'Image'), 'hidden')
+for rel in (
+    "basecontent_image",
+    "commemoration_image",
+    "map_image",
+    "section_image",
+    "service_image",
+    "news_image",
+    "externref_image",
+):
+    jsonschema_section.tag_object_of(("*", rel, "Image"), "hidden")
 
-jsonschema_section.tag_subject_of(('*', 'cssimage_of', 'CssImage'), 'hidden')
-jsonschema_section.tag_subject_of(('*', 'cssimage', 'CssImage'), 'inlined')
-jsonschema_section.tag_subject_of(('CssImage', 'cssid', '*'), 'hidden')
+jsonschema_section.tag_subject_of(("*", "cssimage_of", "CssImage"), "hidden")
+jsonschema_section.tag_subject_of(("*", "cssimage", "CssImage"), "inlined")
+jsonschema_section.tag_subject_of(("CssImage", "cssid", "*"), "hidden")
 
-jsonschema_section.tag_subject_of(('*', 'referenced_files', '*'), 'hidden')
-jsonschema_section.tag_object_of(('*', 'referenced_files', '*'), 'hidden')
-jsonschema_section.tag_subject_of(('*', 'fa_referenced_files', '*'), 'hidden')
-jsonschema_section.tag_object_of(('*', 'fa_referenced_files', '*'), 'hidden')
-jsonschema_section.tag_subject_of(('*', 'output_file', '*'), 'hidden')
-jsonschema_section.tag_object_of(('*', 'output_file', '*'), 'hidden')
+jsonschema_section.tag_subject_of(("*", "referenced_files", "*"), "hidden")
+jsonschema_section.tag_object_of(("*", "referenced_files", "*"), "hidden")
+jsonschema_section.tag_subject_of(("*", "fa_referenced_files", "*"), "hidden")
+jsonschema_section.tag_object_of(("*", "fa_referenced_files", "*"), "hidden")
+jsonschema_section.tag_subject_of(("*", "output_file", "*"), "hidden")
+jsonschema_section.tag_object_of(("*", "output_file", "*"), "hidden")
 
-jsonschema_section.tag_subject_of(('Service', 'service_social_network', '*'), 'inlined')
+jsonschema_section.tag_subject_of(("Service", "service_social_network", "*"), "inlined")
 
-for subj in CMS_OBJECTS + ('Metadata', 'Link', 'File', 'CommemoDate', 'Image', 'CssImage',
-                           'Category', 'Circular', 'OfficialText', 'Service', 'SocialNetwork',
-                           'Map'):
-    jsonschema_section.tag_subject_of((subj, 'uuid', '*'), 'hidden')
+for subj in CMS_OBJECTS + (
+    "Metadata",
+    "Link",
+    "File",
+    "CommemoDate",
+    "Image",
+    "CssImage",
+    "Category",
+    "Circular",
+    "OfficialText",
+    "Service",
+    "SocialNetwork",
+    "Map",
+):
+    jsonschema_section.tag_subject_of((subj, "uuid", "*"), "hidden")
 
 
-jsonschema_section.tag_subject_of(('BaseContent', 'description', '*'), 'hidden')
-jsonschema_section.tag_subject_of(('BaseContent', 'keywords', '*'), 'hidden')
-jsonschema_section.tag_subject_of(('BaseContent', 'basecontent_service', '*'), 'inlined')
+jsonschema_section.tag_subject_of(("BaseContent", "description", "*"), "hidden")
+jsonschema_section.tag_subject_of(("BaseContent", "keywords", "*"), "hidden")
+jsonschema_section.tag_subject_of(("BaseContent", "basecontent_service", "*"), "inlined")
 
-jsonschema_section.tag_subject_of(('CommemorationItem', 'collection_top', '*'), 'hidden')
+jsonschema_section.tag_subject_of(("CommemorationItem", "collection_top", "*"), "hidden")
 
-jsonschema_section.tag_subject_of(('Metadata', 'description', '*'), 'inlined')
-jsonschema_section.tag_subject_of(('CWUser', 'last_login_time', '*'), 'hidden')
-jsonschema_section.tag_subject_of(('CWUser', 'use_email', '*'), 'hidden')
+jsonschema_section.tag_subject_of(("Metadata", "description", "*"), "inlined")
+jsonschema_section.tag_subject_of(("CWUser", "last_login_time", "*"), "hidden")
+jsonschema_section.tag_subject_of(("CWUser", "use_email", "*"), "hidden")
 
-for attr in ('status', 'log', 'enqueued_at', 'started_at', 'ended_at'):
-    jsonschema_section.tag_subject_of(('RqTask', attr, '*'), 'hidden')
+for attr in ("status", "log", "enqueued_at", "started_at", "ended_at"):
+    jsonschema_section.tag_subject_of(("RqTask", attr, "*"), "hidden")
 
-jsonschema_section.tag_subject_of(('ExternRef', 'exref_service', '*'), 'inlined')
+jsonschema_section.tag_subject_of(("ExternRef", "exref_service", "*"), "inlined")
 
-jsonschema_section.tag_subject_of(('*', 'previous_info', 'PreviousInfo'), 'hidden')
-jsonschema_section.tag_object_of(('*', 'metadata', 'Metadata'), 'hidden')
+jsonschema_section.tag_subject_of(("*", "previous_info", "PreviousInfo"), "hidden")
+jsonschema_section.tag_object_of(("*", "metadata", "Metadata"), "hidden")
 
-jsonschema_section.tag_subject_of(('Card', 'wikiid', '*'), 'hidden')
+jsonschema_section.tag_subject_of(("Card", "wikiid", "*"), "hidden")
 
-jsonschema_section.tag_subject_of(('RqTask', 'output_descr', '*'), 'hidden')
-jsonschema_section.tag_subject_of(('Circular', 'json_values', '*'), 'hidden')
-jsonschema_section.tag_subject_of(('LocationAuthority', 'latitude', '*'), 'hidden')
-jsonschema_section.tag_subject_of(('LocationAuthority', 'longitude', '*'), 'hidden')
+jsonschema_section.tag_subject_of(("RqTask", "output_descr", "*"), "hidden")
+jsonschema_section.tag_subject_of(("Circular", "json_values", "*"), "hidden")
+jsonschema_section.tag_subject_of(("AuthorityRecord", "maintainer", "Service"), "hidden")

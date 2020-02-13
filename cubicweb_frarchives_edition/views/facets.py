@@ -34,5 +34,5 @@ from elasticsearch_dsl import TermsFacet
 
 from cubicweb_francearchives.views.search.facets import FACETED_SEARCHES, FACET_SIZE
 
-for facet_class in FACETED_SEARCHES.values():
-    facet_class.facets['in_state'] = TermsFacet(field='in_state', size=FACET_SIZE)
+for facet_class in list(FACETED_SEARCHES.values()):
+    facet_class.facets["in_state"] = TermsFacet(field="in_state", size=FACET_SIZE)

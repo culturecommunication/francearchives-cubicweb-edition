@@ -31,22 +31,45 @@
 #
 
 
-add_relation_type('referenced_files')
+add_relation_type("referenced_files")
 
 
-etypes = ['Metadata', 'ExternRef',
-          'PniaAgentForm', 'Did', 'FindingAid',
-          'CommemorationItem', 'CommemoDate', 'Index', 'Service',
-          'Label', 'FAComponent', 'RelatedFindingAid',
-          'BaseContent', 'OfficialText', 'Link',  # 'ConceptScheme',
-          'Concept', 'Image',
-          'Category', 'PniaLocationForm', 'Circular',
-          'PniaSubject', 'Card', 'Person',
-          'CommemoCollection', 'SocialNetwork', 'PniaLocation',  # 'EmailAddress',
-          'PniaSubjectForm', 'PniaAgent', 'DigitizedVersion',
-          'Map', 'NewsContent',  # 'PostalAddress',
-          'FAHeader', 'ExternalUri', 'File',  # 'IndexRole'
-          ]
+etypes = [
+    "Metadata",
+    "ExternRef",
+    "PniaAgentForm",
+    "Did",
+    "FindingAid",
+    "CommemorationItem",
+    "CommemoDate",
+    "Index",
+    "Service",
+    "Label",
+    "FAComponent",
+    "RelatedFindingAid",
+    "BaseContent",
+    "OfficialText",
+    "Link",  # 'ConceptScheme',
+    "Concept",
+    "Image",
+    "Category",
+    "PniaLocationForm",
+    "Circular",
+    "PniaSubject",
+    "Card",
+    "Person",
+    "CommemoCollection",
+    "SocialNetwork",
+    "PniaLocation",  # 'EmailAddress',
+    "PniaSubjectForm",
+    "PniaAgent",
+    "DigitizedVersion",
+    "Map",
+    "NewsContent",  # 'PostalAddress',
+    "FAHeader",
+    "ExternalUri",
+    "File",  # 'IndexRole'
+]
 
 for etype in etypes:
     sync_schema_props_perms(etype)

@@ -37,10 +37,10 @@ from cubicweb.server import hook
 
 
 class CircularAttributesHook(hook.Hook):
-    __regid__ = 'francearchives.circular-attrs'
-    __select__ = (hook.Hook.__select__ & is_instance('Circular'))
-    events = ('before_add_entity', 'before_update_entity')
-    category = 'circular-csv'
+    __regid__ = "francearchives.circular-attrs"
+    __select__ = hook.Hook.__select__ & is_instance("Circular")
+    events = ("before_add_entity", "before_update_entity")
+    category = "circular-csv"
 
     def __call__(self):
         CircularDataOperation.get_instance(self._cw).add_data(self.entity.eid)
@@ -48,12 +48,22 @@ class CircularAttributesHook(hook.Hook):
 
 class CircularAllPossibleRels(hook.Hook):
     """for all possible circular relations"""
-    __regid__ = 'francearchives.cirular-rels'
-    possibles_subj_rels = ('attachment', 'additional_attachment', 'additional_link',
-                           'historical_context', 'business_field', 'document_type',
-                           'action', 'modified_text', 'modifying_text', 'revoked_text')
-    possible_obj_rels = ('circular', )
-    events = ('before_add_relation', 'before_delete_relation')
+
+    __regid__ = "francearchives.cirular-rels"
+    possibles_subj_rels = (
+        "attachment",
+        "additional_attachment",
+        "additional_link",
+        "historical_context",
+        "business_field",
+        "document_type",
+        "action",
+        "modified_text",
+        "modifying_text",
+        "revoked_text",
+    )
+    possible_obj_rels = ("circular",)
+    events = ("before_add_relation", "before_delete_relation")
 
     def __call__(self):
         eid = None
@@ -65,14 +75,12 @@ class CircularAllPossibleRels(hook.Hook):
             CircularDataOperation.get_instance(self._cw).add_data(eid)
 
 
-class CircularDataOperation(hook.DataOperationMixIn,
-                            hook.SingleLastOperation):
-
+class CircularDataOperation(hook.DataOperationMixIn, hook.SingleLastOperation):
     def precommit_event(self):
         cnx = self.cnx
         for eid in self.get_data():
             if cnx.deleted_in_transaction(eid):
                 continue
             entity = cnx.entity_from_eid(eid)
-            with cnx.allow_all_hooks_but('circular-csv'):
+            with cnx.allow_all_hooks_but("circular-csv"):
                 entity.cw_set(json_values=entity.values_as_json)

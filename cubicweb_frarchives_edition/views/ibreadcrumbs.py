@@ -33,8 +33,8 @@ from cubicweb.predicates import is_instance
 
 
 class RqTaskBreadCrumbsAdapter(EntityAdapter):
-    __regid__ = 'IBreadCrumbs'
-    __select__ = is_instance('RqTask', accept_none=False)
+    __regid__ = "IBreadCrumbs"
+    __select__ = is_instance("RqTask", accept_none=False)
 
     def breadcrumbs(self, view=None, recurs=None):
         _ = self._cw._
@@ -47,6 +47,6 @@ class RqTaskBreadCrumbsAdapter(EntityAdapter):
             parenttask = parenttask[0]
             path.append((parenttask.absolute_url(), parenttask.dc_title()))
             rqtask = parenttask
-        path.append((self._cw.build_url(''), _('Home')))
+        path.append((self._cw.build_url(""), _("Home")))
         path.reverse()
         return path

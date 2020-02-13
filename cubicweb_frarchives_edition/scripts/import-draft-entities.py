@@ -41,22 +41,26 @@ from cubicweb_francearchives import init_bfss
 # remove `is_in_state('wfs_cmsobject_published')` part from ISync selectors
 # so draft entities can be ISync selectable
 sync.ISyncAdapter.__select__ = yes()
-sync.ISyncUuidAttrAdapter.__select__ = is_instance('Concept')
-sync.ISyncUuidAdapter.__select__ = relation_possible('uuid')
-sync.ISyncCarddAdapter.__select__ = is_instance('Card')
-sync.ISyncSectionAdapter.__select__ = sync.ISyncUuidAdapter.__select__ & is_instance('Section', 'CommemoCollection')
-sync.ISyncCommemorationItemAdapter.__select__ = sync.ISyncUuidAdapter.__select__ & is_instance('CommemorationItem')
+sync.ISyncUuidAttrAdapter.__select__ = is_instance("Concept")
+sync.ISyncUuidAdapter.__select__ = relation_possible("uuid")
+sync.ISyncCarddAdapter.__select__ = is_instance("Card")
+sync.ISyncSectionAdapter.__select__ = sync.ISyncUuidAdapter.__select__ & is_instance(
+    "Section", "CommemoCollection"
+)
+sync.ISyncCommemorationItemAdapter.__select__ = sync.ISyncUuidAdapter.__select__ & is_instance(
+    "CommemorationItem"
+)
 
 
 def dump(cnx, result_file):
     rset = cnx.execute('Any X WHERE X in_state S, S name "wfs_cmsobject_draft", NOT X is Card')
-    with open(result_file, 'w') as fout:
+    with open(result_file, "w") as fout:
         for e in rset.entities():
-            s = e.cw_adapt_to('ISync')
+            s = e.cw_adapt_to("ISync")
             body = s.build_put_body()
-            fout.write('%s:%s\n' % (e.cw_etype, s.uuid_value))
+            fout.write("%s:%s\n" % (e.cw_etype, s.uuid_value))
             fout.write(json_dumps(body))
-            fout.write('\n\n')
+            fout.write("\n\n")
 
 
 def load(cnx, resultfile):
@@ -67,26 +71,26 @@ def load(cnx, resultfile):
             line = line.strip()
             if not line:
                 continue
-            etype, uuid_value = line.split(':')
+            etype, uuid_value = line.split(":")
             etype, uuid_value = unicode(etype), unicode(uuid_value)
-            print 'handling {}:{}'.format(etype, uuid_value)
-            data = json.loads(next(lines_iter).decode('utf-8'))
+            print("handling {}:{}".format(etype, uuid_value))
+            data = json.loads(next(lines_iter).decode("utf-8"))
             uuid_attr = get_uuid_attr(cnx.vreg, etype)
             data[uuid_attr] = uuid_value
-            section_uuid = data.pop('parent-section', None)
+            section_uuid = data.pop("parent-section", None)
             entity, created = edit_object(cnx, etype, data)
             if created and section_uuid:
-                section = cnx.find('Section', uuid=section_uuid).one()
+                section = cnx.find("Section", uuid=section_uuid).one()
                 section.cw_set(children=entity)
             cnx.commit()
-            print '\tdone (created: %s)' % created
+            print("\tdone (created: %s)" % created)
 
 
-if __name__ == '__main__' and 'cnx' in globals():
+if __name__ == "__main__" and "cnx" in globals():
     cmd, filepath = __args__
-    if cmd == 'load':
+    if cmd == "load":
         load(cnx, filepath)
-    elif cmd == 'dump':
+    elif cmd == "dump":
         dump(cnx, filepath)
     else:
-        print 'first argument should be either `load` or `dump`'
+        print("first argument should be either `load` or `dump`")

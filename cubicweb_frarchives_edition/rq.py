@@ -28,7 +28,7 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
-from __future__ import absolute_import
+
 from functools import wraps
 from contextlib import contextmanager
 import sys
@@ -38,22 +38,21 @@ import rq
 import rq.job
 from rq.utils import ColorizingStreamHandler
 from rq.contrib.sentry import register_sentry
-import six
 
 from cubicweb.cwconfig import CubicWebConfiguration
 
 from cubicweb_francearchives import admincnx as orig_admincnx, init_bfss
-from cubicweb_francearchives.dataimport.ead import init_sentry_client, RAVEN_CLIENT
 
 
 @contextmanager
 def admincnx(appid_or_cnx, loglevel=None):
-    if isinstance(appid_or_cnx, six.string_types):
+    if isinstance(appid_or_cnx, str):
         with orig_admincnx(appid_or_cnx, loglevel) as cnx:
             yield cnx
     else:
-        assert appid_or_cnx.vreg.config.mode == 'test', \
-            'expected to be a connection only in test mode'
+        assert (
+            appid_or_cnx.vreg.config.mode == "test"
+        ), "expected to be a connection only in test mode"
         yield appid_or_cnx
 
 
@@ -61,14 +60,14 @@ def rqjob(task):
     @wraps(task)
     def task_wrapper(appid, *args, **kwargs):
         job = rq.get_current_job()
-        with admincnx(appid, loglevel='warning') as cnx:
+        with admincnx(appid, loglevel="warning") as cnx:
             init_bfss(cnx.repo)
-            rqtask = cnx.find('RqTask', eid=int(job.id)).one()
-            irqjob = rqtask.cw_adapt_to('IRqJob')
+            rqtask = cnx.find("RqTask", eid=int(job.id)).one()
+            irqjob = rqtask.cw_adapt_to("IRqJob")
             try:
                 result = task(cnx, *args, **kwargs)
             except Exception:
-                logging.getLogger('rq.task').exception('yo !')
+                logging.getLogger("rq.task").exception("yo !")
                 cnx.rollback()
                 irqjob.handle_failure(*sys.exc_info())
                 cnx.commit()
@@ -77,66 +76,62 @@ def rqjob(task):
                 irqjob.handle_finished()
                 cnx.commit()
         return result
+
     return task_wrapper
 
 
 class RedisHandler(logging.Handler):
-
     def emit(self, record):
         job = rq.get_current_job()
         if job is not None:
-            key = 'rq:job:{0}:log'.format(job.id)
+            key = "rq:job:{0}:log".format(job.id)
             pipe = job.connection.pipeline()
             msg = self.format(record)
-            if isinstance(msg, six.text_type):
-                msg = msg.encode('utf-8')
+            if isinstance(msg, str):
+                msg = msg.encode("utf-8")
             pipe.append(key, msg)
-            # XXX: find a better value than '7260'
-            #      7200 is our default timeout on task
-            #      (cf. .entities.adapters.StartRqTaskOp.postcommit_event)
-            pipe.expire(key, 7260)
+            # keep RQ logs 24h in case of non-default timeout
+            pipe.expire(key, 86400)
             pipe.execute()
 
 
 def update_progress(job, progress_value):
-    job.meta['progress'] = progress_value
+    job.meta["progress"] = progress_value
     job.save_meta()
     return progress_value
 
 
 def config_from_appid(appid_or_cnx):
-    if isinstance(appid_or_cnx, six.string_types):
+    if isinstance(appid_or_cnx, str):
         return CubicWebConfiguration.config_for(appid_or_cnx)
-    assert appid_or_cnx.vreg.config.mode == 'test', \
-        'expected to be a connection only in test mode'
+    assert appid_or_cnx.vreg.config.mode == "test", "expected to be a connection only in test mode"
     return appid_or_cnx.vreg.config
 
 
 def work(appid, burst=False, worker_class=rq.Worker):
-    logger = logging.getLogger('rq.worker')
+    logger = logging.getLogger("rq.worker")
     if not logger.handlers:
         logger.setLevel(logging.INFO)
-        formatter = logging.Formatter(fmt='%(asctime)s %(message)s',
-                                      datefmt='%H:%M:%S')
+        formatter = logging.Formatter(fmt="%(asctime)s %(message)s", datefmt="%H:%M:%S")
         handler = ColorizingStreamHandler()
         handler.setFormatter(formatter)
         logger.addHandler(handler)
-    task_logger = logging.getLogger('rq.task')
+    task_logger = logging.getLogger("rq.task")
     task_logger.setLevel(logging.DEBUG)
     handler = RedisHandler()
-    handler.setFormatter(logging.Formatter(
-        fmt="%(levelname)s %(asctime)s %(module)s %(process)d %(message)s\n"))
+    handler.setFormatter(
+        logging.Formatter(fmt="%(levelname)s %(asctime)s %(module)s %(process)d %(message)s\n")
+    )
     task_logger.addHandler(handler)
 
     class Job(rq.job.Job):
-
         @property
         def args(self):
             return (appid,) + super(Job, self).args
 
     cwconfig = config_from_appid(appid)
-    init_sentry_client(cwconfig)
-    worker = worker_class('default', job_class=Job)
-    if RAVEN_CLIENT.get('default'):
-        register_sentry(worker, RAVEN_CLIENT['default'])
+    worker = worker_class("default", job_class=Job)
+    sentry_dsn = cwconfig.get("sentry-dsn")
+    if sentry_dsn:
+        register_sentry(sentry_dsn)
     worker.work(burst=burst)

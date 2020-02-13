@@ -27,7 +27,9 @@ Copie d'écran
 Documentation supplémentaire
 ----------------------------
 
-Des éléments supplémentaires de documentation sont dans `doc/`
+Des éléments supplémentaires de documentation sont dans `doc/` dont notamment
+
+* `doc_dev.rst` explique comment installer le cube avec l'aide de ``pip`` et ``npm``
 
 Tests
 -----
@@ -45,6 +47,21 @@ toute responsabilité sur les problèmes et inconvénients, de quelque
 nature qu'ils soient, qui pourraient survenir en raison d'une
 utilisation de ces fichiers à d'autres fins que de tester la présente
 application.
+
+
+Pour lancer **black** ::
+
+  black --config pyproject.toml .
+
+
+Pour lancer le linter javascript ::
+
+  npm run lint
+
+Pour lancer le linter javascript avec une correction automatique des erreurs triviales ::
+
+  npm run lint -- --fix
+
 
 Contributrices et contributeurs
 -------------------------------

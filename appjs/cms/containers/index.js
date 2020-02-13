@@ -31,7 +31,7 @@
 const forEach = require('lodash').forEach;
 
 const {createElement: ce} = require('react'),
-      {Link} = require('react-router'),
+      {Link} = require('react-router-dom'),
       {connect} = require('react-redux');
 
 const {default: {buildUrl}} = require('../api');
@@ -234,7 +234,7 @@ function displayRelated({related, forceShowPanel}){
                     ];
                 }
                 const options = {pathname: '/editrelated',
-                                 query: {name: l.rtype}};
+                                 search: `?name=${l.rtype}`};
                 if (l.rtype === 'cssimage')
                     options.pathname = '/cssimage';
                 if (l.rtype.indexOf('index_') !== -1)
@@ -265,7 +265,6 @@ exports.TodoLink = function TodoLink() {
                  ce('span', {className: 'action'},
                     ce(icon, {name: 'sort'}, ' À trier'))));
 };
-
 
 function SearchCWUsersLink({forceShowPanel}) {
     return ce('h3', null,
@@ -302,6 +301,19 @@ function SearchFaTasksLink({forceShowPanel}) {
 exports.SearchFaTasksLink = connect(
     null, {forceShowPanel: showPanel}
 )(SearchFaTasksLink);
+
+
+function FAMonitoringBordLink({forceShowPanel}) {
+    return ce('h3', null,
+              action({url: 'fa-bord', label: 'Tableau de suivi des IRs',
+                      iconName: 'table',
+                      onClick: forceShowPanel}));
+}
+
+
+exports.FAMonitoringBordLink = connect(
+    null, {forceShowPanel: showPanel}
+)(FAMonitoringBordLink);
 
 
 function EditHomePageMetataLink({forceShowPanel}) {

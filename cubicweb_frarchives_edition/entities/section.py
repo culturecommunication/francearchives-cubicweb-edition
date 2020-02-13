@@ -34,11 +34,14 @@
 
 
 def move_child(cnx, section_eid, child_eid, new_order):
-    cnx.execute('SET C order O + 1 WHERE '
-                'S is IN (Section, CommemoCollection), S eid %(s)s, '
-                'S children C, C order O , '
-                'C order >= %(o)s, C order < PREVO, '
-                'CHILD order PREVO, CHILD eid %(c)s',
-                {'s': section_eid, 'o': new_order, 'c': child_eid})
-    cnx.execute('SET C order %(new_order)s WHERE C eid %(eid)s',
-                {'eid': child_eid, 'new_order': new_order})
+    cnx.execute(
+        "SET C order O + 1 WHERE "
+        "S is IN (Section, CommemoCollection), S eid %(s)s, "
+        "S children C, C order O , "
+        "C order >= %(o)s, C order < PREVO, "
+        "CHILD order PREVO, CHILD eid %(c)s",
+        {"s": section_eid, "o": new_order, "c": child_eid},
+    )
+    cnx.execute(
+        "SET C order %(new_order)s WHERE C eid %(eid)s", {"eid": child_eid, "new_order": new_order}
+    )

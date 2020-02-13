@@ -10,6 +10,12 @@ msgstr ""
 msgid "\"label\" is required"
 msgstr "le champ \"label\" est requis"
 
+msgid "0 document"
+msgstr ""
+
+msgid "1 document"
+msgstr ""
+
 #, python-format
 msgid "A department archive with \"%s\" code already exists"
 msgstr ""
@@ -28,6 +34,12 @@ msgstr ""
 msgid "Following files does not start with \"{}\" : {}"
 msgstr ""
 
+msgid "Found non-existent service code: "
+msgstr "Il n'existe pas de service avec le code : "
+
+msgid "Found non-existent service codes: "
+msgstr "Il n'existe pas de service avec les codes : "
+
 msgid "Home"
 msgstr ""
 
@@ -41,6 +53,9 @@ msgid "Missing data"
 msgstr "Données manquantes"
 
 msgid "New RqTask"
+msgstr ""
+
+msgid "OAIRepository"
 msgstr ""
 
 msgid "PDF/metadata.csv is missing from zip"
@@ -83,8 +98,8 @@ msgstr "Ce fichier n'est pas une archive zip"
 msgid "This file is empty"
 msgstr "Ce fichier est vide"
 
-msgid "Uri field is mandatory"
-msgstr "Le champ uri est obligatoire"
+msgid "ZIP or XML file"
+msgstr "archive ZIP ou fichier XML"
 
 msgid "add RqTask output_file File subject"
 msgstr ""
@@ -92,8 +107,11 @@ msgstr ""
 msgid "add a RqTask"
 msgstr "ajouter une tâche"
 
-msgid "bad service code should be one of: "
-msgstr "code de service non valide, ce code devrait être un des suivants : "
+msgid "align-bano"
+msgstr "calculer et importer les alignements vers BANO"
+
+msgid "align-geoname"
+msgstr "calculer les alignements vers GeoNames"
 
 msgid "bad task eid"
 msgstr "identifiant de tâche non valide"
@@ -101,8 +119,11 @@ msgstr "identifiant de tâche non valide"
 msgid "compare strictly authority label"
 msgstr ""
 
-msgid "compute_alignment"
+msgid "compute_alignments"
 msgstr ""
+
+msgid "compute_alignments_all"
+msgstr "[align database] aligner la base de données en entière"
 
 msgid "compute_location_authorities_to_group"
 msgstr "[Geonames] générer un CSV avec les candidats au groupement"
@@ -129,8 +150,17 @@ msgstr ""
 msgid "csv file to import"
 msgstr ""
 
+msgid "csv-authorities"
+msgstr "fichier CSV autorités lieux"
+
+msgid "csv-finding-aids"
+msgstr "fichier CSV instruments de recherche à supprimer"
+
 msgid "dedupe_authorities"
 msgstr ""
+
+msgid "delete_finding_aids"
+msgstr "[delete findingaid] Supprimer des instruments de recherche"
 
 # subject and object forms for each relation type
 # (no object form for final or symmetric relation types)
@@ -148,8 +178,37 @@ msgctxt "RqTask"
 msgid "enqueued_at"
 msgstr "ajouté dans la file à"
 
+msgid "export-aligned"
+msgstr "exporter autorités alignées"
+
+msgid "export-nonaligned"
+msgstr "exporter autorités non-alignées"
+
+msgid "export_agentauthorities"
+msgstr "[export authorities] exporter autorités agent"
+
 msgid "export_ape"
 msgstr "[export ApeEAD] exporter des instruments de recherche en ApeEAD"
+
+msgid "export_locationauthorities"
+msgstr "[export authorities] exporter autorités lieu"
+
+msgid "export_subjectauthorities"
+msgstr "[export authorities] exporter autorités sujet"
+
+msgid "fatask_authorityrecord"
+msgstr "notices d'authorité importées"
+
+msgctxt "RqTask"
+msgid "fatask_authorityrecord"
+msgstr ""
+
+msgid "fatask_authorityrecord_object"
+msgstr ""
+
+msgctxt "AuthorityRecord"
+msgid "fatask_authorityrecord_object"
+msgstr "notices d'autorité importées"
 
 msgid "fatask_findingaid"
 msgstr "IR importés"
@@ -177,11 +236,14 @@ msgstr ""
 msgid "group_location_authorities"
 msgstr "[Geonames] grouper les location authorities"
 
-msgid "import_alignment"
-msgstr ""
+msgid "import_authorities"
+msgstr "[import authorities] importer autorités lieux"
 
 msgid "import_csv"
 msgstr "[import CSV] importer des descriptions"
+
+msgid "import_eac"
+msgstr "[import EAC-CPF] notices producteurs"
 
 msgid "import_ead"
 msgstr "[import EAD/PDF] importer des instruments de recherche"
@@ -192,12 +254,30 @@ msgstr "importer des intruments de recherche depuis un dépôt OAI (import_oai)"
 msgid "in_state_facet"
 msgstr "états"
 
+msgid "input file must be a ZIP or a XML file"
+msgstr "le fichier doit être une archive ZIP ou au format XML"
+
+msgid "last_successful_import"
+msgstr "date du dernier import"
+
 msgid "line {}: missing value for {} columns"
 msgstr "ligne {} : valeur manquante pour {}."
+
+msgid "list_services"
+msgstr "liste des services"
+
+msgid "list_services_descr"
+msgstr ""
+"Codes des services à exporter séparés par une virgule. Laisser vide pour "
+"exporter tous les services"
 
 msgctxt "RqTask"
 msgid "log"
 msgstr "log"
+
+msgid "missing \"eac-services-dir\" parameter in all-in-one.conf"
+msgstr ""
+"le paramètre \"eac-services-dir\" est absent du fichier all-in-one.conf"
 
 msgid "missing \"ead-services-dir\" parameter in all-in-one.conf"
 msgstr ""
@@ -213,6 +293,9 @@ msgstr ""
 msgid "no findingaid with this id"
 msgstr ""
 
+msgid "no-targets"
+msgstr "veuillez indiquer la source de données à laquelle la base sera alignée"
+
 msgid "not allowed"
 msgstr ""
 
@@ -220,6 +303,20 @@ msgid "not authorized"
 msgstr "non authorisé"
 
 msgid "oai repository identifier"
+msgstr ""
+
+msgid "oaiimport_task"
+msgstr ""
+
+msgctxt "RqTask"
+msgid "oaiimport_task"
+msgstr ""
+
+msgid "oaiimport_task_object"
+msgstr ""
+
+msgctxt "OAIImportTask"
+msgid "oaiimport_task_object"
 msgstr ""
 
 msgid "output_descr"
@@ -298,15 +395,21 @@ msgctxt "File"
 msgid "referenced_files_object"
 msgstr ""
 
+msgid "service"
+msgstr ""
+
 msgid "service code"
 msgstr ""
 
 msgid "service code (required only for xml, optional for zip)"
-msgstr ""
+msgstr "le code du service"
 
-msgid "service code from which you want to generate APE files"
+msgid "service code of the productor (required only for xml, optional for zip)"
+msgstr "le code du service producteur (obligatoire pour le fichier XML)"
+
+msgid "simplified-csv"
 msgstr ""
-"le code du service pour lequel vous souhaitez générer les fichiers APE-EAD"
+"ne pas inclure l'information sur l'index d'origine"
 
 msgid "started_at"
 msgstr "démarré à"
@@ -352,6 +455,15 @@ msgstr "titre de la tâche"
 msgid "type of task"
 msgstr "type de tâche"
 
+msgid "update-alignments"
+msgstr "mettre à jour alignements"
+
+msgid "update-labels"
+msgstr "mettre à jour libellés"
+
+msgid "uri field is mandatory"
+msgstr ""
+
 msgid "wfs_cmsobject_draft"
 msgstr "brouillon"
 
@@ -387,6 +499,10 @@ msgstr "lancer"
 
 msgid "zip file"
 msgstr "archive zip"
+
+#, python-brace-format
+msgid "{count} documents"
+msgstr ""
 
 #~ msgid "Add locations"
 #~ msgstr "Ajouter des lieux"
@@ -430,6 +546,12 @@ msgstr "archive zip"
 
 #~ msgid "This file has no name"
 #~ msgstr "Ce fichier n'a pas de nom"
+
+#~ msgid "Uri field is mandatory"
+#~ msgstr "Le champ uri est obligatoire"
+
+#~ msgid "ZIP or XMLfile"
+#~ msgstr "archive ZIP ou fichier XML"
 
 #~ msgid "add RqTask fatask_findingaid FindingAid subject"
 #~ msgstr "ajouter un lien entre un tâche et un instrument de recherche"
@@ -477,14 +599,29 @@ msgstr "archive zip"
 #~ msgid "add a SocialNetwork"
 #~ msgstr "ajouter un réseaux social"
 
+#~ msgid "bad service code should be one of: "
+#~ msgstr "code de service non valide, ce code devrait être un des suivants : "
+
 #~ msgid "bad xpath expression: "
 #~ msgstr "xpath non valide"
+
+#~ msgid "csv-geonames"
+#~ msgstr "fichier CSV alignements GeoNames"
 
 #~ msgid "date"
 #~ msgstr "date"
 
+#~ msgid "export_alignments"
+#~ msgstr "[export geo alignments] exporter alignements géographiques"
+
+#~ msgid "export_authorities"
+#~ msgstr "[export authorities] exporter autorités lieux"
+
 #~ msgid "harvest_url"
 #~ msgstr "URL de moissonnage"
+
+#~ msgid "import_alignment"
+#~ msgstr "[import geo alignments] importer alignements géographiques"
 
 #~ msgid "import_file"
 #~ msgstr "fichier à importer"
@@ -517,6 +654,13 @@ msgstr "archive zip"
 #~ msgstr ""
 #~ "Le mot de passe doit avoir : 12 caractères minimum, des majuscules, des "
 #~ "minuscules, des chiffres et des caractères spéciaux"
+
+#~ msgid "service code from which you want to generate APE files"
+#~ msgstr ""
+#~ "le code du service pour lequel vous souhaitez générer les fichiers APE-EAD"
+
+#~ msgid "service code of the productor"
+#~ msgstr "le code du service producteur"
 
 #~ msgctxt "FAFileImport"
 #~ msgid "startyear"

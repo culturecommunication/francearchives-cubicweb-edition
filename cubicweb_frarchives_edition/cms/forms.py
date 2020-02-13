@@ -28,18 +28,16 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
-from __future__ import absolute_import
+
 
 from pyramid import httpexceptions
 
 from .pviews import json_config
 
 
-@json_config(
-    route_name='edit-basecontent',
-    request_method='POST')
+@json_config(route_name="edit-basecontent", request_method="POST")
 def edit_basecontent(request):
-    eid = int(request.matchdict['eid'])
+    eid = int(request.matchdict["eid"])
     req = request.cw_request
     entity = req.entity_from_eid(eid)
     entity.cw_set(**request.json_body)
@@ -48,5 +46,5 @@ def edit_basecontent(request):
 
 
 def includeme(config):
-    config.add_route('edit-basecontent', r'/basecontent/{eid:\d+}')
+    config.add_route("edit-basecontent", r"/basecontent/{eid:\d+}")
     config.scan(__name__)

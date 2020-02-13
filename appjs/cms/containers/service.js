@@ -29,7 +29,8 @@
  */
 /* globals $ */
 
-const {Component, createElement: ce, PropTypes} = require('react'),
+const {Component, createElement: ce} = require('react'),
+      PropTypes = require('prop-types'),
       Select = require('react-select'),
       {connect} = require('react-redux'),
       _  = require('lodash'),
@@ -66,7 +67,7 @@ class SelectAnnex extends Component {
         this.deleteAnnex = this.deleteAnnex.bind(this);
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
         if (this.props.service.eid === nextProps.service.eid) {
             return;
         }
@@ -248,7 +249,7 @@ class ServiceEditor extends Component {
         this.onEditSubmit = this.onEditSubmit.bind(this);
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
         if (nextProps.entity.eid === this.props.entity.eid) {
             return;
         }
@@ -488,7 +489,7 @@ class ServiceListEditor extends Component {
                     {service_image: {
                         rtype: rtype, title: 'image de service'}}),
                 dispatch: this.props.dispatch,
-                location: {query: {name: rtype}},
+                location: {search: `?name=${rtype}`},
                 formRedirects: {onCancel: this.handleClick,
                                 onSubmit: this.handleClick},
             });
@@ -501,7 +502,7 @@ class ServiceListEditor extends Component {
                     {[rtype]: {
                         rtype: rtype, title: 'entrepôt OAI'}}),
                 dispatch: this.props.dispatch,
-                location: {query: {name: rtype}},
+                location: {search: `?name=${rtype}`},
                 sortTerm: 'url',
                 formRedirects: {onCancel: this.handleClick,
                                 onSubmit: this.handleClick},

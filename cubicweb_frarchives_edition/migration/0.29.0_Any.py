@@ -29,10 +29,10 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
-add_relation_type('subtasks')
-add_relation_type('output_file')
+add_relation_type("subtasks")
+add_relation_type("output_file")
 
-statement = '''
+statement = """
 drop table if exists sameas_history;
 
 CREATE TABLE sameas_history (
@@ -41,11 +41,11 @@ CREATE TABLE sameas_history (
  action boolean NOT NULL,
  UNIQUE (sameas_uri, autheid)
 )
-'''
+"""
 
 cnx.system_sql(statement)
 
-indexes = '''
+indexes = """
 CREATE INDEX sameas_history_action_idx ON sameas_history(action);
-'''
+"""
 cnx.system_sql(indexes)

@@ -38,7 +38,7 @@ orig_facets_to_display = PniaElasticSearchView.facets_to_display
 def facets_to_display(self):
     _ = self._cw._
     facets = orig_facets_to_display.fget(self)
-    return (('in_state', _('in_state_facet')), ) + facets
+    return (("in_state", _("in_state_facet")),) + facets
 
 
 PniaElasticSearchView.facets_to_display = property(facets_to_display)

@@ -32,24 +32,25 @@ import os
 
 from cubicweb.devtools import DEFAULT_PSQL_SOURCES, startpgcluster, stoppgcluster
 
-pgconfig = DEFAULT_PSQL_SOURCES['system']
+pgconfig = DEFAULT_PSQL_SOURCES["system"]
 setup_module = teardown_module = lambda m: None
 
-if 'POSTGRES_HOST' in os.environ:
-    pgconfig['db-host'] = os.environ['POSTGRES_HOST']
-    pgconfig['db-port'] = os.environ['POSTGRES_PORT']
-    pgconfig['db-user'] = os.environ['POSTGRES_USER']
-    pgconfig['db-password'] = os.environ['POSTGRES_PASSWORD']
-elif 'TEST-PG-HOST' in os.environ:
-    pgconfig['db-host'] = os.environ['TEST-PG-HOST']
-    pgconfig['db-port'] = os.environ['TEST-PG-PORT']
-elif 'PGHOST' in os.environ:
-    pgconfig['db-host'] = os.environ['PGHOST']
-    pgconfig['db-port'] = os.environ['PGPORT']
+if "POSTGRES_HOST" in os.environ:
+    pgconfig["db-host"] = os.environ["POSTGRES_HOST"]
+    pgconfig["db-port"] = os.environ["POSTGRES_PORT"]
+    pgconfig["db-user"] = os.environ["POSTGRES_USER"]
+    pgconfig["db-password"] = os.environ["POSTGRES_PASSWORD"]
+elif "TEST-PG-HOST" in os.environ:
+    pgconfig["db-host"] = os.environ["TEST-PG-HOST"]
+    pgconfig["db-port"] = os.environ["TEST-PG-PORT"]
+elif "PGHOST" in os.environ:
+    pgconfig["db-host"] = os.environ["PGHOST"]
+    pgconfig["db-port"] = os.environ["PGPORT"]
 else:
+
     def setup_module(module):
         startpgcluster(module.__name__)
 
     def teardown_module(module):
-        print('tearing down module', module.__name__)
+        print("tearing down module", module.__name__)
         stoppgcluster(module.__name__)

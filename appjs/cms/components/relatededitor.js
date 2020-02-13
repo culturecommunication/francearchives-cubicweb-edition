@@ -28,10 +28,12 @@
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-const {Component, createElement: ce, PropTypes} = require('react'),
+const {Component, createElement: ce} = require('react'),
+      PropTypes = require('prop-types'),
       Select = require('react-select'),
       _ = require('lodash'),
-      {Link} = require('react-router');
+      {Link} = require('react-router-dom');
+const {parse} = require('query-string');
 
 
 const {CmsForm} = require('./editor'),
@@ -72,7 +74,8 @@ class EntityRelatedEditor extends Component {
     }
 
     initState(props) {
-        const rtype = props.location.query.name,
+        const query = parse(props.location.search),
+              rtype = query.name,
               targetType = props.targetType || null,
               sortTerm = props.sortTerm || null,
               nextEntity = props.entity.toJS(),
@@ -104,20 +107,21 @@ class EntityRelatedEditor extends Component {
                 this.setState(
                     {schema, uiSchema, related,
                      loading: false,
+                     displayCreationForm: related.length === 0,
                      targets: nextState.multiple ? targets : targets[0]});
             });
 
         return nextState;
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
         this.setState(this.initState(nextProps));
     }
 
     onSubmit(entity, create, {formData}) {
         let res;
         if (create) {
-            const rtype = this.props.location.query.name;
+            const rtype = parse(this.props.location.search).name;
             res = this.createEntity(entity, formData, rtype)
         } else {
             res = this.editEntity(entity, formData);
@@ -139,7 +143,7 @@ class EntityRelatedEditor extends Component {
         return [
             ce(Link, {
                 to : {pathname: '/delete',
-                      query: {eid:entity.eid, cwetype:entity.cw_etype}},
+                      search: `?eid=${entity.eid}&cw_etype=${entity.cw_etype}`},
                 className: 'btn btn-default pull-right'},
                'supprimer'),
         ];
@@ -157,6 +161,7 @@ class EntityRelatedEditor extends Component {
                                     uiSchema,
                                     onCancel: this.formRedirects.onCancel,
                                     formData: formData,
+                                    formContext: {'cw_etype': e.cw_etype, 'eid': e.eid},
                                     FieldTemplate: CustomFieldTemplateConnected,
                                     onSubmit: this.onSubmit.bind(this, e, false)},
                           ce('div', {className: 'btn-group'},
@@ -182,7 +187,7 @@ class EntityRelatedEditor extends Component {
 
     displayCreationForm() {
         const {schema, uiSchema} = this.state;
-        return ce(
+        let body = ce(
             CmsForm,
             {schema,
              uiSchema,
@@ -192,6 +197,9 @@ class EntityRelatedEditor extends Component {
              onSubmit: this.onSubmit.bind(this,
                                           this.entity,
                                           true)});
+        return ce('div', {className: "panel panel-default"},
+                  ce('div', {className: 'panel-body'},
+                     body));
     }
 
     displayTargetsSearch() {
@@ -232,12 +240,17 @@ class EntityRelatedEditor extends Component {
     }
 
     displayFormHeader() {
-        const {title} = this.state;
-        return ce('h1', null,
-                     title,
-                     ce('button', {className: 'btn',
+        const {title} = this.state,
+              link=" pour ajouter une nouvelle entité sous les formulaires existants ";
+        return ce('div', null,
+                  ce('h1', null, title),
+                  ce('div', {className: 'cms_add_link'},
+                     ce('button', {className: 'btn btn-default',
                                    onClick: () => this.setState({displayCreationForm: true})},
-                        '+'));
+                        'Cliquer ici'
+                       ),
+                     link)
+                 );
     }
 
     render() {
@@ -277,9 +290,10 @@ exports.EntityRelatedEditor = EntityRelatedEditor;
 class IndexEntityRelatedEditor extends EntityRelatedEditor{
 
     initState(props) {
-        const rtype = props.location.query.name,
+        const query = parse(props.location.search),
+              rtype = query.name,
               nextEntity = props.entity.toJS(),
-              etarget = props.location.query.etarget || null,
+              etarget = query.etarget || null,
               nextState =  {rtype};
 
         if (this.state !== undefined) {

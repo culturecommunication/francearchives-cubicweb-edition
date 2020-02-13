@@ -31,8 +31,7 @@
 
 from logilab.common.decorators import monkeypatch
 
-from cubicweb_francearchives.entities.es import (PniaIFullTextIndexSerializable,
-                                                 ISuggestIndexSerializable)
+from cubicweb_francearchives.entities.es import PniaIFullTextIndexSerializable
 from cubicweb_francearchives.entities.ead import FAComponentIFTIAdapter
 
 _orig_serialize = PniaIFullTextIndexSerializable.serialize
@@ -41,9 +40,9 @@ _orig_serialize = PniaIFullTextIndexSerializable.serialize
 @monkeypatch(PniaIFullTextIndexSerializable)
 def serialize(self, *args, **kwargs):
     data = _orig_serialize(self, *args, **kwargs)
-    wf = self.entity.cw_adapt_to('IWorkflowable')
+    wf = self.entity.cw_adapt_to("IWorkflowable")
     if wf and wf.state:
-        data['in_state'] = wf.state
+        data["in_state"] = wf.state
     return data
 
 
@@ -53,25 +52,8 @@ _orig_fa_serialize = FAComponentIFTIAdapter.serialize
 @monkeypatch(FAComponentIFTIAdapter)  # noqa
 def serialize(self, *args, **kwargs):
     data = _orig_fa_serialize(self, *args, **kwargs)
-    if self.entity.cw_etype == 'FindingAid':
-        wf = self.entity.cw_adapt_to('IWorkflowable')
+    if self.entity.cw_etype == "FindingAid":
+        wf = self.entity.cw_adapt_to("IWorkflowable")
         if wf and wf.state:
-            data['in_state'] = wf.state
+            data["in_state"] = wf.state
     return data
-
-
-@monkeypatch(ISuggestIndexSerializable)  # noqa
-def published_count(self):
-    query = (
-        'Any COUNT(B), X GROUPBY X WHERE X eid {eid}, '
-        'B related_authority X, A index F'
-    )
-    count = self._cw.execute(query.format(eid=self.entity.eid))[0][0]
-    rset = self._cw.execute('''(
-      Any COUNT(F) WHERE A authority X, A index F,
-      X eid %(eid)s, F is FindingAid, F in_state S, S name %(state)s)
-     UNION (
-     Any COUNT(FA) WHERE A authority X, A index FA, X eid %(eid)s,
-     FA finding_aid F, F in_state S, S name %(state)s)''', {
-        'eid': self.entity.eid, 'state': "wfs_cmsobject_published"})
-    return count + rset[0][0] + rset[1][0]

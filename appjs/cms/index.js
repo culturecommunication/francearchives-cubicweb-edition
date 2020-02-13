@@ -30,25 +30,27 @@
 /* global $ */
 'uses strict';
 
-const {render} = require('react-dom'),
-      {createElement: ce} = require('react'),
+const {createElement: ce} = require('react'),
       Immutable = require('immutable'),
-      {Router, hashHistory} = require('react-router'),
+      {BrowserRouter, HashRouter}  = require('react-router-dom'),
       {Provider} = require('react-redux');
+import ReactDOM from 'react-dom';
 
 const routes = require('./routes'),
-      configureStore = require('./store');
+      {default: {configureStore}} = require('./store');
+
+const App = require('./containers/app');
 
 
 $(function() {
     const divAdminPanel = document.getElementById('admin-panel');
-
-
     // build initial immutable state
     const state = Immutable.fromJS(window.INITIAL_STATE || {});
-    render(
+    ReactDOM.render(
         ce(Provider, {store: configureStore(state)},
-           ce(Router, {history: hashHistory},
-              routes)),
+           ce(BrowserRouter, {},
+              ce(HashRouter, {basename: '/'},
+                 ce(App, {}, routes)))
+          ),
         divAdminPanel);
 });

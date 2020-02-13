@@ -1,9 +1,9 @@
-fakeredis
+fakeredis == 1.0.5
 mock
 webtest
 pifpaf
 git+https://github.com/culturecommunication/francearchives-cubicweb#egg=cubicweb-francearchives
-https://hg.logilab.org/users/siaf/cubicweb-jsonschema/archive/0.1.1.tar.bz2#egg=cubicweb-jsonschema
+https://hg.logilab.org/users/siaf/cubicweb-jsonschema/archive/0.1.2.tar.bz2#egg=cubicweb-jsonschema
 https://hg.logilab.org/users/siaf/yams/archive/tip.tar.bz2#egg=yams
-elasticsearch==6.3.1
-elasticsearch-dsl==6.2.1
+elasticsearch==7.1.0
+elasticsearch-dsl==7.1.0

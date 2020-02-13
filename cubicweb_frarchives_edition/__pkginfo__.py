@@ -32,39 +32,41 @@
 
 from os.path import join
 
-modname = 'frarchives_edition'
-distname = 'cubicweb-frarchives-edition'
+modname = "frarchives_edition"
+distname = "cubicweb-frarchives-edition"
 
-numversion = (0, 30, 0)
-version = '.'.join(str(num) for num in numversion)
+numversion = (0, 39, 3)
+version = ".".join(str(num) for num in numversion)
 
-license = 'CeCILL-C'
-author = 'LOGILAB S.A. (Paris, FRANCE)'
-author_email = 'contact@logilab.fr'
-description = 'Edition components for FranceArchives'
-web = 'https://github.com/culturecommunication/francearchives-cubicweb-edition'
+license = "CeCILL-C"
+author = "LOGILAB S.A. (Paris, FRANCE)"
+author_email = "contact@logilab.fr"
+description = "Edition components for FranceArchives"
+web = "https://github.com/culturecommunication/francearchives-cubicweb-edition"
 
 __depends__ = {
-    'cubicweb[pyramid,crypto]': '>= 3.24.0,<3.25.0',
-    'cubicweb-francearchives': '>= 1.21.0',
-    'pyramid': '< 1.10.0',
-    'six': '>= 1.4.0',
-    'jsl': '>= 0.2.2',
-    'cubicweb-jsonschema': None,
-    'cubicweb-pwd_policy': None,
-    'rq': None,
+    "cubicweb[pyramid,crypto]": ">= 3.26.0",
+    "cubicweb-francearchives": ">= 2.3.0",
+    "pyramid": "< 1.10.0",
+    "jsl": ">= 0.2.2",
+    "cubicweb-jsonschema": None,
+    "cubicweb-pwd_policy": None,
+    "redis": ">=3.2,<3.3",
+    "rq": ">=1.1,<1.2",
     # 'pyramid-chameleon': None,  # debian package should fix
-    'jinja2': None,
-    'nazca': None,
+    "jinja2": None,
+    "nazca": None,
+    "scikit-learn": "< 0.21.0",
+    "sparqlwrapper": None,
 }
 __recommends__ = {}
 
 classifiers = [
-    'Environment :: Web Environment',
-    'Framework :: CubicWeb',
-    'Programming Language :: Python',
-    'Programming Language :: JavaScript',
-    'License :: CeCILL-C Free Software License Agreement (CECILL-C)',
+    "Environment :: Web Environment",
+    "Framework :: CubicWeb",
+    "Programming Language :: Python",
+    "Programming Language :: JavaScript",
+    "License :: CeCILL-C Free Software License Agreement (CECILL-C)",
 ]
 
-THIS_CUBE_DIR = join('share', 'cubicweb', 'cubes', modname)
+THIS_CUBE_DIR = join("share", "cubicweb", "cubes", modname)

@@ -28,12 +28,10 @@
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-const {Route} = require('react-router'),
+const {Route, Switch} = require('react-router-dom'),
       {createElement: ce} = require('react');
 
-
-const App = require('./containers/app'),
-      Editor = require('./containers/editor'),
+const Editor = require('./containers/editor'),
       {HomePageMetadata} = require('./containers/homepage-metadata'),
       {AlertEditor} = require('./containers/alert'),
       TreeEditor = require('./containers/treeeditor'),
@@ -47,30 +45,30 @@ const App = require('./containers/app'),
       {EditAuthority} = require('./containers/editindex'),
       {EditSameAs} = require('./containers/editsameas'),
       {GroupAuthority} = require('./containers/groupauthority'),
-      {SearchFaTasks} = require('./containers/alltasks');
+      {SearchFaTasks} = require('./containers/alltasks'),
+      {FAMonitoringBord}= require('./containers/fabord');
 
-
-const routes = ce(Route, {path: '/', component: App},
-                  ce(Route, {path: 'edit', component: Editor}),
-                  ce(Route, {path: 'tree', component: TreeEditor}),
-                  ce(Route, {path: 'add', component: AddContent}),
-                  ce(Route, {path: 'alert', component: AlertEditor}),
-                  ce(Route, {path: 'add-service', component: AddService}),
-                  ce(Route, {path: 'edit-service-list', component: ServiceListEditor}),
-                  ce(Route, {path: 'editrelated', component: EntityRelatedEditor}),
-                  ce(Route, {path: 'delete', component: DeleteContent}),
-                  ce(Route, {path: 'editrelatedindex', component: IndexEntityRelatedEditor}),
-                  ce(Route, {path: 'fatask', component: AddFATask}),
-                  ce(Route, {path: 'add-user', component: AddCWUserForm}),
-                  ce(Route, {path: 'cwusers', component: SearchCWUsers}),
-                  ce(Route, {path: 'homepage-metadata', component: HomePageMetadata}),
-                  ce(Route, {path: 'publish-task', component: PublishTask}),
-                  ce(Route, {path: 'fa-tasks', component: SearchFaTasks}),
-                  ce(Route, {path: 'edit-index', component: EditAuthority}),
-                  ce(Route, {path: 'sameas', component: EditSameAs}),
-                  ce(Route, {path: 'group-auth', component: GroupAuthority}),
-                  ce(Route, {path: 'cssimage', component: CssImageEntityRelatedEditor})
+const routes = ce(Switch, {},
+                  ce(Route, {path: '/edit', component: Editor}),
+                  ce(Route, {path: '/tree', component: TreeEditor}),
+                  ce(Route, {path: '/add', component: AddContent}),
+                  ce(Route, {path: '/alert', component: AlertEditor}),
+                  ce(Route, {path: '/add-service', component: AddService}),
+                  ce(Route, {path: '/edit-service-list', component: ServiceListEditor}),
+                  ce(Route, {path: '/editrelated', component: EntityRelatedEditor}),
+                  ce(Route, {path: '/delete', component: DeleteContent}),
+                  ce(Route, {path: '/editrelatedindex', component: IndexEntityRelatedEditor}),
+                  ce(Route, {path: '/fatask', component: AddFATask}),
+                  ce(Route, {path: '/add-user', component: AddCWUserForm}),
+                  ce(Route, {path: '/cwusers', component: SearchCWUsers}),
+                  ce(Route, {path: '/homepage-metadata', component: HomePageMetadata}),
+                  ce(Route, {path: '/publish-task', component: PublishTask}),
+                  ce(Route, {path: '/fa-tasks', component: SearchFaTasks}),
+                  ce(Route, {path: '/fa-bord', component: FAMonitoringBord}),
+                  ce(Route, {path: '/edit-index', component: EditAuthority}),
+                  ce(Route, {path: '/sameas', component: EditSameAs}),
+                  ce(Route, {path: '/group-auth', component: GroupAuthority}),
+                  ce(Route, {path: '/cssimage', component: CssImageEntityRelatedEditor})
                  );
-
 module.exports = routes;
 

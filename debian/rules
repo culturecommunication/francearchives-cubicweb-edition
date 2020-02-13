@@ -1,5 +1,8 @@
 #!/usr/bin/make -f
 
+export PYBUILD_NAME=cubicweb-frarchives-edition
+export PYBUILD_AFTER_TEST=rm -rf {build_dir}/data
+
 override_dh_systemd_enable:
 	dh_systemd_enable --name=rq-worker-fa@
 
@@ -7,4 +10,7 @@ override_dh_installinit:
 	dh_installinit --name=rq-worker-fa@
 
 %:
-	dh $@ --with=systemd,python2
+	dh $@ --with=systemd,python3 --buildsystem=pybuild
+
+override_dh_auto_test:
+	PATH=$(shell readlink -f /usr/lib/postgresql/*/bin):${PATH} dh_auto_test

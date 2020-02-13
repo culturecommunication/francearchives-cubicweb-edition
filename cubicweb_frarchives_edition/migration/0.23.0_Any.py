@@ -30,4 +30,4 @@
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
 
-rql('SET X circular C1 WHERE X is OfficialText, NOT EXISTS(X circular C), X code XC, C1 circ_id XC')
+rql("SET X circular C1 WHERE X is OfficialText, NOT EXISTS(X circular C), X code XC, C1 circ_id XC")

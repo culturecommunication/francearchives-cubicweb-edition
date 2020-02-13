@@ -31,44 +31,62 @@
 
 """cubicweb-frachives_edition schema"""
 
-from yams.buildobjs import (Bytes, Datetime, String, RelationDefinition,
-                            EntityType, RichString, ComputedRelation)
+from yams.buildobjs import (
+    Bytes,
+    Datetime,
+    String,
+    RelationDefinition,
+    EntityType,
+    RichString,
+    ComputedRelation,
+)
 from cubicweb.schema import make_workflowable
 
 from cubicweb_francearchives.schema.ead import FindingAid
 from cubicweb_francearchives.schema import cms as schema_cms
 
-for etype in [FindingAid] + [getattr(schema_cms, cms_type)
-                             for cms_type in schema_cms.CMS_OBJECTS]:
+for etype in [FindingAid] + [getattr(schema_cms, cms_type) for cms_type in schema_cms.CMS_OBJECTS]:
     make_workflowable(etype)
 
 
 class output_file(RelationDefinition):
-    subject = 'RqTask'
-    object = 'File'
-    cardinality = '*?'
-    composite = 'subject'
+    subject = "RqTask"
+    object = "File"
+    cardinality = "*?"
+    composite = "subject"
 
 
 class subtasks(RelationDefinition):
-    subject = 'RqTask'
-    object = 'RqTask'
-    cardinality = '*?'
+    subject = "RqTask"
+    object = "RqTask"
+    cardinality = "*?"
+
+
+class oaiimport_task(RelationDefinition):
+    subject = "RqTask"
+    object = "OAIImportTask"
+    cardinality = "??"
 
 
 class fatask_findingaid(RelationDefinition):
-    subject = 'RqTask'
-    object = 'FindingAid'
-    cardinality = '**'
+    subject = "RqTask"
+    object = "FindingAid"
+    cardinality = "**"
+
+
+class fatask_authorityrecord(RelationDefinition):
+    subject = "RqTask"
+    object = "AuthorityRecord"
+    cardinality = "**"
 
 
 def manager_permissions(cls):
     """Set __permissions__ of `cls` entity type class preventing modification
     when user is not in managers group"""
     cls.__permissions__ = cls.__permissions__.copy()
-    cls.__permissions__['add'] = ('managers',)
-    cls.__permissions__['update'] = ('managers',)
-    cls.__permissions__['delete'] = ('managers',)
+    cls.__permissions__["add"] = ("managers",)
+    cls.__permissions__["update"] = ("managers",)
+    cls.__permissions__["delete"] = ("managers",)
     return cls
 
 
@@ -81,23 +99,38 @@ def post_build_callback(schema):
 
 
 def set_users_permissions(schema):
-    etypes = ['Metadata', 'ExternRef',
-              'Did', 'FindingAid',
-              'CommemorationItem', 'CommemoDate', 'Service',
-              'Label', 'FAComponent',
-              'BaseContent', 'OfficialText', 'Link',  # 'ConceptScheme',
-              'Concept', 'Image',
-              'Category', 'Circular',
-              'Card', 'Person',
-              'CommemoCollection', 'SocialNetwork',  # 'EmailAddress',
-              'DigitizedVersion',
-              'Map', 'NewsContent',  # 'PostalAddress',
-              'FAHeader', 'ExternalUri', 'File',  # 'IndexRole'
-              ]
+    etypes = [
+        "Metadata",
+        "ExternRef",
+        "Did",
+        "FindingAid",
+        "CommemorationItem",
+        "CommemoDate",
+        "Service",
+        "Label",
+        "FAComponent",
+        "BaseContent",
+        "OfficialText",
+        "Link",  # 'ConceptScheme',
+        "Concept",
+        "Image",
+        "Category",
+        "Circular",
+        "Card",
+        "Person",
+        "CommemoCollection",
+        "SocialNetwork",  # 'EmailAddress',
+        "DigitizedVersion",
+        "Map",
+        "NewsContent",  # 'PostalAddress',
+        "FAHeader",
+        "ExternalUri",
+        "File",  # 'IndexRole'
+    ]
     for etype in etypes:
         schema[etype].permissions.update(
-            {'update': ('managers', 'users'),
-             'delete': ('managers', 'users')})
+            {"update": ("managers", "users"), "delete": ("managers", "users")}
+        )
 
 
 class RqTask(EntityType):
@@ -108,16 +141,24 @@ class RqTask(EntityType):
     enqueued_at = Datetime()
     started_at = Datetime()
     ended_at = Datetime()
-    output_descr = RichString(default_format='text/html')
+    output_descr = RichString(default_format="text/html")
 
 
 class referenced_files(RelationDefinition):
-    subject = ('Card', 'NewsContent', 'Map', 'Section', 'CommemorationItem', 'CommemoCollection',
-               'ExternRef', 'BaseContent')
-    object = 'File'
-    cardinality = '*?'
+    subject = (
+        "Card",
+        "NewsContent",
+        "Map",
+        "Section",
+        "CommemorationItem",
+        "CommemoCollection",
+        "ExternRef",
+        "BaseContent",
+    )
+    object = "File"
+    cardinality = "**"
 
 
 class cssimage(ComputedRelation):
-    rule = 'O cssimage_of S'
-    cardinality = '??'
+    rule = "O cssimage_of S"
+    cardinality = "??"

@@ -27,7 +27,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-const {Component, createElement: ce, PropTypes} = require('react'),
+const {Component, createElement: ce} = require('react'),
+      PropTypes = require('prop-types'),
       _ = require('lodash'),
       {findDOMNode} = require('react-dom');
 

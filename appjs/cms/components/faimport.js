@@ -27,8 +27,9 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-const {createElement: ce, Component, PropTypes} = require('react'),
-      {Link} = require('react-router');
+const {createElement: ce, Component} = require('react'),
+      PropTypes = require('prop-types'),
+      {Link} = require('react-router-dom');
 
 const {icon} = require('../components/fa');
 

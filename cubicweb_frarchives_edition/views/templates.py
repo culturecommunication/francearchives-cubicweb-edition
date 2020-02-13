@@ -37,48 +37,48 @@ from cubicweb_frarchives_edition.views import get_template
 
 
 class EditionMainTemplate(PniaMainTemplate):
-    template = get_template('editiontmpl.jinja2')
+    template = get_template("editiontmpl.jinja2")
 
     def alert(self):
-        alert = find_card(self._cw, 'alert')
+        alert = find_card(self._cw, "alert")
         if alert:
-            wf = alert.cw_adapt_to('IWorkflowable')
-            if wf and wf.state == 'wfs_cmsobject_published':
+            wf = alert.cw_adapt_to("IWorkflowable")
+            if wf and wf.state == "wfs_cmsobject_published":
                 return alert.content
 
     def template_context(self, view):
         req = self._cw
         ctx = super(EditionMainTemplate, self).template_context(view)
-        ctx['user'] = req.user.login
+        ctx["user"] = req.user.login
         isanon = req.session.anonymous_session
-        ctx['isanon'] = isanon
-        ctx['current_url'] = req.relative_path()
+        ctx["isanon"] = isanon
+        ctx["current_url"] = req.relative_path()
         if not isanon:
             # req._request is pyramid request
-            req.html_headers.define_var('SCRIPT_NAME', req._request.script_name)
-            req.add_js('//cdn.tinymce.com/4/tinymce.min.js', False)
-            for js in ('bundle-vendor.js', 'bundle-cms.js', 'cropper/cropper.js'):
+            req.html_headers.define_var("SCRIPT_NAME", req._request.script_name)
+            req.add_js("//cdn.tinymce.com/4/tinymce.min.js", False)
+            for js in ("bundle-vendor.js", "bundle-cms.js", "cropper/cropper.js"):
                 req.add_js(js)
-            for css in ('react-widgets/react-widgets.css',
-                        'react-select.min.css',
-                        'cropper/cropper.css'):
+            for css in (
+                "react-widgets/react-widgets.css",
+                "react-select.min.css",
+                "cropper/cropper.css",
+            ):
                 req.add_css(css)
         return ctx
 
 
 class PniaLogin(JinjaViewMixin, LogInTemplate):
-    template = get_template('login.jinja2')
+    template = get_template("login.jinja2")
 
     def call(self):
         self.set_request_content_type()
         context = {
-            'postlogin_path': self._cw.form.get('postlogin_path', ''),
-            'title': self._cw.property_value('ui.site-title'),
-            'post_url': self._cw.base_url() + 'login',
-            'cssfiles': [
-                self._cw.data_url('css/bootstrap.min.css')
-            ],
-            'message': self._cw.message
+            "postlogin_path": self._cw.form.get("postlogin_path", ""),
+            "title": self._cw.property_value("ui.site-title"),
+            "post_url": self._cw.base_url() + "login",
+            "cssfiles": [self._cw.data_url("css/bootstrap.min.css")],
+            "message": self._cw.message,
         }
         self.call_template(**context)
 

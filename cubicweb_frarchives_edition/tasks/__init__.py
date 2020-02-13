@@ -33,7 +33,13 @@ from .export_ape import export_ape  # noqa
 from .publish import publish_findingaid  # noqa
 from .import_oai import import_oai  # noqa
 from .import_csv import import_csv  # noqa
-from .align import compute_alignment, import_alignment  # noqa
+from .import_eac import import_eac  # noqa
+from .compute_alignments import compute_alignments, compute_alignments_all  # noqa
+from .compute_alignments import compute_alignments  # noqa
+from .import_alignments import import_alignment  # noqa
+from .export_authorities import export_authorities  # noqa
 from .dedupe_authorities import dedupe_authorities  # noqa
 from .group_authorities import compute_location_authorities_to_group  # noqa
 from .group_authorities import group_location_authorities  # noqa
+from .import_authorities import import_authorities  # noqa
+from .delete_findingaids import delete_findingaids  # noqa

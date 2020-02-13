@@ -31,7 +31,7 @@
 
 
 def includeme(config):
-    config.include('..faapi')
-    config.include('..api')
-    config.include('.pviews')
-    config.include('.forms')
+    config.include("..faapi")
+    config.include("..api")
+    config.include(".pviews")
+    config.include(".forms")

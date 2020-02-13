@@ -29,15 +29,14 @@
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
 
-from cubicweb.predicates import (is_instance, match_kwargs,
-                                 score_entity)
+from cubicweb.predicates import is_instance, match_kwargs, score_entity
 from cubicweb.schema import display_name
 from cubicweb.view import EntityAdapter
 
 
 class JsonFormEditableAdapter(EntityAdapter):
-    __regid__ = 'IJsonFormEditable'
-    __select__ = is_instance('Any')
+    __regid__ = "IJsonFormEditable"
+    __select__ = is_instance("Any")
     fetch_possible_targets = set()
 
     def ui_schema(self):
@@ -45,30 +44,26 @@ class JsonFormEditableAdapter(EntityAdapter):
 
     def defs_config(self, rtype, role, rdef):
         return {
-            'title': display_name(self._cw, rtype, role,
-                                  context=self.entity.cw_etype),
-            'rtype': rtype,
-            'multiple': rdef.cardinality[0] in '*+',
-            'fetchPossibleTargets': rtype in self.fetch_possible_targets
+            "title": display_name(self._cw, rtype, role, context=self.entity.cw_etype),
+            "rtype": rtype,
+            "multiple": rdef.cardinality[0] in "*+",
+            "fetchPossibleTargets": rtype in self.fetch_possible_targets,
         }
 
     def related(self):
         """send a dictionnary with formData, schema, uiSchema"""
         entity = self.entity
         defs = {}
-        rsection = self._cw.vreg['uicfg'].select(
-            'jsonschema', self._cw, entity=self.entity)
-        for rtype, role, targets in rsection.relations_by_section(
-                entity, 'related', 'add'):
-            if role != 'subject':
+        rsection = self._cw.vreg["uicfg"].select("jsonschema", self._cw, entity=self.entity)
+        for rtype, role, targets in rsection.relations_by_section(entity, "related", "add"):
+            if role != "subject":
                 continue
             rschema = self._cw.vreg.schema[rtype]
             if len(targets) > 1:
-                self.warning('unable to handle multiple target type %s, %s',
-                             entity.cw_etype, rtype)
+                self.warning("unable to handle multiple target type %s, %s", entity.cw_etype, rtype)
                 continue
             rdef = rschema.rdef(entity.cw_etype, list(targets)[0])
-            if rtype == 'custom_workflow':
+            if rtype == "custom_workflow":
                 continue
             defs[rtype] = self.defs_config(rtype, role, rdef)
         return defs
@@ -76,7 +71,7 @@ class JsonFormEditableAdapter(EntityAdapter):
     def get_ancestors(self):
         entity = self.entity
         result = []
-        if not hasattr(entity, 'reverse_children'):
+        if not hasattr(entity, "reverse_children"):
             return result
         parent = entity.reverse_children
         while parent:
@@ -87,19 +82,20 @@ class JsonFormEditableAdapter(EntityAdapter):
 
 
 class CircularJsonFormEditableAdapter(JsonFormEditableAdapter):
-    __select__ = JsonFormEditableAdapter.__select__ & is_instance('Circular')
-    fetch_possible_targets = {'document_type', 'business_field', 'historical_context', 'action'}
+    __select__ = JsonFormEditableAdapter.__select__ & is_instance("Circular")
+    fetch_possible_targets = {"document_type", "business_field", "historical_context", "action"}
 
     def ui_schema(self):
         defs = super(CircularJsonFormEditableAdapter, self).ui_schema()
-        for attr_date in ('signing_date', 'siaf_daf_signing_date',
-                          'circular_modification_date',
-                          'abrogation_date'):
-            defs.update({
-                attr_date: {
-                    'ui:widget': 'dateEditor',
-                },
-            })
+        for attr_date in (
+            "signing_date",
+            "siaf_daf_signing_date",
+            "circular_modification_date",
+            "abrogation_date",
+        ):
+            defs.update(
+                {attr_date: {"ui:widget": "dateEditor",},}
+            )
         return defs
 
 
@@ -107,83 +103,71 @@ class CmsObjectJsonFormEditableAdapter(JsonFormEditableAdapter):
     __abstract__ = True
 
     def ui_schema(self):
-        return {
-            'content': {
-                'ui:widget': 'wysiwygEditor',
-            }
-        }
+        return {"content": {"ui:widget": "wysiwygEditor",}}
 
 
 class BaseContentJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter):
-    __select__ = is_instance('BaseContent')
+    __select__ = is_instance("BaseContent")
 
     def ui_schema(self):
         defs = super(BaseContentJsonFormEditableAdapter, self).ui_schema()
-        defs.update({
-            'basecontent_service': {
-                'ui:field': 'autocompleteField',
-            },
-        })
+        defs.update(
+            {"basecontent_service": {"ui:field": "autocompleteField",},}
+        )
         return defs
 
 
 class TopSectionJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter):
-    __select__ = is_instance('Section') & score_entity(lambda x: x.cssimage)
+    __select__ = is_instance("Section") & score_entity(lambda x: x.cssimage)
 
     def related(self):
         defs = super(TopSectionJsonFormEditableAdapter, self).related()
         # add computed relation css_image on top sections
-        rtype = 'cssimage'
-        defs[rtype] = self.defs_config(rtype, 'subject',
-                                       self.entity.e_schema.rdef(rtype))
+        rtype = "cssimage"
+        defs[rtype] = self.defs_config(rtype, "subject", self.entity.e_schema.rdef(rtype))
         return defs
 
 
 class OtherSectionJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter):
-    __select__ = is_instance('Section') & ~score_entity(lambda x: x.cssimage)
+    __select__ = is_instance("Section") & ~score_entity(lambda x: x.cssimage)
 
 
 class NewsContentJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter):
-    __select__ = is_instance('NewsContent')
+    __select__ = is_instance("NewsContent")
 
     def ui_schema(self):
         defs = super(NewsContentJsonFormEditableAdapter, self).ui_schema()
-        defs.update({
-            'start_date': {
-                'ui:widget': 'dateEditor',
-            },
-            'stop_date': {
-                'ui:widget': 'dateEditor',
-            },
-        })
+        defs.update(
+            {"start_date": {"ui:widget": "dateEditor",}, "stop_date": {"ui:widget": "dateEditor",},}
+        )
         return defs
 
 
 class CommemorationItemJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter):
-    __select__ = is_instance('CommemorationItem')
+    __select__ = is_instance("CommemorationItem")
 
     def related(self):
         defs = super(CommemorationItemJsonFormEditableAdapter, self).related()
-        rtype = 'target'
+        rtype = "target"
         _ = self._cw._
-        for rtype in ('index_location', 'index_agent', 'index_subject'):
-            defs[rtype] = {'fetchPossibleTargets': False,
-                           'multiple': True,
-                           'rtype': rtype,
-                           'title': _(rtype)}
+        for rtype in ("index_location", "index_agent", "index_subject"):
+            defs[rtype] = {
+                "fetchPossibleTargets": False,
+                "multiple": True,
+                "rtype": rtype,
+                "title": _(rtype),
+            }
         return defs
 
 
 class CommemoDateJsonFormEditableAdapter(JsonFormEditableAdapter):
-    __select__ = is_instance('CommemoDate')
+    __select__ = is_instance("CommemoDate")
 
     def ui_schema(self):
         defs = super(CommemoDateJsonFormEditableAdapter, self).ui_schema()
-        defs.update({
-            'date': {
-                'ui:widget': 'dateEditor',
-            },
-        })
+        defs.update(
+            {"date": {"ui:widget": "dateEditor",},}
+        )
         return defs
 
     def get_ancestors(self):
@@ -191,13 +175,11 @@ class CommemoDateJsonFormEditableAdapter(JsonFormEditableAdapter):
 
 
 class CardJsonFormEditableAdapter(JsonFormEditableAdapter):
-    __select__ = is_instance('Card')
+    __select__ = is_instance("Card")
 
     def ui_schema(self):
         return {
-            'content': {
-                'ui:widget': 'wysiwygEditor',
-            },
+            "content": {"ui:widget": "wysiwygEditor",},
         }
 
     def get_ancestors(self):
@@ -205,26 +187,15 @@ class CardJsonFormEditableAdapter(JsonFormEditableAdapter):
 
 
 class ImageJsonFormEditableAdapter(JsonFormEditableAdapter):
-    __select__ = is_instance('Image', 'CssImage')
+    __select__ = is_instance("Image", "CssImage")
 
     def ui_schema(self):
         defs = {
-            'caption': {
-                'ui:widget': 'wysiwygEditor',
-            },
-            'description': {
-                'ui:widget': 'wysiwygEditor',
-            },
-            'image_file': {
-                'items': {
-                    'data': {
-                        'ui:widget': 'imageEditor',
-                    },
-                },
-                'ui:options': {
-                    'removable': False,
-                    'addable': False,
-                },
+            "caption": {"ui:widget": "wysiwygEditor",},
+            "description": {"ui:widget": "wysiwygEditor",},
+            "image_file": {
+                "items": {"data": {"ui:widget": "imageEditor",},},
+                "ui:options": {"removable": False, "addable": False,},
             },
         }
         return defs
@@ -234,7 +205,7 @@ class ImageJsonFormEditableAdapter(JsonFormEditableAdapter):
 
 
 class FingingAidJsonFormEditableAdapter(JsonFormEditableAdapter):
-    __select__ = is_instance('FindingAid')
+    __select__ = is_instance("FindingAid")
 
     def ui_schema(self):
         return {}
@@ -244,63 +215,66 @@ class FingingAidJsonFormEditableAdapter(JsonFormEditableAdapter):
 
 
 class ExternRefJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter):
-    __select__ = is_instance('ExternRef')
+    __select__ = is_instance("ExternRef")
 
     def ui_schema(self):
         defs = super(ExternRefJsonFormEditableAdapter, self).ui_schema()
-        defs.update({
-            'exref_service': {
-                'ui:field': 'autocompleteField',
-            },
-        })
+        defs.update(
+            {"exref_service": {"ui:field": "autocompleteField",},}
+        )
         return defs
 
     def related(self):
         defs = super(ExternRefJsonFormEditableAdapter, self).related()
-        rtype = 'target'
+        rtype = "target"
         _ = self._cw._
-        for rtype in ('index_location', 'index_agent', 'index_subject'):
-            defs[rtype] = {'fetchPossibleTargets': False,
-                           'multiple': True,
-                           'rtype': rtype,
-                           'title': _(rtype)}
+        for rtype in ("index_location", "index_agent", "index_subject"):
+            defs[rtype] = {
+                "fetchPossibleTargets": False,
+                "multiple": True,
+                "rtype": rtype,
+                "title": _(rtype),
+            }
         return defs
 
 
 class MapJsonFormEditableAdapter(JsonFormEditableAdapter):
-    __select__ = JsonFormEditableAdapter.__select__ & is_instance('Map')
+    __select__ = JsonFormEditableAdapter.__select__ & is_instance("Map")
 
     def ui_schema(self):
         return {
-            'top_content': {
-                'ui:widget': 'wysiwygEditor',
-            },
-            'bottom_content': {
-                'ui:widget': 'wysiwygEditor',
-            },
+            "top_content": {"ui:widget": "wysiwygEditor",},
+            "bottom_content": {"ui:widget": "wysiwygEditor",},
         }
 
 
 class ServiceJsonFormEditableAdapter(JsonFormEditableAdapter):
-    __select__ = JsonFormEditableAdapter.__select__ & is_instance('Service')
+    __select__ = JsonFormEditableAdapter.__select__ & is_instance("Service")
 
     def ui_schema(self):
         return {
-            'other': {
-                'ui:widget': 'wysiwygEditor',
-            },
+            "other": {"ui:widget": "wysiwygEditor",},
         }
 
 
+class LocationAuthorityJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter):
+    __select__ = is_instance("LocationAuthority")
+
+    def ui_schema(self):
+        defs = super(LocationAuthorityJsonFormEditableAdapter, self).ui_schema()
+        defs.update({"longitude": {"ui:readonly": "true",}, "latitude": {"ui:readonly": "true",}})
+        return defs
+
+
 class CWUserJsonFormEditableAdapter(JsonFormEditableAdapter):
-    __select__ = is_instance('CWUser')
+    __select__ = is_instance("CWUser")
 
     def get_ancestors(self):
         return []
 
 
 class RqTaskJsonFormEditableAdapter(JsonFormEditableAdapter):
-    __select__ = is_instance('RqTask')
+    __select__ = is_instance("RqTask")
 
     def get_ancestors(self):
         return []
@@ -308,51 +282,66 @@ class RqTaskJsonFormEditableAdapter(JsonFormEditableAdapter):
 
 class ImportEadRqTaskJsonFormEditableAdapter(RqTaskJsonFormEditableAdapter):
     __select__ = RqTaskJsonFormEditableAdapter.__select__ & match_kwargs(
-        {'schema_type': 'import_ead'})
+        {"schema_type": "import_ead"}
+    )
 
     def ui_schema(self):
         return {
-            'file': {
-                'ui:widget': 'filepicker',
-            },
+            "file": {"ui:widget": "filepicker",},
+        }
+
+
+class ImportEacRqTaskJsonFormEditableAdapter(RqTaskJsonFormEditableAdapter):
+    __select__ = RqTaskJsonFormEditableAdapter.__select__ & match_kwargs(
+        {"schema_type": "import_eac"}
+    )
+
+    def ui_schema(self):
+        return {
+            "file": {"ui:widget": "filepicker",},
         }
 
 
 class ImportCSVTaskJsonFormEditableAdapter(RqTaskJsonFormEditableAdapter):
     __select__ = RqTaskJsonFormEditableAdapter.__select__ & match_kwargs(
-        {'schema_type': 'import_csv'})
+        {"schema_type": "import_csv"}
+    )
 
     def ui_schema(self):
         return {
-            'file': {
-                'ui:widget': 'filepicker',
-            },
-            'metadata': {
-                'ui:widget': 'filepicker',
-            },
+            "file": {"ui:widget": "filepicker",},
+            "metadata": {"ui:widget": "filepicker",},
         }
 
 
-class ImportAlignmentRqTaskJsonFormEditableAdapter(RqTaskJsonFormEditableAdapter):
+class ImportAuthoritiesRqTaskJsonFormEditableAdapter(RqTaskJsonFormEditableAdapter):
     __select__ = RqTaskJsonFormEditableAdapter.__select__ & match_kwargs(
-        {'schema_type': 'import_alignment'})
+        {"schema_type": "import_authorities"}
+    )
 
     def ui_schema(self):
         return {
-            'file': {
-                'ui:widget': 'filepicker',
-            },
+            "file": {"ui:widget": "filepicker",},
         }
 
 
-class GroupLocAuthoritiesAlignmentRqTaskJsonFormEditableAdapter(
-        RqTaskJsonFormEditableAdapter):
+class GroupLocAuthoritiesAlignmentRqTaskJsonFormEditableAdapter(RqTaskJsonFormEditableAdapter):
     __select__ = RqTaskJsonFormEditableAdapter.__select__ & match_kwargs(
-        {'schema_type': 'group_location_authorities'})
+        {"schema_type": "group_location_authorities"}
+    )
 
     def ui_schema(self):
         return {
-            'file': {
-                'ui:widget': 'filepicker',
-            },
+            "file": {"ui:widget": "filepicker",},
+        }
+
+
+class DeleteFindingAidsRqTaskJsonFormEditableAdapter(RqTaskJsonFormEditableAdapter):
+    __select__ = RqTaskJsonFormEditableAdapter.__select__ & match_kwargs(
+        {"schema_type": "delete_finding_aids"}
+    )
+
+    def ui_schema(self):
+        return {
+            "file": {"ui:widget": "filepicker",},
         }

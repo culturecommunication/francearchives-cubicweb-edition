@@ -35,8 +35,8 @@ from cubicweb_francearchives.entities.es import PniaIndexer
 
 
 class EditionIndexer(PniaIndexer):
-    __select__ = PniaIndexer.__select__ & match_kwargs({'published': True})
+    __select__ = PniaIndexer.__select__ & match_kwargs({"published": True})
 
     @property
     def index_name(self):
-        return '%s_all' % self._cw.vreg.config['published-index-name']
+        return "%s_all" % self._cw.vreg.config["published-index-name"]

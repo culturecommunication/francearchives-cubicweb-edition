@@ -28,75 +28,8 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
-from cubicweb_frarchives_edition import GEONAMES_RE
-from cubicweb_frarchives_edition.alignments.location import (
-    code_dpt,
-    code_regions,
-    country_code_to_name
-)
-
-
-def create_label(cnx, url):
-    """Create ExternalUri label.
-
-    :param Connection cnx: CubicWeb database connection
-    :param str url: GeoNames URL
-
-    :return: label
-    :rtype: str
-    """
-    if u'geonames' in url.lower():
-        return _create_geonames_label(cnx, url)
-    else:
-        return u''
-
-
-def _create_geonames_label(cnx, url):
-    """Create GeoNames label ('ville (region, departement)').
-
-    :param Connection cnx: CubicWeb database connection
-    :param str url: GeoNames URL
-
-    :returns: label
-    :rtype: str
-    """
-    # GeoNames URL is either e.g. https://www.geonames.org/2988507/paris.html
-    # or e.g. https://www.geonames.org/2988507
-    match = GEONAMES_RE.search(url)
-    if not match:
-        return u''
-    geonameid = match.group(1)
-    res = cnx.system_sql(
-        '''
-        SELECT name, country_code, admin1_code, admin2_code
-        FROM geonames WHERE geonameid = %(gid)s
-        ''', {'gid': geonameid}
-    ).fetchall()
-    if not res:
-        return u''
-    label, country_code, admin1_code, admin2_code = res[0]
-    if country_code == u'FR':
-        admin1_name = code_regions.get(admin1_code, "")
-        admin2_name = code_dpt.get(admin2_code, "")
-        if admin1_name or admin2_name:
-            label = u'{} ({})'.format(
-                label, ', '.join(v for v in (admin1_name, admin2_name) if v)
-            )
-    else:
-        # for other countries only retrieve the country name
-        res = cnx.system_sql(
-            '''
-            SELECT geonameid FROM geonames WHERE country_code=%s
-            AND fcode IN ('PCL','PCLI')
-            ''', (country_code,)
-        ).fetchall()
-        if res:
-            country_name = country_code_to_name.get(res[0][0], '')
-            if country_name:
-                label = u'{} ({})'.format(label, country_name)
-    return label
 
 
 def includeme(config):
-    config.include('.routes')
-    config.include('.pviews')
+    config.include(".routes")
+    config.include(".pviews")

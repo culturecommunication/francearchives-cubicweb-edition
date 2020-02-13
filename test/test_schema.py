@@ -37,158 +37,171 @@ import utils
 
 
 class SecurityTC(utils.FrACubicConfigMixIn, CubicWebTC):
-
     def setup_database(self):
         with self.admin_access.repo_cnx() as cnx:
-            self.create_user(cnx, 'user',
-                             email=u'user@frar.fr',
-                             password=u'oi8e+ZEL*!sdIE',
-                             groups=('users',), commit=True)
-            self.create_user(cnx, 'other_user',
-                             password=u'di7ZEL*!sdIE',
-                             email=u'other_user@frar.fr',
-                             groups=('users',), commit=True)
+            self.create_user(
+                cnx,
+                "user",
+                email="user@frar.fr",
+                password="oi8e+ZEL*!sdIE",
+                groups=("users",),
+                commit=True,
+            )
+            self.create_user(
+                cnx,
+                "other_user",
+                password="di7ZEL*!sdIE",
+                email="other_user@frar.fr",
+                groups=("users",),
+                commit=True,
+            )
             cnx.commit()
 
     def test_add_section(self):
         """Only managers can add sections"""
         with self.admin_access.repo_cnx() as cnx:
-            cnx.create_entity('Section', title=u's1')
+            cnx.create_entity("Section", title="s1")
             cnx.commit()
-        with self.new_access('user').client_cnx() as cnx:
+        with self.new_access("user").client_cnx() as cnx:
             with self.assertRaises(Unauthorized):
-                cnx.create_entity('Section', title=u's2')
+                cnx.create_entity("Section", title="s2")
                 cnx.commit()
 
     def test_update_add_section(self):
         """Only managers can update sections"""
         with self.admin_access.repo_cnx() as cnx:
-            section = cnx.create_entity('Section',
-                                        title=u's1')
+            section = cnx.create_entity("Section", title="s1")
             cnx.commit()
-            section.cw_set(title=u's2')
+            section.cw_set(title="s2")
             cnx.commit()
-        with self.new_access('user').client_cnx() as cnx:
-            section = cnx.find('Section', eid=section.eid).one()
+        with self.new_access("user").client_cnx() as cnx:
+            section = cnx.find("Section", eid=section.eid).one()
             with self.assertRaises(Unauthorized):
-                section.cw_set(title=u's3')
+                section.cw_set(title="s3")
                 cnx.commit()
 
     def test_delete_section(self):
         """Only managers can delete sections"""
         with self.admin_access.repo_cnx() as cnx:
-            section = cnx.create_entity('Section',
-                                        title=u's1')
+            section = cnx.create_entity("Section", title="s1")
             cnx.commit()
-            section.cw_set(title=u's2')
+            section.cw_set(title="s2")
             cnx.commit()
-        with self.new_access('user').client_cnx() as cnx:
-            section = cnx.find('Section', eid=section.eid).one()
+        with self.new_access("user").client_cnx() as cnx:
+            section = cnx.find("Section", eid=section.eid).one()
             with self.assertRaises(Unauthorized):
                 section.cw_delete()
                 cnx.commit()
         with self.admin_access.repo_cnx() as cnx:
-            section = cnx.find('Section', eid=section.eid).one()
+            section = cnx.find("Section", eid=section.eid).one()
             section.cw_delete()
             cnx.commit()
 
     def test_add_circular(self):
-        for login in ('user', 'admin'):
+        for login in ("user", "admin"):
             with self.new_access(login).client_cnx() as cnx:
                 cnx.create_entity(
-                    'Circular',
-                    circ_id=u'circ_{}'.format(login),
-                    status=u'revoked',
-                    title=u'circ {}'.format(login))
+                    "Circular",
+                    circ_id="circ_{}".format(login),
+                    status="revoked",
+                    title="circ {}".format(login),
+                )
                 cnx.commit()
 
     def test_modify_circular(self):
         """admin and users can modify all circulars"""
-        with self.new_access('user').client_cnx() as cnx:
+        with self.new_access("user").client_cnx() as cnx:
             circ_eid = cnx.create_entity(
-                'Circular',
-                circ_id=u'circ1', status=u'revoked',
-                title=u'circ').eid
+                "Circular", circ_id="circ1", status="revoked", title="circ"
+            ).eid
             cnx.commit()
-        for login in ('admin', 'other_user'):
+        for login in ("admin", "other_user"):
             with self.new_access(login).client_cnx() as cnx:
-                circ = cnx.find('Circular', eid=circ_eid).one()
-                new_title = u'title {}'.format(login)
+                circ = cnx.find("Circular", eid=circ_eid).one()
+                new_title = "title {}".format(login)
                 circ.cw_set(title=new_title)
                 cnx.commit()
                 self.assertEqual(circ.title, new_title)
 
     def test_delete_circular(self):
         """admin and users can delete all circulars"""
-        logins = (u'admin', u'other_user')
-        with self.new_access('user').client_cnx() as cnx:
+        logins = ("admin", "other_user")
+        with self.new_access("user").client_cnx() as cnx:
             for login in logins:
                 cnx.create_entity(
-                    'Circular',
-                    circ_id=u'circ_{}'.format(login),
-                    status=u'revoked',
-                    title=u'circ {}'.format(login))
+                    "Circular",
+                    circ_id="circ_{}".format(login),
+                    status="revoked",
+                    title="circ {}".format(login),
+                )
                 cnx.commit()
         for login in logins:
             with self.new_access(login).client_cnx() as cnx:
-                circ = cnx.find('Circular',
-                                circ_id=u'circ_{}'.format(login)).one()
+                circ = cnx.find("Circular", circ_id="circ_{}".format(login)).one()
                 circ.cw_delete()
                 cnx.commit()
 
 
 class WorkflowTC(utils.FrACubicConfigMixIn, CubicWebTC):
-
     def setup_database(self):
         with self.admin_access.repo_cnx() as cnx:
-            self.create_user(cnx, 'user',
-                             email=u'user@frar.fr',
-                             password=u'oi8e+ZEL*!sdIE',
-                             groups=('users',), commit=True)
-            self.create_user(cnx, 'other_user',
-                             password=u'di7ZEL*!sdIE',
-                             email=u'other_user@frar.fr',
-                             groups=('users',), commit=True)
-            section = cnx.create_entity('Section', title=u'draft')
+            self.create_user(
+                cnx,
+                "user",
+                email="user@frar.fr",
+                password="oi8e+ZEL*!sdIE",
+                groups=("users",),
+                commit=True,
+            )
+            self.create_user(
+                cnx,
+                "other_user",
+                password="di7ZEL*!sdIE",
+                email="other_user@frar.fr",
+                groups=("users",),
+                commit=True,
+            )
+            section = cnx.create_entity("Section", title="draft")
             cnx.create_entity(
-                'Circular', title=u'circ1',
-                circ_id=u'circ1', status=u'revoked',
-                reverse_children=section)
-            published_section = cnx.create_entity('Section', title=u'published')
+                "Circular",
+                title="circ1",
+                circ_id="circ1",
+                status="revoked",
+                reverse_children=section,
+            )
+            published_section = cnx.create_entity("Section", title="published")
             cnx.commit()
-            published_section.cw_adapt_to('IWorkflowable').fire_transition('wft_cmsobject_publish')
+            published_section.cw_adapt_to("IWorkflowable").fire_transition("wft_cmsobject_publish")
             cnx.commit()
 
     def test_users_can_not_publish_section(self):
         """users can't publish section"""
-        with self.new_access('user').client_cnx() as cnx:
-            section = cnx.find('Section', title=u'draft').one()
-            self.assertEqual("wfs_cmsobject_draft",
-                             section.cw_adapt_to('IWorkflowable').state)
+        with self.new_access("user").client_cnx() as cnx:
+            section = cnx.find("Section", title="draft").one()
+            self.assertEqual("wfs_cmsobject_draft", section.cw_adapt_to("IWorkflowable").state)
             with self.assertRaises(ValidationError):
-                section.cw_adapt_to('IWorkflowable').fire_transition('wft_cmsobject_publish')
+                section.cw_adapt_to("IWorkflowable").fire_transition("wft_cmsobject_publish")
                 cnx.commit()
 
     def test_adim_can_unpublish_section(self):
         """admin can unpublish section"""
         with self.admin_access.repo_cnx() as cnx:
-            section = cnx.find('Section', title=u'published').one()
-            section.cw_adapt_to('IWorkflowable').fire_transition('wft_cmsobject_unpublish')
+            section = cnx.find("Section", title="published").one()
+            section.cw_adapt_to("IWorkflowable").fire_transition("wft_cmsobject_unpublish")
             cnx.commit()
-            self.assertEqual("wfs_cmsobject_draft",
-                             section.cw_adapt_to('IWorkflowable').state)
+            self.assertEqual("wfs_cmsobject_draft", section.cw_adapt_to("IWorkflowable").state)
 
     def test_users_can_not_unpublish_section(self):
         """users can't unpublish section"""
-        with self.new_access('user').client_cnx() as cnx:
-            section = cnx.find('Section', title=u'published').one()
-            self.assertEqual("wfs_cmsobject_published",
-                             section.cw_adapt_to('IWorkflowable').state)
+        with self.new_access("user").client_cnx() as cnx:
+            section = cnx.find("Section", title="published").one()
+            self.assertEqual("wfs_cmsobject_published", section.cw_adapt_to("IWorkflowable").state)
             with self.assertRaises(ValidationError):
-                section.cw_adapt_to('IWorkflowable').fire_transition('wft_cmsobject_unpublish')
+                section.cw_adapt_to("IWorkflowable").fire_transition("wft_cmsobject_unpublish")
                 cnx.commit()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import unittest
+
     unittest.main()

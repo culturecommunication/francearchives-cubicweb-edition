@@ -52,6 +52,7 @@ const {togglePanel} = require('../actions'),
        ConsultationLink,
        SearchCWUsersLink,
        SearchFaTasksLink,
+       FAMonitoringBordLink,
        EditHomePageMetataLink,
        SameAsLink,
        GroupAuthLink,
@@ -75,6 +76,7 @@ const ACTIONS = {
     'fa-import': FaImport,
     'cwusers': SearchCWUsersLink,
     'fa-tasks': SearchFaTasksLink,
+    'fa-bord': FAMonitoringBordLink,
     'consultation-link': ConsultationLink,
     'homepage-metadata': EditHomePageMetataLink,
     'fa-publish-task': PublishTaskLink,
@@ -105,7 +107,7 @@ class App extends Component {
         this.toggleParentWidth(this.props.showPanel);
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
         this.toggleParentWidth(nextProps.showPanel);
     }
 

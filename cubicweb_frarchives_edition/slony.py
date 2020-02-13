@@ -35,8 +35,7 @@ from cubicweb.schema import PURE_VIRTUAL_RTYPES
 from cubicweb.server.sqlutils import SQL_PREFIX
 
 
-def create_master(cnx, sqlschema='published',
-                  skip_entities=(), skip_relations=()):
+def create_master(cnx, sqlschema="published", skip_entities=(), skip_relations=()):
     """
     Generate slonik configuration/command file to setup the master node
     """
@@ -46,57 +45,55 @@ def create_master(cnx, sqlschema='published',
     dbcfg = repo.system_source.config
     output = []
 
-    tablenames = [x[0] for x in cnx.system_sql(
-        "select tablename from pg_tables "
-        "where schemaname='%s'" % sqlschema)]
+    tablenames = [
+        x[0]
+        for x in cnx.system_sql(
+            "select tablename from pg_tables " "where schemaname='%s'" % sqlschema
+        )
+    ]
 
     clustername = "cw_%s_cluster" % appid
     output.append("cluster name = %s;" % clustername)
 
-    master = ("dbname=%(db-name)s host=%(db-host)s "
-              "port=%(db-port)s user=%(db-user)s" % dbcfg)
+    master = "dbname=%(db-name)s host=%(db-host)s " "port=%(db-port)s user=%(db-user)s" % dbcfg
     output.append("node 1 admin conninfo='%s'" % master)
 
     output.append("init cluster (id=1, comment='Master Node');")
-    output.append("create set (id=1, origin=1, "
-                  "comment='tables for cw app %s');" % appid)
+    output.append("create set (id=1, origin=1, " "comment='tables for cw app %s');" % appid)
 
     idx = 1
-    output.append("set add table (set id=1, origin=1, id=%(idx)s, "
-                  "fully qualified name='public.entities');" %
-                  {'idx': idx})
+    output.append(
+        "set add table (set id=1, origin=1, id=%(idx)s, "
+        "fully qualified name='public.entities');" % {"idx": idx}
+    )
     idx += 1
     for etype in sorted(schema.entities()):
         eschema = schema.eschema(etype)
         if eschema.final or eschema.type in skip_entities:
             continue
         table = SQL_PREFIX + eschema.type.lower()
-        schemaname = table in tablenames and sqlschema or 'public'
-        output.append("set add table (set id=1, origin=1, id=%(idx)s, "
-                      "fully qualified name='%(schema)s.%(table)s', "
-                      "comment='table for entity %(entity)s');" %
-                      {'idx': idx,
-                       'table': table,
-                       'entity': eschema.type,
-                       'schema': schemaname,
-                       })
+        schemaname = table in tablenames and sqlschema or "public"
+        output.append(
+            "set add table (set id=1, origin=1, id=%(idx)s, "
+            "fully qualified name='%(schema)s.%(table)s', "
+            "comment='table for entity %(entity)s');"
+            % {"idx": idx, "table": table, "entity": eschema.type, "schema": schemaname,}
+        )
         idx += 1
 
     for rtype in sorted(schema.relations()):
         rschema = schema.rschema(rtype)
         if rschema_has_table(rschema, set(skip_relations) | PURE_VIRTUAL_RTYPES):
-            table = '%s_relation' % rschema.type
-            schemaname = table in tablenames and sqlschema or 'public'
-            output.append("set add table (set id=1, origin=1, id=%(idx)s, "
-                          "fully qualified name='%(schema)s.%(table)s', "
-                          "comment='table for relation %(rel)s');" %
-                          {'idx': idx,
-                           'table': table,
-                           'rel': rschema.type,
-                           'schema': schemaname,
-                           })
+            table = "%s_relation" % rschema.type
+            schemaname = table in tablenames and sqlschema or "public"
+            output.append(
+                "set add table (set id=1, origin=1, id=%(idx)s, "
+                "fully qualified name='%(schema)s.%(table)s', "
+                "comment='table for relation %(rel)s');"
+                % {"idx": idx, "table": table, "rel": rschema.type, "schema": schemaname,}
+            )
         idx += 1
-    return '\n'.join(output)
+    return "\n".join(output)
 
 
 def start_slave(repo, slaveid, slavedbcfg):
@@ -107,12 +104,10 @@ def start_slave(repo, slaveid, slavedbcfg):
     """
     appid = repo.config.appid
     dbcfg = repo.system_source.config.copy()
-    master = ("dbname=%(db-name)s host=%(db-host)s "
-              "port=%(db-port)s user=%(db-user)s" % dbcfg)
+    master = "dbname=%(db-name)s host=%(db-host)s " "port=%(db-port)s user=%(db-user)s" % dbcfg
     clustername = "cw_%s_cluster" % appid
     dbcfg.update(slavedbcfg)
-    slave = ("dbname=%(db-name)s host=%(db-host)s "
-             "port=%(db-port)s user=%(db-user)s" % dbcfg)
+    slave = "dbname=%(db-name)s host=%(db-host)s " "port=%(db-port)s user=%(db-user)s" % dbcfg
 
     output = []
     output.append("cluster name = %s" % clustername)
@@ -122,7 +117,7 @@ def start_slave(repo, slaveid, slavedbcfg):
 
     sloncmdline = 'slon %s "%s"' % (clustername, slave)
 
-    return '\n'.join(output), sloncmdline
+    return "\n".join(output), sloncmdline
 
 
 def add_slave(repo, slaveid, slavedbcfg):
@@ -132,14 +127,12 @@ def add_slave(repo, slaveid, slavedbcfg):
     appid = repo.config.appid
     dbcfg = repo.system_source.config.copy()
     output = []
-    master = ("dbname=%(db-name)s host=%(db-host)s "
-              "port=%(db-port)s user=%(db-user)s" % dbcfg)
+    master = "dbname=%(db-name)s host=%(db-host)s " "port=%(db-port)s user=%(db-user)s" % dbcfg
     clustername = "cw_%s_cluster" % appid
 
     # create the slave nodes
     dbcfg.update(slavedbcfg)
-    slave = ("dbname=%(db-name)s host=%(db-host)s "
-             "port=%(db-port)s user=%(db-user)s" % dbcfg)
+    slave = "dbname=%(db-name)s host=%(db-host)s " "port=%(db-port)s user=%(db-user)s" % dbcfg
     output.append("cluster name = %s" % clustername)
     output.append("node 1 admin conninfo='%s';" % (master))
     output.append("node %d admin conninfo='%s';" % (slaveid, slave))
@@ -148,4 +141,4 @@ def add_slave(repo, slaveid, slavedbcfg):
     output.append("store path (server=1, client=%d, conninfo='%s');" % (slaveid, master))
     output.append("store path (server=%d, client=1, conninfo='%s');" % (slaveid, slave))
 
-    return '\n'.join(output)
+    return "\n".join(output)

@@ -42,46 +42,48 @@ LOG = logging.getLogger(__name__)
 
 
 def bad_request(error):
-    return JSONBadRequest(*[
-        jsonapi_error(status=422,
-                      details=error, pointer='file')])
+    return JSONBadRequest(*[jsonapi_error(status=422, details=error, pointer="file")])
 
 
 def xml_re_match(startswith, filename):
-    return re.match(r'%s_.*.xml' % startswith, filename)
+    return re.match(r"%s_.*.xml" % startswith, filename)
 
 
 def pdf_re_match(startswith, filename):
-    return re.match(r'%s_.*.pdf' % startswith, filename)
+    return re.match(r"%s_.*.pdf" % startswith, filename)
 
 
 def check_zipfiles(zipf, service):
     filenames = zipf.namelist()
-    res = {'wrong_files': [], 'empty_files': [],
-           'empty': False, 'missing_csv': False,
-           'missing_xml': False}
+    res = {
+        "wrong_files": [],
+        "empty_files": [],
+        "empty": False,
+        "missing_csv": False,
+        "missing_xml": False,
+    }
     # directories always end this '/'
-    directories_only = all(f.endswith('/') for f in filenames)
+    directories_only = all(f.endswith("/") for f in filenames)
     if not filenames or directories_only:
-        res['empty'] = True
+        res["empty"] = True
         return res
-    params = {'code': service}
+    params = {"code": service}
     # PDF
-    pdf_dir = '{code}/PDF/'.format(**params)
-    metafile = osp.join(service, 'PDF', 'metadata.csv')
+    pdf_dir = "{code}/PDF/".format(**params)
+    metafile = osp.join(service, "PDF", "metadata.csv")
     contains_pdf = pdf_dir in filenames
     if contains_pdf and metafile not in filenames:
-        res['missing_csv'] = True
-    service_file = r'{code}\/{code}'.format(**params)
-    pdf_file = r'{code}\/PDF\/{code}'.format(**params)
-    if not contains_pdf and not any(f for f in filenames if f.endswith('xml')):
-        res['missing_xml'] = True
+        res["missing_csv"] = True
+    service_file = r"{code}\/{code}".format(**params)
+    pdf_file = r"{code}\/PDF\/{code}".format(**params)
+    if not contains_pdf and not any(f for f in filenames if f.endswith("xml")):
+        res["missing_xml"] = True
         return res
-    pdf_file = r'{code}\/PDF\/{code}'.format(**params)
+    pdf_file = r"{code}\/PDF\/{code}".format(**params)
     for info in zipf.infolist():
         filename = info.filename
         # the filename is a directory
-        if filename.endswith('/'):
+        if filename.endswith("/"):
             continue
         # skip all files in RELFILES_DIR
         if RELFILES_DIR in filename:
@@ -95,9 +97,9 @@ def check_zipfiles(zipf, service):
         if contains_pdf and filename == metafile:
             continue
         if contains_pdf and not pdf_re_match(pdf_file, filename):
-            res['wrong_files'].append(filename)
+            res["wrong_files"].append(filename)
         if not info.file_size:
-            res['empty_files'].append(filename)
+            res["empty_files"].append(filename)
     return res
 
 
@@ -122,68 +124,68 @@ def process_faimport_zip(cnx, fileobj):
     """
     _ = cnx._
     if fileobj is None:
-        raise bad_request(_('This file is empty'))
+        raise bad_request(_("This file is empty"))
     if not zipfile.is_zipfile(fileobj.file):
-        raise bad_request(_('This file in not a zip file'))
+        raise bad_request(_("This file in not a zip file"))
     # check the related service
     code, ext = osp.splitext(fileobj.filename)
-    rset = cnx.find('Service', code=code)
+    rset = cnx.find("Service", code=code)
     if not rset:
         raise bad_request(
-            _(u'Service "{}" does not exist. '
-              u'Check the ziped file name "{}" or create a '
-              u'new service before uploading '
-              u'the file again').format(code, fileobj.filename))
+            _(
+                'Service "{}" does not exist. '
+                'Check the ziped file name "{}" or create a '
+                "new service before uploading "
+                "the file again"
+            ).format(code, fileobj.filename)
+        )
     # check the zip file structure
-    zf = zipfile.ZipFile(fileobj.file, mode='r')
+    zf = zipfile.ZipFile(fileobj.file, mode="r")
     zip_errors = check_zipfiles(zf, code)
     if any(zip_errors.values()):
         errors = []
-        if zip_errors['empty']:
-            error = _('This archive contains no files.')
-            errors.append(jsonapi_error(status=422,
-                          details=error, pointer='file'))
-        empty_files = zip_errors['empty_files']
+        if zip_errors["empty"]:
+            error = _("This archive contains no files.")
+            errors.append(jsonapi_error(status=422, details=error, pointer="file"))
+        empty_files = zip_errors["empty_files"]
         if empty_files:
-            error = _('Following files are empty : {}'.
-                      format(', '.join(empty_files)))
-            errors.append(jsonapi_error(status=422,
-                          details=error, pointer='file'))
-        wrong_files = zip_errors['wrong_files']
+            error = _("Following files are empty : {}".format(", ".join(empty_files)))
+            errors.append(jsonapi_error(status=422, details=error, pointer="file"))
+        wrong_files = zip_errors["wrong_files"]
         if wrong_files:
-            error = _('Following files does not start with "{}" : {}'.
-                      format(code, ', '.join(wrong_files)))
-            errors.append(jsonapi_error(status=422,
-                          details=error, pointer='file'))
-        if zip_errors['missing_csv']:
-            error = _('PDF/metadata.csv is missing from zip')
-            errors.append(jsonapi_error(status=422,
-                          details=error, pointer='file'))
-        if zip_errors['missing_xml']:
-            error = _('no XML files found in zip')
-            errors.append(jsonapi_error(status=422,
-                          details=error, pointer='file'))
+            error = _(
+                'Following files does not start with "{}" : {}'.format(code, ", ".join(wrong_files))
+            )
+            errors.append(jsonapi_error(status=422, details=error, pointer="file"))
+        if zip_errors["missing_csv"]:
+            error = _("PDF/metadata.csv is missing from zip")
+            errors.append(jsonapi_error(status=422, details=error, pointer="file"))
+        if zip_errors["missing_xml"]:
+            error = _("no XML files found in zip")
+            errors.append(jsonapi_error(status=422, details=error, pointer="file"))
         raise JSONBadRequest(*errors)
     # catch errors ?
-    ead_dir = cnx.vreg.config.get('ead-services-dir')
+    ead_dir = cnx.vreg.config.get("ead-services-dir")
     if ead_dir is None:
         raise bad_request(_('missing "ead-services-dir" parameter in all-in-one.conf'))
     zf.extractall(ead_dir)
-    return [osp.join(ead_dir, filepath) for filepath in zf.namelist()
-            if osp.splitext(filepath.lower())[1] in ('.pdf', '.xml')]
+    return [
+        osp.join(ead_dir, filepath)
+        for filepath in zf.namelist()
+        if osp.splitext(filepath.lower())[1] in (".pdf", ".xml")
+    ]
 
 
 def check_csv_zipfiles(zf):
-    errors = {'empty_files': [], 'empty': False,
-              'missing_csv': False}
-    csv_files = [f for f in zf.namelist() if osp.splitext(f.lower())[1] == '.csv']
+    errors = {"empty_files": [], "empty": False, "missing_csv": False}
+    csv_files = [f for f in zf.namelist() if osp.splitext(f.lower())[1] == ".csv"]
     if not csv_files:
-        errors['empty'] = True
+        errors["empty"] = True
     for info in zf.infolist():
         filename = info.filename
         code, ext = osp.splitext(filename)
-        if ext == '.csv' and not info.file_size:
-            errors['empty_files'].append(info.filename)
+        if ext == ".csv" and not info.file_size:
+            errors["empty_files"].append(info.filename)
     return errors
 
 
@@ -197,58 +199,96 @@ def process_csvimport_zip(cnx, fileobj):
     """
     _ = cnx._
     if fileobj is None:
-        raise bad_request(_('This file is empty'))
+        raise bad_request(_("This file is empty"))
     if not zipfile.is_zipfile(fileobj.file):
-        raise bad_request(_('This file in not a zip file'))
+        raise bad_request(_("This file in not a zip file"))
     # check the zip file structure
-    zf = zipfile.ZipFile(fileobj.file, mode='r')
+    zf = zipfile.ZipFile(fileobj.file, mode="r")
     # check the related service
     code, ext = osp.splitext(fileobj.filename)
-    rset = cnx.find('Service', code=code)
+    rset = cnx.find("Service", code=code)
     if not rset:
         raise bad_request(
-            _(u'Service "{}" does not exist. '
-              u'Check the ziped file name "{}" or create a '
-              u'new service before uploading '
-              u'the file again').format(code, fileobj.filename))
+            _(
+                'Service "{}" does not exist. '
+                'Check the ziped file name "{}" or create a '
+                "new service before uploading "
+                "the file again"
+            ).format(code, fileobj.filename)
+        )
 
     files_errors = check_csv_zipfiles(zf)
     if any(files_errors.values()):
         errors = []
-        if files_errors['empty']:
-            error = _('This archive contains no csv files.')
-            errors.append(jsonapi_error(status=422,
-                          details=error, pointer='file'))
-        empty_files = files_errors['empty_files']
+        if files_errors["empty"]:
+            error = _("This archive contains no csv files.")
+            errors.append(jsonapi_error(status=422, details=error, pointer="file"))
+        empty_files = files_errors["empty_files"]
         if empty_files:
-            error = _('Following files are empty : {}'.
-                      format(', '.join(empty_files)))
-            errors.append(jsonapi_error(status=422,
-                          details=error, pointer='file'))
+            error = _("Following files are empty : {}".format(", ".join(empty_files)))
+            errors.append(jsonapi_error(status=422, details=error, pointer="file"))
         raise JSONBadRequest(*errors)
-    ead_dir = cnx.vreg.config.get('ead-services-dir')
+    ead_dir = cnx.vreg.config.get("ead-services-dir")
     if ead_dir is None:
         raise bad_request(_('missing "ead-services-dir" parameter in all-in-one.conf'))
     zf.extractall(ead_dir)
-    csv_files = [f for f in zf.namelist() if osp.splitext(f.lower())[1] == '.csv']
-    res = {'filepaths': [], 'metadata': None}
+    csv_files = [f for f in zf.namelist() if osp.splitext(f.lower())[1] == ".csv"]
+    res = {"filepaths": [], "metadata": None}
     for filepath in csv_files:
-        if filepath.endswith('metadata.csv'):
-            res['metadata'] = osp.join(ead_dir, filepath)
+        if filepath.endswith("metadata.csv"):
+            res["metadata"] = osp.join(ead_dir, filepath)
         else:
-            res['filepaths'].append(osp.join(ead_dir, filepath))
+            res["filepaths"].append(osp.join(ead_dir, filepath))
     return res
 
 
 def process_faimport_xml(cnx, fileobj, servicecode):
     _ = cnx._
-    ead_dir = cnx.vreg.config.get('ead-services-dir')
+    ead_dir = cnx.vreg.config.get("ead-services-dir")
     if ead_dir is None:
         raise bad_request(_('missing "ead-services-dir" parameter in all-in-one.conf'))
     directory = osp.join(ead_dir, servicecode)
     filepath = osp.join(ead_dir, servicecode, fileobj.filename)
     if not osp.exists(directory):
         os.makedirs(directory)
-    with open(filepath, 'wb') as f:
+    with open(filepath, "wb") as f:
         f.write(fileobj.value)
     return [filepath]
+
+
+def get_eac_dir(cnx):
+    eac_dir = cnx.vreg.config.get("eac-services-dir")
+    if eac_dir is None:
+        raise bad_request(cnx._('missing "eac-services-dir" parameter in all-in-one.conf'))
+    if not osp.exists(eac_dir):
+        os.makedirs(eac_dir)
+    return eac_dir
+
+
+def process_authorityrecords_zip(cnx, fileobj):
+    """store zip files directly in the eac_dir"""
+    eac_dir = get_eac_dir(cnx)
+    _ = cnx._
+    if fileobj is None:
+        raise bad_request(_("This file is empty"))
+    if not zipfile.is_zipfile(fileobj.file):
+        raise bad_request(_("This file in not a zip file"))
+    zf = zipfile.ZipFile(fileobj.file, mode="r")
+    zf.extractall(eac_dir)
+    return [
+        osp.join(eac_dir, filepath)
+        for filepath in zf.namelist()
+        if osp.splitext(filepath.lower())[1] == ".xml"
+    ]
+
+
+def process_authorityrecord_xml(cnx, fileobj, servicecode):
+    """store the file in the eac_dir sub-directory (servicecode)"""
+    eac_dir = get_eac_dir(cnx)
+    service_dir = osp.join(eac_dir, servicecode)
+    if not osp.exists(service_dir):
+        os.makedirs(service_dir)
+    filepath = osp.join(service_dir, fileobj.filename)
+    with open(filepath, "wb") as f:
+        f.write(fileobj.value)
+    return filepath

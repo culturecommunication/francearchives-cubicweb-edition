@@ -38,42 +38,31 @@ class EditionIndexView(PniaIndexView):
     __select__ = PniaIndexView.__select__ & authenticated_user()
 
     def initial_state(self):
-        rset = self._cw.find('Section', name=u'non-repris')
-        return {
-            'model': {
-                'entity': {
-                    'cw_etype': 'Section',
-                    'eid': rset[0][0] if rset else None,
-                }
-            }
-        }
+        rset = self._cw.find("Section", name="non-repris")
+        return {"model": {"entity": {"cw_etype": "Section", "eid": rset[0][0] if rset else None,}}}
 
     def call(self):
-        self.w(u'<link rel="cms-js" url="fa-import">')
-        self.w(u'<link rel="cms-js" url="fa-tasks">')
-        self.w(u'<link rel="cms-js" url="todos">')
-        self.w(u'<link rel="cms-js" url="add">')
-        self.w(u'<link rel="cms-js" url="add-service">')
-        self.w(u'<link rel="cms-js" url="cwusers">')
-        eschema = self._cw.vreg.schema['CWUser']
-        if eschema.has_perm(self._cw, 'add'):
-            self.w(u'<link rel="cms-js" url="add-user">')
+        self.w('<link rel="cms-js" url="fa-import">')
+        self.w('<link rel="cms-js" url="fa-tasks">')
+        self.w('<link rel="cms-js" url="fa-bord">')
+        self.w('<link rel="cms-js" url="todos">')
+        self.w('<link rel="cms-js" url="add">')
+        self.w('<link rel="cms-js" url="add-service">')
+        self.w('<link rel="cms-js" url="cwusers">')
+        eschema = self._cw.vreg.schema["CWUser"]
+        if eschema.has_perm(self._cw, "add"):
+            self.w('<link rel="cms-js" url="add-user">')
         rset = self._cw.execute('Any X WHERE X is Metadata, X uuid "metadata-homepage"')
         if rset:
-            self.w(u'<link rel="cms-js" url="homepage-metadata">')
+            self.w('<link rel="cms-js" url="homepage-metadata">')
             meta = rset.one()
-            self._cw.html_headers.define_var('HOME_METADATA', {
-                'eid': meta.eid,
-                'cw_etype': 'Metadata'
-            })
+            self._cw.html_headers.define_var(
+                "HOME_METADATA", {"eid": meta.eid, "cw_etype": "Metadata"}
+            )
         rset = self._cw.execute('Any X WHERE X is Card, X wikiid "alert"')
         if rset:
-            self.w(u'<link rel="cms-js" url="alert">')
+            self.w('<link rel="cms-js" url="alert">')
             alert = rset.one()
-            self._cw.html_headers.define_var('ALERT_CARD', {
-                'eid': alert.eid,
-                'cw_etype': 'Card'
-            })
-        self._cw.html_headers.define_var(
-            'INITIAL_STATE', self.initial_state())
+            self._cw.html_headers.define_var("ALERT_CARD", {"eid": alert.eid, "cw_etype": "Card"})
+        self._cw.html_headers.define_var("INITIAL_STATE", self.initial_state())
         super(EditionIndexView, self).call()

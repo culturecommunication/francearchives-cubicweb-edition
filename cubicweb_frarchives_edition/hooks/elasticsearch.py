@@ -28,7 +28,7 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
-from __future__ import absolute_import
+
 
 from urllib3.exceptions import ProtocolError
 
@@ -46,87 +46,85 @@ from cubicweb_frarchives_edition.hooks import custom_on_fire_transition
 
 
 def es_published_indexer(cnx):
-    return cnx.vreg['es'].select('indexer', cnx, published=True)
+    return cnx.vreg["es"].select("indexer", cnx, published=True)
 
 
 class EsDocumentHook(hook.Hook):
     """update related entity to EsDocument in Elasticsearch database"""
 
-    __regid__ = 'elasticsearch.contentupdatetoes.esdocument'
-    __select__ = hook.Hook.__select__ & is_instance('EsDocument')
-    events = ('after_update_entity',)
-    category = 'es'
+    __regid__ = "elasticsearch.contentupdatetoes.esdocument"
+    __select__ = hook.Hook.__select__ & is_instance("EsDocument")
+    events = ("after_update_entity",)
+    category = "es"
 
     def __call__(self):
-        IndexEsOperation.get_instance(self._cw).add_data({
-            'op_type': 'index',
-            'entity': self.entity.entity[0],
-        })
+        IndexEsOperation.get_instance(self._cw).add_data(
+            {"op_type": "index", "entity": self.entity.entity[0],}
+        )
 
 
 class FAESTransactionQueue(ESTransactionQueue):
-    sync_service = 'sync'
+    sync_service = "sync"
 
     @staticmethod
     def published_entity(entity):
         # if entity is FAComponent, rely on its parent's state
-        if entity.cw_etype == 'FAComponent':
+        if entity.cw_etype == "FAComponent":
             entity = entity.finding_aid[0]
-        wf = entity.cw_adapt_to('IWorkflowable')
+        wf = entity.cw_adapt_to("IWorkflowable")
         if wf is None:
             return True
-        return wf.state == 'wfs_cmsobject_published'
+        return wf.state == "wfs_cmsobject_published"
 
     def process_operations(self, es_operations):
         done = set()
         super(FAESTransactionQueue, self).process_operations(es_operations)
         sync_operations = []
         for es_operation in es_operations:
-            op_type = es_operation['op_type']
-            entity = es_operation['entity']
+            op_type = es_operation["op_type"]
+            entity = es_operation["entity"]
             if (op_type, entity.eid) in done:
                 continue
             done.add((op_type, entity.eid))
             is_published = self.published_entity(entity)
-            if op_type == 'delete' or op_type == 'sync-delete':
-                sync_operations.append(('delete', entity))
+            if op_type == "delete" or op_type == "sync-delete":
+                sync_operations.append(("delete", entity))
             elif is_published:
-                sync_operations.append(('index', entity))
+                sync_operations.append(("index", entity))
         if sync_operations:
-            sync_service = self._cw.vreg['services'].select(self.sync_service, self._cw)
+            sync_service = self._cw.vreg["services"].select(self.sync_service, self._cw)
             try:
                 sync_service.sync(sync_operations)
             except (ConnectionError, ProtocolError, NotFoundError):
-                op_str = ', '.join('{} #{}'.format(op_type, entity.eid)
-                                   for op_type, entity in sync_operations)
-                self.warning('[ES] Failed sync operations %s', op_str)
+                op_str = ", ".join(
+                    "{} #{}".format(op_type, entity.eid) for op_type, entity in sync_operations
+                )
+                self.warning("[ES] Failed sync operations %s", op_str)
 
 
 class UpdateStateInESHook(hook.Hook):
     """Launch finding aid file import threaded task."""
-    __regid__ = 'frarchives_edition.update-state-in-es'
-    __select__ = (hook.Hook.__select__
-                  & custom_on_fire_transition(CMS_OBJECTS + ('FindingAid',),
-                                              {'wft_cmsobject_publish', 'wft_cmsobject_unpublish'}))
-    events = ('after_add_entity', )
-    category = 'es'
+
+    __regid__ = "frarchives_edition.update-state-in-es"
+    __select__ = hook.Hook.__select__ & custom_on_fire_transition(
+        CMS_OBJECTS + ("FindingAid",), {"wft_cmsobject_publish", "wft_cmsobject_unpublish"}
+    )
+    events = ("after_add_entity",)
+    category = "es"
 
     def __call__(self):
         trname = self.entity.transition.name
         target = self.entity.for_entity
         op = IndexEsOperation.get_instance(self._cw)
-        if trname == 'wft_cmsobject_unpublish':
-            op.add_data({
-                'op_type': 'sync-delete',
-                'entity': target,
-            })
-        op.add_data({
-            'op_type': 'index',
-            'entity': target,
-        })
+        if trname == "wft_cmsobject_unpublish":
+            op.add_data(
+                {"op_type": "sync-delete", "entity": target,}
+            )
+        op.add_data(
+            {"op_type": "index", "entity": target,}
+        )
 
 
 def registration_callback(vreg):
-    vreg.register_all(globals().values(), __name__,
-                      (FAESTransactionQueue,))
+    vreg.register_all(list(globals().values()), __name__, (FAESTransactionQueue,))
     vreg.register_and_replace(FAESTransactionQueue, ESTransactionQueue)

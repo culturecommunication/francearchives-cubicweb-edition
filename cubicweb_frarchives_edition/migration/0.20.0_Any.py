@@ -30,4 +30,4 @@
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
 
-sync_schema_props_perms('upassword')
+sync_schema_props_perms("upassword")

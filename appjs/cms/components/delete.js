@@ -33,6 +33,7 @@ const {createElement: ce, Component} = require('react'),
 
 const {default: {getEntity, deleteEntity}} = require('../api'),
       {spinner} = require('../components/fa');
+const {parse} = require('query-string');
 
 
 function renderValidationError(error) {
@@ -52,10 +53,11 @@ class DeleteForm extends Component {
         this.deleteEntity = this.deleteEntity.bind(this);
     }
 
-    componentWillReceiveProps(nextProps) {
+    UNSAFE_componentWillReceiveProps(nextProps) {
         const nextEntity = nextProps.entity.toJS(),
-              cw_etype = nextProps.location.query.cwetype || nextEntity.cw_etype,
-              eid = nextProps.location.query.eid || nextEntity.eid;
+              query = parse(nextProps.location.search),
+              cw_etype = query.cwetype || nextEntity.cw_etype,
+              eid = query.eid || nextEntity.eid;
         if (this.entity.eid === eid) {
             return;
         }
@@ -69,8 +71,9 @@ class DeleteForm extends Component {
     }
 
     componentDidMount() {
-        const cw_etype = this.props.location.query.cwetype || this.entity.cw_etype,
-              eid = this.props.location.query.eid || this.entity.eid;
+        const query = parse(this.props.location.search);
+        const cw_etype = query.cw_etype || this.entity.cw_etype,
+              eid = query.eid || this.entity.eid;
         this.fetchData(eid, cw_etype);
     }
 
@@ -131,6 +134,7 @@ class DeleteForm extends Component {
 DeleteForm.propTypes = {
     entity: PropTypes.object,
     location: PropTypes.shape({
+        search: PropTypes.object,
         query: PropTypes.shape({
             eid: PropTypes.string,
             cwetype: PropTypes.string,

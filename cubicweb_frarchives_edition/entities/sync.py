@@ -31,8 +31,7 @@
 from inspect import isclass
 from copy import copy
 
-import urlparse
-from elasticsearch import Elasticsearch
+import urllib.parse
 from elasticsearch import helpers as es_helpers
 
 from logilab.common.decorators import cachedproperty
@@ -40,6 +39,8 @@ from logilab.common.decorators import cachedproperty
 from cubicweb.predicates import is_instance, relation_possible, is_in_state
 from cubicweb.view import EntityAdapter
 from cubicweb.server import Service
+
+from cubicweb_elasticsearch.es import get_connection
 
 from cubicweb_varnish.varnishadm import varnish_cli_connect_from_config
 
@@ -50,163 +51,182 @@ from cubicweb_francearchives.dataimport import es_bulk_index
 def set_selectable_if_published(adapter):
     """object should be syncable only if publishable _and_ published"""
     adapter.__select__ = adapter.__select__ & (
-        ~relation_possible('in_state') | is_in_state('wfs_cmsobject_published')
+        ~relation_possible("in_state") | is_in_state("wfs_cmsobject_published")
     )
 
 
 class SyncService(Service):
-    __regid__ = 'sync'  # XXX
+    __regid__ = "sync"  # XXX
 
     @cachedproperty
     def cms_es_params(self):
         return {
-            'elasticsearch-locations': self._cw.vreg.config['elasticsearch-locations'],
-            'index-name': self._cw.vreg.config['index-name'],
+            "elasticsearch-locations": self._cw.vreg.config["elasticsearch-locations"],
+            "index-name": self._cw.vreg.config["index-name"],
         }
 
     @cachedproperty
     def public_es_params(self):
         return {
-            'elasticsearch-locations': self._cw.vreg.config['elasticsearch-locations'],
-            'index-name': self._cw.vreg.config['published-index-name'],
+            "elasticsearch-locations": self._cw.vreg.config["elasticsearch-locations"],
+            "index-name": self._cw.vreg.config["published-index-name"],
         }
 
     @cachedproperty
     def cms_index_name(self):
-        return self.cms_es_params['index-name'] + '_all'
+        return self.cms_es_params["index-name"] + "_all"
 
     @cachedproperty
     def public_index_name(self):
-        return self.public_es_params['index-name'] + '_all'
+        return self.public_es_params["index-name"] + "_all"
 
     def sync(self, sync_operations):
         urls_to_purge = []
         for op_type, entity in sync_operations:
             try:
-                ivarnish = entity.cw_adapt_to('IVarnish')
+                ivarnish = entity.cw_adapt_to("IVarnish")
                 if ivarnish is not None:
                     urls_to_purge += ivarnish.urls_to_purge()
-                if op_type == 'index':
+                if op_type == "index":
                     self.fs_sync_index(entity)
                     self.es_sync_index(entity)
-                elif op_type == 'delete':
+                elif op_type == "delete":
                     self.fs_sync_delete(entity)
                     self.es_sync_delete(entity)
             except Exception:
                 import traceback
+
                 traceback.print_exc()
         self.purge_varnish(urls_to_purge)
 
     def purge_varnish(self, urls):
         config = self._cw.vreg.config
-        if not config.get('varnishcli-hosts'):
+        if not config.get("varnishcli-hosts"):
             return
-        purge_cmd = 'ban req.url ~'
+        purge_cmd = "ban req.url ~"
         cnxs = varnish_cli_connect_from_config(config)
         for url in urls:
             for varnish_cli in cnxs:
-                varnish_cli.execute(purge_cmd, '^%s' % urlparse.urlparse(url).path)
+                varnish_cli.execute(purge_cmd, "^%s" % urllib.parse.urlparse(url).path)
         for varnish_cli in cnxs:
             varnish_cli.close()
 
     def es_sync_index(self, entity):
-        if not self.cms_es_params.get('elasticsearch-locations'):
+        if not self.cms_es_params.get("elasticsearch-locations"):
+            self.error('no "elasticsearch-locations" config found')
             return
-        es = Elasticsearch(self.cms_es_params['elasticsearch-locations'])
-        if entity.cw_etype == 'FindingAid':
-            es_helpers.reindex(es,
-                               source_index=self.cms_index_name,
-                               target_index=self.public_index_name,
-                               query={'query': {"match": {"fa_stable_id": entity.stable_id}}})
+        es = get_connection(self.cms_es_params)
+        if entity.cw_etype == "FindingAid":
+            es_helpers.reindex(
+                es,
+                source_index=self.cms_index_name,
+                target_index=self.public_index_name,
+                query={"query": {"match": {"fa_stable_id": entity.stable_id}}},
+            )
         else:
-            es_helpers.reindex(es,
-                               source_index=self.cms_index_name,
-                               target_index=self.public_index_name,
-                               query={'query': {"match": {"eid": entity.eid}}})
+            es_helpers.reindex(
+                es,
+                source_index=self.cms_index_name,
+                target_index=self.public_index_name,
+                query={"query": {"match": {"eid": entity.eid}}},
+            )
 
     def fs_sync_index(self, entity):
-        ifilesync = entity.cw_adapt_to('IFileSync')
+        ifilesync = entity.cw_adapt_to("IFileSync")
         if ifilesync is not None:
             ifilesync.copy()
 
     @staticmethod
     def _delete_fa_documents(es, index_name, stable_id):
         """return all documents of type ``etype`` stored in ES"""
-        for doc in es_helpers.scan(es,
-                                   index=index_name, doc_type='_doc',
-                                   docvalue_fields=(),
-                                   query={"query": {"match": {"fa_stable_id": stable_id}}}):
+        for doc in es_helpers.scan(
+            es,
+            index=index_name,
+            docvalue_fields=(),
+            query={"query": {"match": {"fa_stable_id": stable_id}}},
+        ):
             yield {
-                '_op_type': 'delete',
-                '_index': index_name,
-                '_type': '_doc',
-                '_id': doc['_id'],
+                "_op_type": "delete",
+                "_index": index_name,
+                "_type": "_doc",
+                "_id": doc["_id"],
             }
 
     def es_sync_delete(self, entity):
-        es = Elasticsearch(self.cms_es_params['elasticsearch-locations'])
-        serializable = entity.cw_adapt_to('IFullTextIndexSerializable')
-        if entity.cw_etype == 'FindingAid':
-            es_docs = self._delete_fa_documents(
-                es,
-                self.public_index_name,
-                entity.stable_id)
+        if not self.cms_es_params.get("elasticsearch-locations"):
+            self.error('no "elasticsearch-locations" config found')
+            return
+        es = get_connection(self.cms_es_params)
+        serializable = entity.cw_adapt_to("IFullTextIndexSerializable")
+        if entity.cw_etype == "FindingAid":
+            es_docs = self._delete_fa_documents(es, self.public_index_name, entity.stable_id)
             es_bulk_index(es, es_docs, raise_on_error=False)
         else:
-            es.delete(self.public_index_name,
-                      doc_type=serializable.es_doc_type,
-                      id=serializable.es_id)
+            es.delete(
+                self.public_index_name, doc_type=serializable.es_doc_type, id=serializable.es_id
+            )
 
     def fs_sync_delete(self, entity):
-        ifilesync = entity.cw_adapt_to('IFileSync')
+        ifilesync = entity.cw_adapt_to("IFileSync")
         if ifilesync is not None:
             ifilesync.delete()
 
 
 class SuggestSyncService(Service):
-    __regid__ = 'reindex-suggest'
+    __regid__ = "reindex-suggest"
+
+    @cachedproperty
+    def cms_es_params(self):
+        return {
+            "elasticsearch-locations": self._cw.vreg.config["elasticsearch-locations"],
+        }
 
     @cachedproperty
     def cms_index_name(self):
-        return '{}_suggest'.format(self._cw.vreg.config['index-name'])
+        return "{}_suggest".format(self._cw.vreg.config["index-name"])
 
     @cachedproperty
     def public_index_name(self):
-        return '{}_suggest'.format(self._cw.vreg.config['published-index-name'])
+        return "{}_suggest".format(self._cw.vreg.config["published-index-name"])
 
     def index_authorities(self, authorities):
-        es = Elasticsearch(self._cw.vreg.config['elasticsearch-locations'])
+        if not self.cms_es_params.get("elasticsearch-locations"):
+            self.error('no "elasticsearch-locations" config found')
+            return
+        es = get_connection(self.cms_es_params)
         cms_docs, public_docs = [], []
         for entity in authorities:
-            serializable = entity.cw_adapt_to('ISuggestIndexSerializable')
+            serializable = entity.cw_adapt_to("ISuggestIndexSerializable")
             json = serializable.serialize()
             if not json:
                 continue
-            for _docs, index_name, count in ((cms_docs, self.cms_index_name,
-                                              json['count']),
-                                             (public_docs, self.public_index_name,
-                                              serializable.published_count())):
+            for _docs, index_name, count in (
+                (cms_docs, self.cms_index_name, json["count"]),
+                (public_docs, self.public_index_name, serializable.published_docs()),
+            ):
                 json = copy(json)
-                json['count'] = count
-                _docs.append({
-                    '_op_type': 'index' if count else 'delete',
-                    '_id': entity.eid,
-                    '_type': '_doc',
-                    '_index': index_name,
-                    '_source': json
-                })
+                json["count"] = count
+                _docs.append(
+                    {
+                        "_op_type": "index",
+                        "_id": entity.eid,
+                        "_type": "_doc",
+                        "_index": index_name,
+                        "_source": json,
+                    }
+                )
         for docs in (cms_docs, public_docs):
             if docs:
                 es_bulk_index(es, docs, raise_on_error=False)
 
 
-for obj in vars(fa_sync).values():
+for obj in list(vars(fa_sync).values()):
     if isclass(obj) and obj is not EntityAdapter and issubclass(obj, EntityAdapter):
         set_selectable_if_published(obj)
 
 
 def has_transition(entity, *trnames):
-    wfable = entity.cw_adapt_to('IWorkflowable')
+    wfable = entity.cw_adapt_to("IWorkflowable")
     if wfable is not None:
         for trname in trnames:
             transition = wfable.main_workflow.transition_by_name(trname)
@@ -217,49 +237,62 @@ def has_transition(entity, *trnames):
 
 class ICompoundAdapter(EntityAdapter):
     __abstract__ = True
-    __regid__ = 'ICompound'
+    __regid__ = "ICompound"
 
     parent_rtypes = ()
 
     @property
-    def root(self):
+    def roots(self):
+        """some parent relations can be multiple, we must consider all parents"""
+        roots = []
         for rtype, role in self.parent_rtypes:
             parent_rset = self.entity.related(rtype, role)
-            if parent_rset:
-                parent = parent_rset.one()
-                icompound = parent.cw_adapt_to('ICompound')
+            for parent in parent_rset.entities():
+                icompound = parent.cw_adapt_to("ICompound")
                 if icompound is None:
-                    return parent
-                return icompound.root
-        return None
+                    roots.append(parent)
+                else:
+                    roots.extend(icompound.roots)
+        return roots
 
 
 class MetadataICompound(ICompoundAdapter):
-    __select__ = is_instance('Metadata')
-    parent_rtypes = [('metadata', 'object')]
+    __select__ = is_instance("Metadata")
+    parent_rtypes = [("metadata", "object")]
 
 
 class ImageICompound(ICompoundAdapter):
-    __select__ = is_instance('Image')
-    parent_rtypes = [(rtype, 'object')
-                     for rtype in ('commemoration_image', 'news_image',
-                                   'basecontent_image', 'section_image',
-                                   'service_image', 'map_image',
-                                   'externref_image')]
+    __select__ = is_instance("Image")
+    parent_rtypes = [
+        (rtype, "object")
+        for rtype in (
+            "commemoration_image",
+            "news_image",
+            "basecontent_image",
+            "section_image",
+            "service_image",
+            "map_image",
+            "externref_image",
+        )
+    ]
 
 
 class CssImageICompound(ICompoundAdapter):
-    __select__ = is_instance('CssImage')
-    parent_rtypes = [('cssimage_of', 'subject'), ]
+    __select__ = is_instance("CssImage")
+    parent_rtypes = [
+        ("cssimage_of", "subject"),
+    ]
 
 
 class FileICompound(ICompoundAdapter):
-    __select__ = is_instance('File')
-    parent_rtypes = [('image_file', 'object'),
-                     ('attachment', 'object'),
-                     ('additional_attachment', 'object')]
+    __select__ = is_instance("File")
+    parent_rtypes = [
+        ("image_file", "object"),
+        ("attachment", "object"),
+        ("additional_attachment", "object"),
+    ]
 
 
 class OfficialTextICompound(ICompoundAdapter):
-    __select__ = is_instance('OfficialText')
-    parent_rtypes = [('circular', 'subject')]
+    __select__ = is_instance("OfficialText")
+    parent_rtypes = [("circular", "subject")]

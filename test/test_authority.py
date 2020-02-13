@@ -35,6 +35,7 @@ from cubicweb.devtools import PostgresApptestConfiguration
 from cubicweb.utils import json_dumps
 
 from cubicweb_francearchives.dataimport import ead, sqlutil
+from cubicweb_francearchives.dataimport.stores import create_massive_store
 
 from cubicweb_frarchives_edition.tasks.dedupe_authorities import dedupe
 
@@ -56,19 +57,23 @@ class AutoDedupeTC(FrACubicConfigMixIn, CubicWebTC):
             self.assertFalse(cnx.find(auth2.cw_etype, eid=auth2.eid))
             # index2 should have been redirected on auth1
             self.assertEqual(
-                {x for x, in cnx.execute('Any X WHERE X authority A, A eid %(a)s',
-                                         {'a': auth1.eid})},
-                {index1.eid, index2.eid}
+                {
+                    x
+                    for x, in cnx.execute(
+                        "Any X WHERE X authority A, A eid %(a)s", {"a": auth1.eid}
+                    )
+                },
+                {index1.eid, index2.eid},
             )
 
     def test_most_same_as_is_better_agent_non_strict(self):
         with self.admin_access.cnx() as cnx:
             ce = cnx.create_entity
-            ext1 = ce('ExternalUri', uri=u'http://example.com/auth')
-            auth1 = ce('AgentAuthority', label=u'example Agent')
-            auth2 = ce('AgentAuthority', label=u'example agent')
-            index1 = ce('AgentName', label=u'example Agent', authority=auth1)
-            index2 = ce('AgentName', label=u'example agent', authority=auth2)
+            ext1 = ce("ExternalUri", uri="http://example.com/auth")
+            auth1 = ce("AgentAuthority", label="example Agent")
+            auth2 = ce("AgentAuthority", label="example agent")
+            index1 = ce("AgentName", label="example Agent", authority=auth1)
+            index2 = ce("AgentName", label="example agent", authority=auth2)
             auth1.cw_set(same_as=ext1)
             cnx.commit()
         self._run_and_assert_dedupe(auth1, auth2, index1, index2, strict=False)
@@ -76,11 +81,11 @@ class AutoDedupeTC(FrACubicConfigMixIn, CubicWebTC):
     def test_most_same_as_is_better_agent(self):
         with self.admin_access.cnx() as cnx:
             ce = cnx.create_entity
-            ext1 = ce('ExternalUri', uri=u'http://example.com/auth')
-            auth1 = ce('AgentAuthority', label=u'example agent')
-            auth2 = ce('AgentAuthority', label=u'example agent')
-            index1 = ce('AgentName', label=u'example agent', authority=auth1)
-            index2 = ce('AgentName', label=u'example agent', authority=auth2)
+            ext1 = ce("ExternalUri", uri="http://example.com/auth")
+            auth1 = ce("AgentAuthority", label="example agent")
+            auth2 = ce("AgentAuthority", label="example agent")
+            index1 = ce("AgentName", label="example agent", authority=auth1)
+            index2 = ce("AgentName", label="example agent", authority=auth2)
             auth1.cw_set(same_as=ext1)
             cnx.commit()
         self._run_and_assert_dedupe(auth1, auth2, index1, index2)
@@ -88,11 +93,11 @@ class AutoDedupeTC(FrACubicConfigMixIn, CubicWebTC):
     def test_most_same_as_is_better_subject(self):
         with self.admin_access.cnx() as cnx:
             ce = cnx.create_entity
-            ext1 = ce('ExternalUri', uri=u'http://example.com/auth')
-            auth1 = ce('SubjectAuthority', label=u'example subject')
-            auth2 = ce('SubjectAuthority', label=u'example subject')
-            index1 = ce('Subject', label=u'example subject', authority=auth1)
-            index2 = ce('Subject', label=u'example subject', authority=auth2)
+            ext1 = ce("ExternalUri", uri="http://example.com/auth")
+            auth1 = ce("SubjectAuthority", label="example subject")
+            auth2 = ce("SubjectAuthority", label="example subject")
+            index1 = ce("Subject", label="example subject", authority=auth1)
+            index2 = ce("Subject", label="example subject", authority=auth2)
             auth1.cw_set(same_as=ext1)
             cnx.commit()
         self._run_and_assert_dedupe(auth1, auth2, index1, index2)
@@ -100,11 +105,11 @@ class AutoDedupeTC(FrACubicConfigMixIn, CubicWebTC):
     def test_most_same_as_is_better_location(self):
         with self.admin_access.cnx() as cnx:
             ce = cnx.create_entity
-            ext1 = ce('ExternalUri', uri=u'http://example.com/auth')
-            auth1 = ce('LocationAuthority', label=u'example location')
-            auth2 = ce('LocationAuthority', label=u'example location')
-            index1 = ce('Geogname', label=u'example location', authority=auth1)
-            index2 = ce('Geogname', label=u'example location', authority=auth2)
+            ext1 = ce("ExternalUri", uri="http://example.com/auth")
+            auth1 = ce("LocationAuthority", label="example location")
+            auth2 = ce("LocationAuthority", label="example location")
+            index1 = ce("Geogname", label="example location", authority=auth1)
+            index2 = ce("Geogname", label="example location", authority=auth2)
             auth1.cw_set(same_as=ext1)
             cnx.commit()
         self._run_and_assert_dedupe(auth1, auth2, index1, index2)
@@ -112,32 +117,38 @@ class AutoDedupeTC(FrACubicConfigMixIn, CubicWebTC):
     def _setup_restrict(self):
         with self.admin_access.cnx() as cnx:
             ce = cnx.create_entity
-            fa1 = create_findingaid(cnx)
-            s1 = ce('Service', code=u'FRAD033', category=u'fake')
+            fa1 = create_findingaid(cnx, name="FRAD033_1")
+            s1 = ce("Service", code="FRAD033", category="fake")
             fa1.cw_set(service=s1)
-            fa2 = create_findingaid(cnx)
+            fa2 = create_findingaid(cnx, name="FRAD033_2")
             fa2.cw_set(service=s1)
-            fa3 = create_findingaid(cnx)
-            s2 = ce('Service', code=u'FRAD040', category=u'fake')
+            fa3 = create_findingaid(cnx, name="FRAD033_3")
+            s2 = ce("Service", code="FRAD040", category="fake")
             fa3.cw_set(service=s2)
-            ext1 = ce('ExternalUri', uri=u'http://example.com/auth')
-            auth1 = ce('AgentAuthority', label=u'example agent')
-            auth2 = ce('AgentAuthority', label=u'example agent')
-            auth3 = ce('AgentAuthority', label=u'example agent')
-            auth4 = ce('AgentAuthority', label=u'example agent')
-            index1 = ce('AgentName', label=u'example agent', authority=auth1, index=fa1)
-            index2 = ce('AgentName', label=u'example agent', authority=auth2, index=fa2)
-            index3 = ce('AgentName', label=u'example agent', authority=auth3, index=fa3)
+            ext1 = ce("ExternalUri", uri="http://example.com/auth")
+            auth1 = ce("AgentAuthority", label="example agent")
+            auth2 = ce("AgentAuthority", label="example agent")
+            auth3 = ce("AgentAuthority", label="example agent")
+            auth4 = ce("AgentAuthority", label="example agent")
+            index1 = ce("AgentName", label="example agent", authority=auth1, index=fa1)
+            index2 = ce("AgentName", label="example agent", authority=auth2, index=fa2)
+            index3 = ce("AgentName", label="example agent", authority=auth3, index=fa3)
             auth1.cw_set(same_as=ext1)
-            ce('EsDocument', entity=fa1, doc=json_dumps({
-                'index_entries': [{'authority': auth1.eid}]
-            }))
-            ce('EsDocument', entity=fa2, doc=json_dumps({
-                'index_entries': [{'authority': auth2.eid}]
-            }))
-            ce('EsDocument', entity=fa3, doc=json_dumps({
-                'index_entries': [{'authority': auth3.eid}]
-            }))
+            ce(
+                "EsDocument",
+                entity=fa1,
+                doc=json_dumps({"index_entries": [{"authority": auth1.eid}]}),
+            )
+            ce(
+                "EsDocument",
+                entity=fa2,
+                doc=json_dumps({"index_entries": [{"authority": auth2.eid}]}),
+            )
+            ce(
+                "EsDocument",
+                entity=fa3,
+                doc=json_dumps({"index_entries": [{"authority": auth3.eid}]}),
+            )
             cnx.commit()
         return auth1, auth2, auth3, auth4, index1, index2, index3, fa1, fa2, fa3
 
@@ -153,18 +164,18 @@ class AutoDedupeTC(FrACubicConfigMixIn, CubicWebTC):
             # all AgentName should have been redirected to auth1
             auth1 = cnx.entity_from_eid(auth1.eid)
             self.assertCountEqual(
-                [e.eid for e in auth1.reverse_authority],
-                [index1.eid, index2.eid, index3.eid]
+                [e.eid for e in auth1.reverse_authority], [index1.eid, index2.eid, index3.eid]
             )
             # all es documents should have been rewritten
             for fa in (fa1, fa2, fa3):
                 fa = cnx.entity_from_eid(fa.eid)
-                index_entries = fa.reverse_entity[0].doc['index_entries']
-                self.assertTrue(all(
-                    i.get('authority') == auth1.eid for i in index_entries
-                ), 'something wrong with index_entries `{}` (auth: {})'.format(
-                    index_entries, auth1.eid
-                ))
+                index_entries = fa.reverse_entity[0].doc["index_entries"]
+                self.assertTrue(
+                    all(i.get("authority") == auth1.eid for i in index_entries),
+                    "something wrong with index_entries `{}` (auth: {})".format(
+                        index_entries, auth1.eid
+                    ),
+                )
 
     def test_restrict_to_service_and_alone(self):
         """
@@ -174,7 +185,7 @@ class AutoDedupeTC(FrACubicConfigMixIn, CubicWebTC):
         """
         auth1, auth2, auth3, auth4, index1, index2, index3, fa1, fa2, fa3 = self._setup_restrict()
         with self.admin_access.cnx() as cnx:
-            dedupe(cnx, service='FRAD033')
+            dedupe(cnx, service="FRAD033")
             # only auth1 and auth3 should exist after dedupe
             # auth3 has no same_as but it is linked to another service
             self.assertFalse(cnx.find(auth2.cw_etype, eid=auth2.eid))
@@ -184,61 +195,59 @@ class AutoDedupeTC(FrACubicConfigMixIn, CubicWebTC):
             # AgentName index2 should have been redirected to auth1
             auth1 = cnx.entity_from_eid(auth1.eid)
             self.assertCountEqual(
-                [e.eid for e in auth1.reverse_authority],
-                [index1.eid, index2.eid]
+                [e.eid for e in auth1.reverse_authority], [index1.eid, index2.eid]
             )
             # only es document related to fa2 should have been rewritten
             for fa in (fa1, fa2):
                 fa = cnx.entity_from_eid(fa.eid)
-                index_entries = fa.reverse_entity[0].doc['index_entries']
-                self.assertTrue(all(
-                    i.get('authority') == auth1.eid for i in index_entries
-                ), 'something wrong with index_entries `{}` (auth: {})'.format(
-                    index_entries, auth1.eid
-                ))
+                index_entries = fa.reverse_entity[0].doc["index_entries"]
+                self.assertTrue(
+                    all(i.get("authority") == auth1.eid for i in index_entries),
+                    "something wrong with index_entries `{}` (auth: {})".format(
+                        index_entries, auth1.eid
+                    ),
+                )
             fa3 = cnx.entity_from_eid(fa3.eid)
-            index_entries = fa3.reverse_entity[0].doc['index_entries']
-            self.assertTrue(all(
-                i.get('authority') == auth3.eid for i in index_entries
-            ), 'something wrong with index_entries `{}`'.format(
-                index_entries, auth3.eid
-            ))
+            index_entries = fa3.reverse_entity[0].doc["index_entries"]
+            self.assertTrue(
+                all(i.get("authority") == auth3.eid for i in index_entries),
+                "something wrong with index_entries `{}`".format(index_entries, auth3.eid),
+            )
 
 
 class ReapplyAuthorityOperationsTC(FrACubicConfigMixIn, CubicWebTC):
     configcls = PostgresApptestConfiguration
 
     readerconfig = {
-        'esonly': False,
-        'index-name': 'dummy',
-        'appid': 'data',
-        'nodrop': True,
-        'reimport': True,
-        'force_delete': True,
+        "esonly": False,
+        "index-name": "dummy",
+        "appid": "data",
+        "nodrop": True,
+        "reimport": True,
+        "force_delete": True,
     }
 
     def setUp(self):
         super(ReapplyAuthorityOperationsTC, self).setUp()
         with self.admin_access.cnx() as cnx:
-            self.service = cnx.create_entity(
-                'Service', code=u'FRAD095', category=u'foo')
+            self.service = cnx.create_entity("Service", code="FRAD095", category="foo")
             cnx.commit()
 
     def import_filepath(self, cnx, filepath, service_infos=None, **custom_settings):
-        if self.readerconfig['nodrop']:
-            fk_tables = ead.ead_foreign_key_tables(cnx.vreg.schema)
+        if self.readerconfig["nodrop"]:
+            fk_tables = sqlutil.ead_foreign_key_tables(cnx.vreg.schema)
             with sqlutil.sudocnx(cnx, interactive=False) as su_cnx:
                 sqlutil.disable_triggers(su_cnx, fk_tables)
-        store = ead.create_massive_store(cnx, nodrop=self.readerconfig['nodrop'])
+        store = create_massive_store(cnx, nodrop=self.readerconfig["nodrop"])
         settings = self.readerconfig.copy()
-        settings['appfiles-dir'] = self.datapath()
+        settings["appfiles-dir"] = self.datapath()
         settings.update(custom_settings)
         self.reader = ead.Reader(settings, store)
         es_doc = self.reader.import_filepath(filepath, service_infos)
         store.flush()
         store.finish()
         store.commit()
-        if self.readerconfig['nodrop']:
+        if self.readerconfig["nodrop"]:
             with sqlutil.sudocnx(cnx, interactive=False) as su_cnx:
                 sqlutil.enable_triggers(su_cnx, fk_tables)
         return es_doc
@@ -249,28 +258,33 @@ class ReapplyAuthorityOperationsTC(FrACubicConfigMixIn, CubicWebTC):
 
         """
         with self.admin_access.cnx() as cnx:
-            self.import_filepath(cnx, self.datapath('reapply_auth_op.xml'))
-            self.assertEqual(len(cnx.find('LocationAuthority')), 2)
+            self.import_filepath(cnx, self.datapath("reapply_auth_op.xml"))
+            self.assertEqual(len(cnx.find("LocationAuthority")), 2)
         with self.admin_access.cnx() as cnx:
-            self.import_filepath(cnx, self.datapath('reapply_auth_op.xml'),
-                                 autodedupe_authorities='service/strict')
-            self.assertEqual(len(cnx.find('LocationAuthority')), 4)
+            self.import_filepath(
+                cnx, self.datapath("reapply_auth_op.xml"), autodedupe_authorities="service/strict"
+            )
+            self.assertEqual(len(cnx.find("LocationAuthority")), 4)
 
     def test_auto_dedupe_with_service(self):
         """The service is set and will be taken into account while loading service related
         authorities during the import
 
         """
-        service_infos = {"code": self.service.code, 'eid': self.service.eid}
+        service_infos = {"code": self.service.code, "eid": self.service.eid}
         with self.admin_access.cnx() as cnx:
-            self.import_filepath(cnx, self.datapath('reapply_auth_op.xml'),
-                                 service_infos=service_infos,)
-            self.assertEqual(len(cnx.find('LocationAuthority')), 2)
+            self.import_filepath(
+                cnx, self.datapath("reapply_auth_op.xml"), service_infos=service_infos,
+            )
+            self.assertEqual(len(cnx.find("LocationAuthority")), 2)
         with self.admin_access.cnx() as cnx:
-            self.import_filepath(cnx, self.datapath('reapply_auth_op.xml'),
-                                 service_infos=service_infos,
-                                 autodedupe_authorities='service/strict')
-            self.assertEqual(len(cnx.find('LocationAuthority')), 2)
+            self.import_filepath(
+                cnx,
+                self.datapath("reapply_auth_op.xml"),
+                service_infos=service_infos,
+                autodedupe_authorities="service/strict",
+            )
+            self.assertEqual(len(cnx.find("LocationAuthority")), 2)
 
     def test_reapply_group_op_without_service(self):
         """No service is set thus no service related authorities will be loaded
@@ -278,30 +292,26 @@ class ReapplyAuthorityOperationsTC(FrACubicConfigMixIn, CubicWebTC):
 
         """
         with self.admin_access.cnx() as cnx:
-            self.import_filepath(cnx, self.datapath('reapply_auth_op.xml'))
-            self.assertEqual(len(cnx.find('LocationAuthority')), 2)
+            self.import_filepath(cnx, self.datapath("reapply_auth_op.xml"))
+            self.assertEqual(len(cnx.find("LocationAuthority")), 2)
             self.assertCountEqual(
-                [1, 1],
-                [len(a.reverse_authority) for a in cnx.find('LocationAuthority').entities()]
+                [1, 1], [len(a.reverse_authority) for a in cnx.find("LocationAuthority").entities()]
             )
         with self.admin_access.cnx() as cnx:
-            auth = cnx.find(
-                'LocationAuthority',
-                label=u"Nerville-la-Forêt (Val-d'Oise)"
-            ).one()
-            auth.group((cnx.find('LocationAuthority', label=u"Nerville-la-Forêt").one().eid,))
+            auth = cnx.find("LocationAuthority", label="Nerville-la-Forêt (Val-d'Oise)").one()
+            auth.group((cnx.find("LocationAuthority", label="Nerville-la-Forêt").one().eid,))
             cnx.commit()
             self.assertCountEqual(
-                [2, 0],
-                [len(a.reverse_authority) for a in cnx.find('LocationAuthority').entities()]
+                [2, 0], [len(a.reverse_authority) for a in cnx.find("LocationAuthority").entities()]
             )
         with self.admin_access.cnx() as cnx:
-            self.import_filepath(cnx, self.datapath('reapply_auth_op.xml'),
-                                 autodedupe_authorities='service/strict')
-            self.assertEqual(len(cnx.find('LocationAuthority')), 3)
+            self.import_filepath(
+                cnx, self.datapath("reapply_auth_op.xml"), autodedupe_authorities="service/strict"
+            )
+            self.assertEqual(len(cnx.find("LocationAuthority")), 3)
             self.assertCountEqual(
                 [1, 0, 1],
-                [len(a.reverse_authority) for a in cnx.find('LocationAuthority').entities()]
+                [len(a.reverse_authority) for a in cnx.find("LocationAuthority").entities()],
             )
 
     def test_reapply_group_op_with_service(self):
@@ -309,32 +319,30 @@ class ReapplyAuthorityOperationsTC(FrACubicConfigMixIn, CubicWebTC):
         authorities during the import
 
         """
-        service_infos = {"code": self.service.code, 'eid': self.service.eid}
+        service_infos = {"code": self.service.code, "eid": self.service.eid}
         with self.admin_access.cnx() as cnx:
-            self.import_filepath(cnx, self.datapath('reapply_auth_op.xml'),
-                                 service_infos=service_infos)
-            self.assertEqual(len(cnx.find('LocationAuthority')), 2)
+            self.import_filepath(
+                cnx, self.datapath("reapply_auth_op.xml"), service_infos=service_infos
+            )
+            self.assertEqual(len(cnx.find("LocationAuthority")), 2)
             self.assertCountEqual(
-                [1, 1],
-                [len(a.reverse_authority) for a in cnx.find('LocationAuthority').entities()]
+                [1, 1], [len(a.reverse_authority) for a in cnx.find("LocationAuthority").entities()]
             )
         with self.admin_access.cnx() as cnx:
-            auth = cnx.find(
-                'LocationAuthority',
-                label=u"Nerville-la-Forêt (Val-d'Oise)"
-            ).one()
-            auth.group((cnx.find('LocationAuthority', label=u"Nerville-la-Forêt").one().eid,))
+            auth = cnx.find("LocationAuthority", label="Nerville-la-Forêt (Val-d'Oise)").one()
+            auth.group((cnx.find("LocationAuthority", label="Nerville-la-Forêt").one().eid,))
             cnx.commit()
             self.assertCountEqual(
-                [2, 0],
-                [len(a.reverse_authority) for a in cnx.find('LocationAuthority').entities()]
+                [2, 0], [len(a.reverse_authority) for a in cnx.find("LocationAuthority").entities()]
             )
         with self.admin_access.cnx() as cnx:
-            self.import_filepath(cnx, self.datapath('reapply_auth_op.xml'),
-                                 service_infos=service_infos,
-                                 autodedupe_authorities='service/strict')
-            self.assertEqual(len(cnx.find('LocationAuthority')), 2)
+            self.import_filepath(
+                cnx,
+                self.datapath("reapply_auth_op.xml"),
+                service_infos=service_infos,
+                autodedupe_authorities="service/strict",
+            )
+            self.assertEqual(len(cnx.find("LocationAuthority")), 2)
             self.assertCountEqual(
-                [2, 0],
-                [len(a.reverse_authority) for a in cnx.find('LocationAuthority').entities()]
+                [2, 0], [len(a.reverse_authority) for a in cnx.find("LocationAuthority").entities()]
             )

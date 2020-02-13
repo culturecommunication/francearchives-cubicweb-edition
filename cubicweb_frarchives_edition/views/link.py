@@ -43,8 +43,9 @@ def in_commemocollection(cls, req, rset=None, entity=None, **kwargs):
         entity = rset.one()
     if entity is None:
         return 0
-    if (entity.cw_etype == 'CommemoCollection' or (
-            entity.cw_etype == 'Section' and entity.is_commemo_section())):
+    if entity.cw_etype == "CommemoCollection" or (
+        entity.cw_etype == "Section" and entity.is_commemo_section()
+    ):
         return 1
     return 0
 
@@ -62,14 +63,14 @@ class has_add_target_permissions(has_add_permission):
 
     def __call__(self, cls, req, **kwargs):
         eschema = req.vreg.schema.eschema(cls.target_type)
-        if eschema.final or not eschema.has_perm(req, 'add'):
+        if eschema.final or not eschema.has_perm(req, "add"):
             return 0
         return 1
 
 
 class RelateChildrenLink(EntityLink):
     __abstract__ = True
-    __regid__ = 'entity.relate.children'
+    __regid__ = "entity.relate.children"
     __select__ = EntityLink.__select__ & has_add_target_permissions()
     target_type = None
     order = 10
@@ -77,72 +78,71 @@ class RelateChildrenLink(EntityLink):
     def description_object(self, request, resource):
         _ = self._cw._
         return {
-            u'description': _(self.target_type),
-            u'etype': self.target_type,
-            u'method': u'POST',
-            u'href': request.resource_path(resource, 'relationships', 'children',
-                                           query={'target_type': self.target_type}),
-            u'targetSchema': {
-                '$ref': request.route_path('cubicweb-jsonschema',
-                                           traverse=(resource.__parent__.etype,
-                                                     'relationships',
-                                                     'children',
-                                                     'schema'),
-                                           _query={'target_type': self.target_type,
-                                                   'role': 'creation'}),
+            "description": _(self.target_type),
+            "etype": self.target_type,
+            "method": "POST",
+            "href": request.resource_path(
+                resource, "relationships", "children", query={"target_type": self.target_type}
+            ),
+            "targetSchema": {
+                "$ref": request.route_path(
+                    "cubicweb-jsonschema",
+                    traverse=(resource.__parent__.etype, "relationships", "children", "schema"),
+                    _query={"target_type": self.target_type, "role": "creation"},
+                ),
             },
-            u'rel': u'related.children',
-            u'title': u'New Child',
-            u'order': self.order
+            "rel": "related.children",
+            "title": "New Child",
+            "order": self.order,
         }
 
 
 class RelateChildrenNewsContentLink(RelateChildrenLink):
-    __regid__ = 'entity.relate.children.newscontent'
-    __select__ = RelateChildrenLink.__select__ & is_instance('Section')
-    target_type = 'NewsContent'
+    __regid__ = "entity.relate.children.newscontent"
+    __select__ = RelateChildrenLink.__select__ & is_instance("Section")
+    target_type = "NewsContent"
     order = 1
 
 
 class RelateChildrenSectionLink(RelateChildrenLink):
-    __regid__ = 'entity.relate.children.section'
-    __select__ = RelateChildrenLink.__select__ & is_instance('Section', 'CommemoCollection')
-    target_type = 'Section'
+    __regid__ = "entity.relate.children.section"
+    __select__ = RelateChildrenLink.__select__ & is_instance("Section", "CommemoCollection")
+    target_type = "Section"
     order = 20
 
 
 class RelateChildrenCommemorationitemLink(RelateChildrenLink):
-    __regid__ = 'entity.relate.children.commemorationitem'
+    __regid__ = "entity.relate.children.commemorationitem"
     __select__ = RelateChildrenLink.__select__ & in_commemocollection()
-    target_type = 'CommemorationItem'
+    target_type = "CommemorationItem"
 
 
 class RelateChildrenCommemoCollectionLink(RelateChildrenLink):
-    __regid__ = 'entity.relate.children.commemocollection'
-    __select__ = RelateChildrenLink.__select__ & is_instance('Section')
-    target_type = 'CommemoCollection'
+    __regid__ = "entity.relate.children.commemocollection"
+    __select__ = RelateChildrenLink.__select__ & is_instance("Section")
+    target_type = "CommemoCollection"
 
 
 class RelateChildrenCircularLink(RelateChildrenLink):
-    __regid__ = 'entity.relate.children.circular'
-    __select__ = RelateChildrenLink.__select__ & is_instance('Section')
-    target_type = 'Circular'
+    __regid__ = "entity.relate.children.circular"
+    __select__ = RelateChildrenLink.__select__ & is_instance("Section")
+    target_type = "Circular"
 
 
 class RelateChildrenBaseContentLink(RelateChildrenLink):
-    __regid__ = 'entity.relate.children.basecontent'
-    __select__ = RelateChildrenLink.__select__ & is_instance('Section')
-    target_type = 'BaseContent'
+    __regid__ = "entity.relate.children.basecontent"
+    __select__ = RelateChildrenLink.__select__ & is_instance("Section")
+    target_type = "BaseContent"
     order = 0
 
 
 class RelateChildrenExternRefLink(RelateChildrenLink):
-    __regid__ = 'entity.relate.children.externref'
-    __select__ = RelateChildrenLink.__select__ & is_instance('Section')
-    target_type = 'ExternRef'
+    __regid__ = "entity.relate.children.externref"
+    __select__ = RelateChildrenLink.__select__ & is_instance("Section")
+    target_type = "ExternRef"
 
 
 class RelateChildrenMapContentLink(RelateChildrenLink):
-    __regid__ = 'entity.relate.children.map'
-    __select__ = RelateChildrenLink.__select__ & is_instance('Section')
-    target_type = 'Map'
+    __regid__ = "entity.relate.children.map"
+    __select__ = RelateChildrenLink.__select__ & is_instance("Section")
+    target_type = "Map"

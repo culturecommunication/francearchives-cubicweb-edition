@@ -16,6 +16,12 @@
         <script type="text/javascript">
             var data = {{ findingaids.data }};
         </script>
+     {% elif authrecords %}
+        <h2>{{ authrecords.title }}</h2>
+        <div id="bs-table-container"></div>
+        <script type="text/javascript">
+            var data = {{ authrecords.data }};
+        </script>
     {% else %}
        <script type="text/javascript">
             var data = [];

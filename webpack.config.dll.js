@@ -43,7 +43,7 @@ const config = module.exports = {
                  'lodash',
                  'lodash-es',
                  'whatwg-fetch',
-                 'babel-polyfill'],
+                 '@babel/polyfill'],
     },
     output: {
         filename: "bundle-[name].js",
@@ -61,7 +61,6 @@ const config = module.exports = {
 
 if (process.env.NODE_ENV === 'production') {
     config.plugins.push(
-        new webpack.optimize.UglifyJsPlugin(),
         new webpack.DefinePlugin({
             "process.env": {
                 NODE_ENV: JSON.stringify('production'),

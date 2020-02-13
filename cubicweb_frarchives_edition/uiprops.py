@@ -31,6 +31,7 @@
 #
 
 STYLESHEETS += [
-    data('frarchives_edition.css'),
-    data('react-bootstrap-table-all.min.css'),
+    data("frarchives_edition.css"),
+    data("react-bootstrap-table-all.min.css"),
+    data("react-widgets.css"),
 ]

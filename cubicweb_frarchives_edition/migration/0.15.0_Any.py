@@ -28,7 +28,7 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
-for etype in ('FAFileImport', 'FAOAIPMHImport'):
+for etype in ("FAFileImport", "FAOAIPMHImport"):
     drop_entity_type(etype)
 
 # XXX drop FindingAid original (deprecated) workflow ?

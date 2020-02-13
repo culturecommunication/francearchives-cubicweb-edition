@@ -31,6 +31,6 @@
 #
 
 
-add_cube('celery')
-add_cube('celerytask')
-sync_schema_props_perms('Section')
+add_cube("celery")
+add_cube("celerytask")
+sync_schema_props_perms("Section")

@@ -41,9 +41,9 @@ class UserAccount(EntityType):
 
 
 class has_creator(RelationDefinition):
-    subject = ('BlogEntry')
-    object = 'UserAccount'
-    cardinality = '?*'
+    subject = "BlogEntry"
+    object = "UserAccount"
+    cardinality = "?*"
 
 
 class TestBaseContent(EntityType):
@@ -56,6 +56,6 @@ class TestSection(EntityType):
 
 
 class in_section(RelationDefinition):
-    subject = 'TestBaseContent'
-    object = 'TestSection'
-    cardinality = '1*'
+    subject = "TestBaseContent"
+    object = "TestSection"
+    cardinality = "1*"

@@ -34,81 +34,93 @@ import fakeredis
 from cubicweb import Binary
 from cubicweb.pyramid.test import PyramidCWTest
 
+from cubicweb_francearchives.testutils import HashMixIn
+
 import utils
+import urllib.request
+import urllib.parse
+import urllib.error
 
 
 BASE_SETTINGS = {
-    'cubicweb.bwcompat': 'no',
-    'cubicweb.session.secret': 'stuff',
-    'cubicweb.auth.authtkt.session.secret': 'stuff',
-    'cubicweb.auth.authtkt.persistent.secret': 'stuff',
-    'francearchives.autoinclude': 'no',
-    'pyramid.debug_routematch': 'true',
+    "cubicweb.bwcompat": "no",
+    "cubicweb.session.secret": "stuff",
+    "cubicweb.auth.authtkt.session.secret": "stuff",
+    "cubicweb.auth.authtkt.persistent.secret": "stuff",
+    "francearchives.autoinclude": "no",
+    "pyramid.debug_routematch": "true",
 }
 
 
-class JSONSchemaAdapterTC(utils.FrACubicConfigMixIn, PyramidCWTest):
+class JSONSchemaAdapterTC(HashMixIn, utils.FrACubicConfigMixIn, PyramidCWTest):
     settings = BASE_SETTINGS
 
     settings = {
-        'cubicweb.bwcompat': False,
-        'cubicweb.auth.authtkt.session.secret': 'top secret',
-        'pyramid.debug_notfound': True,
-        'cubicweb.session.secret': 'stuff',
-        'cubicweb.auth.authtkt.persistent.secret': 'stuff',
-        'francearchives.autoinclude': 'no',
+        "cubicweb.bwcompat": False,
+        "cubicweb.auth.authtkt.session.secret": "top secret",
+        "pyramid.debug_notfound": True,
+        "cubicweb.session.secret": "stuff",
+        "cubicweb.auth.authtkt.persistent.secret": "stuff",
+        "francearchives.autoinclude": "no",
     }
 
     def includeme(self, config):
-        config.registry.settings['frarchives_edition.rq.redis'] = fakeredis.FakeStrictRedis()
-        config.include('cubicweb_frarchives_edition.cms')
+        config.registry.settings["frarchives_edition.rq.redis"] = fakeredis.FakeStrictRedis()
+        config.include("cubicweb_frarchives_edition.cms")
         # config.include('cubicweb_frarchives_edition.api')
-        config.include('cubicweb_francearchives.pviews.renderer')
-        config.include('cubicweb_francearchives.pviews.cwroutes')
+        config.include("cubicweb_francearchives.pviews.renderer")
+        config.include("cubicweb_francearchives.pviews.cwroutes")
 
     def test_downloadable(self):
         """Ensure we get the download_url member in JSON document."""
         with self.admin_access.cnx() as cnx:
-            f = cnx.create_entity('File', data_name=u'data',
-                                  data=Binary('data'))
+            f = cnx.create_entity("File", data_name="data", data=Binary(b"data"))
             cnx.commit()
             eid = f.eid
-            data_sha1hex = f.data_sha1hex
-        self.webapp.extra_environ['debug_routematch'] = 'true'
-        res = self.webapp.get('/file/{0}'.format(eid),
-                              status=200,
-                              headers={'accept': 'application/json'})
-        self.assertEqual(res.json['download_url'],
-                         u'/file/{}/data'.format(data_sha1hex))
+            data_sha1hex = f.data_hash
+        self.webapp.extra_environ["debug_routematch"] = "true"
+        res = self.webapp.get(
+            "/file/{0}".format(eid), status=200, headers={"accept": "application/json"}
+        )
+        self.assertEqual(
+            res.json["download_url"], "/file/{}/data".format(urllib.parse.quote(data_sha1hex))
+        )
 
     def test_state(self):
         with self.admin_access.cnx() as cnx:
             findingaid = utils.create_findingaid(cnx)
-            cnx.create_entity('File', data_name=u'data',
-                              data=Binary('data'),
-                              reverse_findingaid_support=findingaid)
+            cnx.create_entity(
+                "File",
+                data_name="data",
+                data=Binary(b"data"),
+                reverse_findingaid_support=findingaid,
+            )
             cnx.commit()
-            data = findingaid.cw_adapt_to('IJSONSchema').serialize()
-            self.assertEqual(data['workflow_state'], cnx._('wfs_cmsobject_draft'))
+            data = findingaid.cw_adapt_to("IJSONSchema").serialize()
+            self.assertEqual(data["workflow_state"], cnx._("wfs_cmsobject_draft"))
 
     def test_trinfo(self):
         with self.admin_access.cnx() as cnx:
             findingaid = utils.create_findingaid(cnx)
-            cnx.create_entity('File', data_name=u'data',
-                              data=Binary('data'),
-                              reverse_findingaid_support=findingaid)
+            cnx.create_entity(
+                "File",
+                data_name="data",
+                data=Binary(b"data"),
+                reverse_findingaid_support=findingaid,
+            )
             cnx.commit()
-            iwf = findingaid.cw_adapt_to('IWorkflowable')
-            iwf.fire_transition('wft_cmsobject_publish')
+            iwf = findingaid.cw_adapt_to("IWorkflowable")
+            iwf.fire_transition("wft_cmsobject_publish")
             cnx.commit()
             findingaid.cw_clear_all_caches()
-            iwf = findingaid.cw_adapt_to('IWorkflowable')
+            iwf = findingaid.cw_adapt_to("IWorkflowable")
             trinfo = iwf.latest_trinfo()
-            data = trinfo.cw_adapt_to('IJSONSchema').serialize()
-        self.assertEqual(data['from_state'], u'wfs_cmsobject_draft')
-        self.assertEqual(data['to_state'], u'wfs_cmsobject_published')
+            data = trinfo.cw_adapt_to("IJSONSchema").serialize()
+        self.assertEqual(data["from_state"], "wfs_cmsobject_draft")
+        self.assertEqual(data["to_state"], "wfs_cmsobject_published")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import unittest
+
     unittest.main()

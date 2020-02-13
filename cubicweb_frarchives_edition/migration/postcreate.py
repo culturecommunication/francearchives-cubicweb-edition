@@ -39,42 +39,47 @@ from cubicweb_frarchives_edition import workflows
 
 from cubicweb_francearchives.utils import setup_published_schema
 from cubicweb_frarchives_edition.mviews import (
-    setup_published_triggers, get_published_tables, build_indexes)
+    setup_published_triggers,
+    get_published_tables,
+    build_indexes,
+)
 
-for etype in CMS_OBJECTS + ('FindingAid',):
-    if etype == 'Section':
+for etype in CMS_OBJECTS + ("FindingAid",):
+    if etype == "Section":
         workflows.section_workflow(add_workflow, etype)
     else:
         workflows.cmsobject_workflow(add_workflow, etype)
 
-if repo.system_source.dbdriver == 'postgres':
-    skipped_relations = ('in_state', )  # in_state is useless there
+if repo.system_source.dbdriver == "postgres":
+    skipped_relations = ("in_state",)  # in_state is useless there
     etypes, _, rnames = get_published_tables(
-        cnx, skipped_relations=skipped_relations, skipped_etypes=('CWUser',))
-    etypes = set(etypes) | {'FAComponent', 'CWUser'}
+        cnx, skipped_relations=skipped_relations, skipped_etypes=("CWUser",)
+    )
+    etypes = set(etypes) | {"FAComponent", "CWUser"}
     setup_published_schema(sql, etypes, rnames)
     setup_published_triggers(cnx)
-    cnx.system_sql('\n'.join(build_indexes(cnx, 'FAComponent')))
+    cnx.system_sql("\n".join(build_indexes(cnx, "FAComponent")))
 
-statement = '''
+statement = """
 CREATE TABLE sameas_history (
  sameas_uri varchar(256) NOT NULL,
  autheid int NOT NULL,
  action boolean NOT NULL,
  UNIQUE (sameas_uri, autheid)
 )
-'''
+"""
 
 cnx.system_sql(statement)
 
-indexes = '''
+indexes = """
 CREATE INDEX sameas_history_action_idx ON sameas_history(action);
-'''
+"""
 cnx.system_sql(indexes)
 
 # this table is created here only for test purposes
 # otherwise it is done by cubicweb-ctl setup-geonames <instance> commande
-cnx.system_sql('''
+cnx.system_sql(
+    """
 create table geonames_altnames (
     alternateNameId integer not null,
     geonameid integer not null,
@@ -85,20 +90,15 @@ create table geonames_altnames (
     isColloquial boolean,
     isHistoric boolean,
     rank integer
-);''')
+);"""
+)
 
-indexes = '''
-CREATE INDEX geonames_altnames_geonameid_idx ON geonames_altnames USING btree(geonameid);
-CREATE INDEX geonames_altnames_isolanguage_idx ON geonames_altnames(isolanguage);
-CREATE INDEX geonames_altnames_rank_idx ON geonames_altnames(rank);
-'''
-cnx.system_sql(indexes)
 
 # create limited BANO table
 # this table is created here only for test purposes
 # otherwise it is done by cubicweb-ctl setup-bano <instance> commande
 cnx.system_sql(
-    '''
+    """
     CREATE TABLE bano_whitelisted (
         banoid varchar(200),
         voie varchar(200),
@@ -106,6 +106,6 @@ cnx.system_sql(
         lat double precision,
         lon double precision
     )
-    '''
+    """
 )
 commit()

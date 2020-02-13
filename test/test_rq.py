@@ -42,21 +42,20 @@ from utils import FrACubicConfigMixIn
 
 @rqjob
 def rq_task(cnx, success=False):
-    logger = logging.getLogger('rq.task')
-    for level in ('debug', 'info', 'warning', 'error', 'critical'):
+    logger = logging.getLogger("rq.task")
+    for level in ("debug", "info", "warning", "error", "critical"):
         getattr(logger, level)(level)
     try:
-        raise RuntimeError('catched')
+        raise RuntimeError("catched")
     except Exception:
-        logger.exception('unexpected')
+        logger.exception("unexpected")
     if success:
         return 42
     else:
-        raise ValueError('uncatched')
+        raise ValueError("uncatched")
 
 
 class RQTaskTC(FrACubicConfigMixIn, CubicWebTC):
-
     def setUp(self):
         super(RQTaskTC, self).setUp()
         self.fakeredis = fakeredis.FakeStrictRedis()
@@ -64,51 +63,62 @@ class RQTaskTC(FrACubicConfigMixIn, CubicWebTC):
     def assertDateAlmostEqual(self, d1, d2, epsilon=0.1):
         dt = d1 - d2
         self.assertLessEqual(
-            abs(dt.total_seconds()), epsilon, '%s and %s are not almost equal' % (d1, d2)
+            abs(dt.total_seconds()), epsilon, "%s and %s are not almost equal" % (d1, d2)
         )
 
     def test_success(self):
         with self.admin_access.cnx() as cnx, rq.Connection(self.fakeredis):
-            task = cnx.create_entity('RqTask', name=u'import_ead')
-            job = task.cw_adapt_to('IRqJob')
+            task = cnx.create_entity("RqTask", name="import_ead")
+            job = task.cw_adapt_to("IRqJob")
             job.enqueue(rq_task, success=True)
             cnx.commit()
-            self.assertEqual(job.status, 'queued')
+            self.assertEqual(job.status, "queued")
             work(cnx, burst=True, worker_class=rq.worker.SimpleWorker)
             job.refresh()
-            self.assertEqual(job.status, 'finished')
+            self.assertEqual(job.status, "finished")
             self.assertEqual(job.result, 42)
             log = job.log
             for expected in (
-                'debug', 'info', 'warning', 'error', 'critical',
-                'unexpected', 'RuntimeError: catched'
+                "debug",
+                "info",
+                "warning",
+                "error",
+                "critical",
+                "unexpected",
+                "RuntimeError: catched",
             ):
                 self.assertIn(expected, log)
             task = cnx.entity_from_eid(task.eid)
             self.assertEqual(task.status, job.status)
-            for attr in ('enqueued_at', 'started_at'):
+            for attr in ("enqueued_at", "started_at"):
                 self.assertDateAlmostEqual(getattr(task, attr), getattr(job, attr))
-            self.assertEqual(task.log.read(), log)
+            self.assertEqual(task.log.read(), log.encode("utf-8"))
 
     def test_failure(self):
         with self.admin_access.cnx() as cnx, rq.Connection(self.fakeredis):
-            task = cnx.create_entity('RqTask', name=u'import_ead')
-            job = task.cw_adapt_to('IRqJob')
+            task = cnx.create_entity("RqTask", name="import_ead")
+            job = task.cw_adapt_to("IRqJob")
             job.enqueue(rq_task, success=False)
             cnx.commit()
-            self.assertEqual(job.status, 'queued')
+            self.assertEqual(job.status, "queued")
             work(cnx, burst=True, worker_class=rq.worker.SimpleWorker)
             job.refresh()
-            self.assertEqual(job.status, 'failed')
+            self.assertEqual(job.status, "failed")
             self.assertEqual(job.result, None)
             log = job.log
             for expected in (
-                'debug', 'info', 'warning', 'error', 'critical',
-                'unexpected', 'RuntimeError: catched', 'ValueError: uncatched',
+                "debug",
+                "info",
+                "warning",
+                "error",
+                "critical",
+                "unexpected",
+                "RuntimeError: catched",
+                "ValueError: uncatched",
             ):
                 self.assertIn(expected, log)
             task = cnx.entity_from_eid(task.eid)
             self.assertEqual(task.status, job.status)
-            for attr in ('enqueued_at', 'started_at'):
+            for attr in ("enqueued_at", "started_at"):
                 self.assertDateAlmostEqual(getattr(job, attr), getattr(task, attr))
-            self.assertEqual(task.log.read(), log)
+            self.assertEqual(task.log.read(), log.encode("utf-8"))

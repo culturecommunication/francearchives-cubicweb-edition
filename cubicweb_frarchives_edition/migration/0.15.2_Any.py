@@ -29,12 +29,12 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
-add_entity_type('RqTask')
-add_relation_definition('RqTask', 'fatask_findingaid', 'FindingAid')
+add_entity_type("RqTask")
+add_relation_definition("RqTask", "fatask_findingaid", "FindingAid")
 
 
 def remove_card_workflow(cnx, drop_relation_definition):
-    drop_relation_definition('Card', 'in_state', 'State')
+    drop_relation_definition("Card", "in_state", "State")
     cnx.execute('DELETE Workflow W WHERE W workflow_of ET, ET name "Card"')
     cnx.commit()
 
