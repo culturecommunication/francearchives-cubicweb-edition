@@ -215,7 +215,7 @@ class ComputeAlignmentsAllTC(HashMixIn, TaskTC):
                     "",
                     "",
                     "yes",
-                    "",
+                    "1.000",
                 ]
                 for eid, in eids
             ]

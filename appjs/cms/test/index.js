@@ -30,24 +30,25 @@
 /* global describe, it */
 
 const {expect} = require('chai'),
-      {shallow} = require('enzyme'),
-      {createElement: ce} = require('react'),
-      {JSDOM} = require('jsdom');
+    {shallow} = require('enzyme'),
+    {createElement: ce} = require('react'),
+    {JSDOM} = require('jsdom')
 
-const {App} = require('../containers/app');
-
+const {App} = require('../containers/app')
 
 describe('div wrapper of admin-panel', () => {
     beforeEach(() => {
-        const dom = new JSDOM(`<!DOCTYPE html><p>Hello world</p>`);
-        global.document = dom.window.document;
-    });
+        const dom = new JSDOM(`<!DOCTYPE html><p>Hello world</p>`)
+        global.document = dom.window.document
+    })
     afterEach(() => {
-        delete global.document;
-    });
+        delete global.document
+    })
 
     it('should have `panel-unfolded` class if showPanel is true', () => {
-        const wrapper = shallow(ce(App, {showPanel: true, togglePanel: () => {}}));
-        expect(wrapper.is('div.panel-unfolded')).to.be.equal(true);
-    });
-});
+        const wrapper = shallow(
+            ce(App, {showPanel: true, togglePanel: () => {}}),
+        )
+        expect(wrapper.is('div.panel-unfolded')).to.be.equal(true)
+    })
+})

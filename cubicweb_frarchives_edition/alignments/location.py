@@ -149,9 +149,7 @@ class Geodata(object):
     def simplified_cities(self):
         """Map of simplified cities."""
         if not self._simplified_cities:
-            self._simplified_cities = {
-                code: simplify(name) for (code, name) in list(self.cities.items())
-            }
+            self._simplified_cities = {code: simplify(name) for (code, name) in self.cities.items()}
         return self._simplified_cities
 
     @property
@@ -184,7 +182,7 @@ class Geodata(object):
         """Map of simplified departments."""
         if not self._simplified_departments:
             self._simplified_departments = {
-                code: simplify(name) for (code, name) in list(self.departments.items())
+                code: simplify(name) for (code, name) in self.departments.items()
             }
         return self._simplified_departments
 
@@ -194,9 +192,7 @@ class Geodata(object):
         (related to https://extranet.logilab.fr/ticket/67923708)."""
         if not self._simplified_blacklist:
             self._simplified_blacklist = {
-                code: name
-                for code, name in self.simplified_departments.items()
-                if code in ("03", "10", "19", "23", "25", "36", "40", "53", "75", "84", "86")
+                code: simplify(name) for code, name in self.blacklist.items()
             }
         return self._simplified_blacklist
 
@@ -255,7 +251,7 @@ class Geodata(object):
         """Map of simplified countries in French."""
         if not self._simplified_countries:
             self._simplified_countries = {
-                code: simplify(name) for (code, name) in list(self.countries.items())
+                code: simplify(name) for (code, name) in self.countries.items()
             }
         return self._simplified_countries
 
@@ -464,10 +460,8 @@ def alignment_geo_data(refset, targetset=None):
     no_countries_blocking = PipelineBlocking((blocking_1, blocking_2), collect_stats=True)
     ngram_aligner.register_blocking(no_countries_blocking)
     # Launch the pipeline
-    return list(
-        PipelineAligner((city_dpt_aligner, dpt_aligner, ngram_aligner)).get_aligned_pairs(
-            refset, targetset
-        )
+    return PipelineAligner((city_dpt_aligner, dpt_aligner, ngram_aligner)).get_aligned_pairs(
+        refset, targetset
     )
 
 
@@ -482,8 +476,8 @@ def alignment_geo_data_countryonly(refset, targetset):
     country_aligner.register_target_normalizer(place_normalizer_target)
     blocking_1 = KeyBlocking(1, 2, ignore_none=True, callback=country_block_cb)
     country_aligner.register_blocking(blocking_1)
-    # Launch the pipeline
-    return list(PipelineAligner((country_aligner,)).get_aligned_pairs(refset, targetset))
+
+    return country_aligner.get_aligned_pairs(refset, targetset)
 
 
 def alignment_geo_data_topographic(refset, targetset):
@@ -528,8 +522,6 @@ def alignment_geo_data_topographic(refset, targetset):
     blocking2 = MinHashingBlocking(0, 1, threshold=0.4)
     blocking_unmod_no_dpt = PipelineBlocking((blocking1, blocking2), collect_stats=True)
     unmod_aligner_no_dpt.register_blocking(blocking_unmod_no_dpt)
-    return list(
-        PipelineAligner(
-            (aligner, unmodified_aligner, aligner_no_dpt, unmod_aligner_no_dpt)
-        ).get_aligned_pairs(refset, targetset)
-    )
+    return PipelineAligner(
+        (aligner, unmodified_aligner, aligner_no_dpt, unmod_aligner_no_dpt)
+    ).get_aligned_pairs(refset, targetset)

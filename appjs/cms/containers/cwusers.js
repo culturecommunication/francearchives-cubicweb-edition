@@ -27,28 +27,27 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-const {Component, createElement: ce} = require('react');
-const PropTypes = require('prop-types');
-const {connect} = require('react-redux');
+const {Component, createElement: ce} = require('react')
+const PropTypes = require('prop-types')
+const {connect} = require('react-redux')
 
 const SearchCWUsers = require('../components/cwusers.js'),
-      {AddEntityForm} = require('../components/editor');
+    {AddEntityForm} = require('../components/editor')
 
-
-module.exports.SearchCWUsers = connect()(SearchCWUsers);
-
+module.exports.SearchCWUsers = connect()(SearchCWUsers)
 
 class AddCWUserForm extends Component {
     render() {
-        return ce('div', null,
-                  ce('h1', null, 'Ajouter un nouvel utilisateur'),
-                  ce(AddEntityForm, {dispatch: this.props.dispatch,
-                                     etype: 'CWUser'})
-                 );
+        return ce(
+            'div',
+            null,
+            ce('h1', null, 'Ajouter un nouvel utilisateur'),
+            ce(AddEntityForm, {dispatch: this.props.dispatch, etype: 'CWUser'}),
+        )
     }
 }
 AddCWUserForm.propTypes = {
     dispatch: PropTypes.func.isRequired,
 }
 
-module.exports.AddCWUserForm = connect()(AddCWUserForm);
+module.exports.AddCWUserForm = connect()(AddCWUserForm)

@@ -127,8 +127,7 @@ class RestApiJSONTest(HashMixIn, BaseTC):
         self.assertEqual(res.location, "https://localhost:80/CWGroup/%d" % rset[0][0])
 
     def test_get_entity_schema(self):
-        """GET on /<etype>/eid/schema to retrieve entype schmea
-        """
+        """GET on /<etype>/eid/schema to retrieve entype schmea"""
         with self.admin_access.repo_cnx() as cnx:
             group_eid = cnx.create_entity("CWGroup", name="tmp1").eid
             cnx.commit()
@@ -422,9 +421,21 @@ class RestApiJSONTest(HashMixIn, BaseTC):
         data = res.json
         self.assertEqual(data[0]["eid"], image.eid)
 
+    def test_get_related_authorities(self):
+        with self.admin_access.cnx() as cnx:
+            ci = utils.create_default_commemoitem(cnx)
+            agent = cnx.create_entity(
+                "AgentAuthority", label="the-preflabel", reverse_related_authority=ci
+            )
+            cnx.commit()
+        url = "/CommemorationItem/{}/related_authority?target_type=AgentAuthority".format(ci.eid)
+        res = self.webapp.get(url, headers={"accept": "application/json"})
+        data = res.json
+        self.assertEqual(data[0]["eid"], agent.eid)
+
     def test_get_target_schema(self):
         """GET on /<etype>/relationships/<rtype>/schema to retrieve
-        target schema with a particular etarget_type
+        target schema with a particular
         """
         url = (
             "/commemorationitem/relationships/related_authority/"
@@ -433,7 +444,7 @@ class RestApiJSONTest(HashMixIn, BaseTC):
         self.login()
         res = self.webapp.get(url, status=200, headers={"accept": "application/schema+json"})
         items_key = list(res.json["properties"])
-        self.assertCountEqual(items_key, ["birthyear", "deathyear", "label"])
+        self.assertCountEqual(items_key, ["label"])
 
     @skip("indices are being rewriting")
     def test_index_update(self):
@@ -460,7 +471,7 @@ class RestApiJSONTest(HashMixIn, BaseTC):
             cnx.commit()
         path = "/section/{}/relationships/children?" "target_type=BaseContent".format(sect)
         self.login()
-        data = {"title": "title"}
+        data = {"title": "title", "summary_policy": "no_summary"}
         res = self.webapp.post_json(path, data, status=201, headers={"accept": "application/json"})
         self.assertEqual(res.json["title"], "title")
 
@@ -470,7 +481,16 @@ class RestApiJSONTest(HashMixIn, BaseTC):
         res = self.webapp.get(url, status=200, headers={"accept": "application/schema+json"})
         items_key = list(res.json["properties"])
         self.assertCountEqual(
-            items_key, ["basecontent_service", "content", "on_homepage", "order", "title"]
+            items_key,
+            [
+                "basecontent_service",
+                "content",
+                "on_homepage",
+                "order",
+                "title",
+                "summary",
+                "summary_policy",
+            ],
         )
 
     def test_add_related(self):
@@ -494,6 +514,27 @@ class RestApiJSONTest(HashMixIn, BaseTC):
                 {"b": blog_entry.eid, "a": doc["name"]},
             )
         self.assertTrue(rset)
+
+    def test_section_relationship_add_translation(self):
+        with self.admin_access.cnx() as cnx:
+            sect = cnx.create_entity("Section", title="titre").eid
+            cnx.commit()
+        path = "/section/{}/relationships/translation_of?" "target_type=SectionTranslation".format(
+            sect
+        )
+        self.login()
+        data = {"title": "title", "language": "en"}
+        res = self.webapp.post_json(path, data, status=201, headers={"accept": "application/json"})
+        self.assertEqual(res.json["title"], "title")
+
+    def test_section_translation_of_schema(self):
+        url = "/section/relationships/translation_of/schema?role=creation&target_type=SectionTranslation"  # noqa
+        self.login()
+        res = self.webapp.get(url, status=200, headers={"accept": "application/schema+json"})
+        items_key = list(res.json["properties"])
+        self.assertCountEqual(
+            items_key, ["title", "content", "language", "subtitle", "short_description"]
+        )
 
     def test_add_findingaid_service(self):
         """POST on /<etype>/<eid>/relationships/<rtype> with primary entity as
@@ -530,7 +571,18 @@ class RestApiJSONTest(HashMixIn, BaseTC):
         url = "/rqtask/schema?role=creation&schema_type=import_ead"
         res = self.webapp.get(url, status=200, headers={"accept": "application/schema+json"})
         properties_key = sorted(list(res.json["properties"]))
-        self.assertCountEqual(properties_key, ["file", "name", "title", "force-delete", "service",])
+        self.assertCountEqual(
+            properties_key,
+            [
+                "file",
+                "name",
+                "title",
+                "force-delete",
+                "service",
+                "should_normalize",
+                "context_service",
+            ],
+        )
 
     def test_rqtask_schema_export_ape(self):
         """GET on /<etype>/schema?role=creation to retrieve
@@ -630,8 +682,31 @@ class UISchemaViewTC(BaseTC):
         res = self.webapp.get(url, status=200, headers={"accept": "application/json"})
         expected = {
             "basecontent_service": {"ui:field": "autocompleteField"},
-            "content": {"ui:widget": "wysiwygEditor",},
+            "content": {
+                "ui:widget": "wysiwygEditor",
+            },
+            "summary": {"ui:widget": "wysiwygEditor"},
+            "ui:order": [
+                "title",
+                "content",
+                "summary",
+                "summary_policy",
+                "on_homepage",
+                "order",
+                "basecontent_service",
+            ],
         }
+        self.assertEqual(res.json, expected)
+
+    def test_commemoitemtranslation_uischema_view(self):
+        url = "/commemorationitemtranslation/uischema"
+        res = self.webapp.get(url, status=200, headers={"accept": "application/json"})
+        expected = {
+            "content": {"ui:widget": "wysiwygEditor"},
+            "language": {"ui:disabled": {}},
+            "ui:order": ["title", "subtitle", "content", "language"],
+        }
+
         self.assertEqual(res.json, expected)
 
 

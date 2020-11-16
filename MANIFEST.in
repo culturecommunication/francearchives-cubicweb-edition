@@ -6,17 +6,23 @@ include package-lock.json
 include package.json
 include *.js
 include pyproject.toml
-recursive-include sphinx *.rst *.bat *.py
-recursive-include test *.csv *.py *.jpg *.pdf *.txt *.xml *.rst
+recursive-include sphinx *.rst *.bat *.py Makefile
+recursive-include test *.csv *.py *.jpg *.pdf *.txt *.xml *.rst *.html
 include test/data/bootstrap_cubes
 prune appjs
 prune debian
-prune cubicweb-frarchives-edition.spec
-prune .babelrc
-prune .coveragerc
-prune .eslintrc.yml
-prune .gitlab-ci.yml
-prune Makefile
-prune dev-requirements.txt
-prune gitfilter
-prune tox.ini
+prune deploy
+exclude cubicweb-frarchives-edition.spec
+exclude .babelrc
+exclude .coveragerc
+exclude .eslintrc.yml
+exclude .prettierrc
+exclude .gitlab-ci.yml
+exclude Makefile
+exclude dev-requirements.txt
+exclude gitfilter
+exclude tox.ini
+exclude Dockerfile
+exclude .dockerignore
+exclude Makefile.docker
+exclude pyramid.ini

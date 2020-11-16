@@ -28,23 +28,20 @@
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-const {connect} = require('react-redux');
+const {connect} = require('react-redux')
 
 const {AlertError} = require('../components/error'),
-      {resetGlobalError} = require('../actions');
-
+    {resetGlobalError} = require('../actions')
 
 exports.AlertError = connect(
     function mapStateToProps(state) {
-        return {errors: state.getIn(['app', 'globalErrors'])};
+        return {errors: state.getIn(['app', 'globalErrors'])}
     },
     function mapDispatchToProps(dispatch) {
         return {
             onClose() {
-                dispatch(resetGlobalError());
+                dispatch(resetGlobalError())
             },
-        };
-    }
-)(AlertError);
-
-
+        }
+    },
+)(AlertError)

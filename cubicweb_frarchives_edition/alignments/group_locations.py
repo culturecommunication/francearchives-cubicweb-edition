@@ -56,7 +56,7 @@ import re
 
 from logilab.common.decorators import timed
 
-from cubicweb_frarchives_edition import CANDIDATE_SEP
+from cubicweb_frarchives_edition import CANDIDATE_SEP, update_suggest_es
 from cubicweb_frarchives_edition.alignments.utils import simplify
 from cubicweb_frarchives_edition.alignments.location import Geodata
 
@@ -166,18 +166,6 @@ class Label(object):
         return 1
 
 
-def update_suggest_es(cnx, entities):
-    if cnx.vreg.config.mode == "test":
-        return
-    service = cnx.vreg["services"].select("reindex-suggest", cnx)
-    try:
-        service.index_authorities(entities)
-    except Exception:
-        import traceback
-
-        traceback.print_exc()
-
-
 @timed
 def group_location_authorities(cnx, dry_run=True, log=None):
     """
@@ -192,13 +180,13 @@ def group_location_authorities(cnx, dry_run=True, log=None):
     with open(filepath, "w") as fp:
         writer = csv.writer(fp)
         for idx, (label_to, other_labels) in enumerate(do_not_group.items()):
-            writer.writerow([label_to.encoded_label] + [l.encoded_label for l in other_labels])
+            writer.writerow([label_to.encoded_label] + [ol.encoded_label for ol in other_labels])
     to_group_filepath = "locations_to_group_{}{}{:02d}.csv".format(NOW.year, NOW.day, NOW.month)
     group_elts = 0
     with open(to_group_filepath, "w") as fp:
         writer = csv.writer(fp)
         for idx, (label_to, other_labels) in enumerate(do_group.items()):
-            writer.writerow([label_to.encoded_label] + [l.encoded_label for l in other_labels])
+            writer.writerow([label_to.encoded_label] + [ol.encoded_label for ol in other_labels])
             group_elts += len(other_labels) + 1
     if not dry_run:
         group_candidates(cnx, do_group, group_elts, log)
@@ -209,13 +197,15 @@ def group_candidates(cnx, do_group, group_elts, log):
         NOW.year, NOW.day, NOW.month
     )
     write_log("group {} records, {} entities".format(len(do_group), group_elts), log)
-    with cnx.allow_all_hooks_but("reindex-suggest-es",):
+    with cnx.allow_all_hooks_but(
+        "reindex-suggest-es",
+    ):
         with open(group_filepath, "w") as fp:
             writer = csv.writer(fp)
             for idx, (label_to, other_labels) in enumerate(do_group.items()):
                 target = cnx.entity_from_eid(label_to.eid)
-                sources = [cnx.entity_from_eid(l.eid) for l in other_labels]
-                sources_info = [l.encoded_label for l in other_labels]
+                sources = [cnx.entity_from_eid(ol.eid) for ol in other_labels]
+                sources_info = [ol.encoded_label for ol in other_labels]
                 line = [label_to.encoded_label] + sources_info
                 writer.writerow(line)
                 write_log(
@@ -224,7 +214,7 @@ def group_candidates(cnx, do_group, group_elts, log):
                     ),
                     log,
                 )
-                target.group([l.eid for l in other_labels])
+                target.group([ol.eid for ol in other_labels])
                 cnx.commit()
                 update_suggest_es(cnx, [target] + sources)
 

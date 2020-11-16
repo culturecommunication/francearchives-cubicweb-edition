@@ -61,16 +61,25 @@ def process_import_ead(reader, filepath, services_map, log):
 
 
 @rqjob
-def import_ead(cnx, filepaths, force_delete=False, auto_align=True, auto_dedupe=True, taskeid=None):
+def import_ead(
+    cnx,
+    filepaths,
+    auto_dedupe,
+    context_service,
+    force_delete=False,
+    auto_align=True,
+    taskeid=None,
+):
     launch_task(
         cnx,
         ead.Reader,
         process_import_ead,
         filepaths,
-        auto_dedupe=auto_dedupe,
         force_delete=force_delete,
-        taskeid=taskeid,
         auto_align=auto_align,
+        context_service=context_service,
+        auto_dedupe=auto_dedupe,
+        taskeid=taskeid,
     )
 
 
@@ -82,6 +91,7 @@ def launch_task(
     metadata_filepath=None,
     force_delete=False,
     auto_align=False,
+    context_service=True,
     auto_dedupe=True,
     taskeid=None,
 ):
@@ -89,15 +99,18 @@ def launch_task(
         cnx.vreg.config, cnx.vreg.config.appid, esonly=False, nodrop=True, force_delete=force_delete
     )
     log = config["log"] = logging.getLogger("rq.task")
-    log.info("Start the task.")
     job = rq.get_current_job()
     current_progress = update_progress(job, 0.0)
     progress_step = 1.0 / (len(filepaths) + 1)
     config["reimport"] = True
     config["nb_processes"] = 1
-    config["autodedupe_authorities"] = "service/strict" if auto_dedupe else None
+    config["autodedupe_authorities"] = "{context}/{normalize}".format(
+        context="service" if context_service else "global",
+        normalize="normalize" if auto_dedupe else "strict",
+    )
     foreign_key_tables = sqlutil.ead_foreign_key_tables(cnx.vreg.schema)
     store = create_massive_store(cnx, nodrop=config["nodrop"])
+    log.info("Start import with index policy: %r", config["autodedupe_authorities"])
     with sqlutil.no_trigger(cnx, foreign_key_tables, interactive=False):
         services_map = load_services_map(cnx)
         init_bfss(cnx.repo)
@@ -112,9 +125,17 @@ def launch_task(
                     es_docs = process_func(r, filepath, metadata_filepath, services_map, log)
                 else:
                     es_docs = process_func(r, filepath, services_map, log)
-            except Exception:
-                es_docs = []
-                log.exception("failed to import %r in import_ead task", filepath)
+            except Exception as error:
+                log.exception(
+                    """
+                failed to import {fpath} in import_ead task.
+                <div class="alert alert-danger">{error}</div>""".format(
+                        fpath=filepath, error=error
+                    )
+                )
+                store.flush()
+                store.finish()
+                raise Exception
             if es_docs:
                 log.info("Start reindexing elasticsearch for %r", filepath)
                 es_bulk_index(es, es_docs)

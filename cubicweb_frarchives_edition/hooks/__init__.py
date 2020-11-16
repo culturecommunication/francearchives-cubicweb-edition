@@ -48,10 +48,11 @@ from cubicweb import Unauthorized, ValidationError
 
 from rql import RQLSyntaxError
 
-from cubicweb_varnish.hooks import InvalidateVarnishCacheOp
-
 from cubicweb_francearchives.schema.cms import CMS_OBJECTS
+from cubicweb_francearchives import CMS_I18N_OBJECTS
 from cubicweb_francearchives.entities.cms import MapCSVReader
+
+from cubicweb_frarchives_edition import ForbiddenPublishedTransition
 
 
 def custom_on_fire_transition(etypes, tr_names):
@@ -94,7 +95,7 @@ def files_query_from_content(content):
     try:
         tree = etree.HTML(content)
     except Exception:
-        return ()
+        return (), ()
     all_matches = []
     for el in chain(tree.findall(".//a"), tree.findall(".//img")):
         src = el.get("href") or el.get("src")
@@ -105,14 +106,13 @@ def files_query_from_content(content):
         if match is None:
             continue
         all_matches.append(match.groups())
-    return [
-        (
-            "Any F ORDERBY O, F LIMIT 1 WHERE F is File, O? referenced_files F,"
-            'F data_hash "%s", F data_name "%s"'
-        )
-        % m
-        for m in all_matches
-    ]
+    # take files having referenced_files data first
+    query = """Any F ORDERBY O, F, D {cond} WHERE F is File, O? referenced_files F,
+               F data_hash "%s", F data_name "%s", F creation_date D"""
+    return (
+        [query.format(cond="LIMIT 1") % m for m in all_matches],
+        [query.format(cond="OFFSET 1") % m for m in all_matches],
+    )
 
 
 class PniaCreateMentionFilesRel(hook.Hook):
@@ -158,7 +158,9 @@ class CreateReferencedFilesOp(hook.DataOperationMixIn, hook.Operation):
             attrs = [
                 attr
                 for attr, descr in list(uischema.items())
-                if descr.get("ui:widget") and attr in edited
+                # uiSchema may contain keys other than entity attributes (as
+                # "ui:order") which must be filtered
+                if attr in edited and descr.get("ui:widget")
             ]
             if not attrs:
                 # do not execute the hook if no attrs other than html have been modified
@@ -167,14 +169,26 @@ class CreateReferencedFilesOp(hook.DataOperationMixIn, hook.Operation):
             files = set()
             for attr in attrs:
                 value = edited[attr]
-                queries = files_query_from_content(value)
-                if not queries:
+                if not value:
                     continue
+                res = files_query_from_content(value)
+                if not any(res):
+                    continue
+                queries, orphan_queries = res
                 query = " UNION ".join("(%s)" % q for q in queries)
+                {eid for eid, in self.cnx.execute(query)}
                 try:
                     files |= {eid for eid, in self.cnx.execute(query)}
                 except RQLSyntaxError:
                     self.exception('fail to execute query "%r"', query)
+                orphan_candidates_query = " UNION ".join("(%s)" % q for q in orphan_queries)
+                try:
+                    orphans_candidates = {eid for eid, in self.cnx.execute(orphan_candidates_query)}
+                    # files which might not be linked by referenced_files relation
+                    for eid in orphans_candidates:
+                        PniaRemoveReferencedFilesOperation.get_instance(self.cnx).add_data(eid)
+                except RQLSyntaxError:
+                    self.exception('fail to execute query "%r"', orphan_candidates_query)
             to_remove = already_linked - files
             if to_remove:
                 self.cnx.execute(
@@ -205,7 +219,7 @@ class PniaRemoveReferencedFilesRel(hook.Hook):
 
 
 class PniaRemoveReferencedFilesOperation(hook.DataOperationMixIn, DeleteMixin, hook.Operation):
-    """delete files which are no more linked by referenced_files relation"""
+    """delete files which are not linked by referenced_files relation"""
 
     def postcommit_event(self):
         eids = list(self.get_data())
@@ -219,6 +233,51 @@ class PniaRemoveReferencedFilesOperation(hook.DataOperationMixIn, DeleteMixin, h
             rels=", ".join(rels), eids=",".join([str(e) for e in eids])
         )
         self.cnx.execute(query)
+
+
+class PublishTranslations(hook.Hook):
+    """Publish a Translation"""
+
+    __regid__ = "frarchives_edition.publish-translation"
+    __select__ = hook.Hook.__select__ & custom_on_fire_transition(
+        CMS_I18N_OBJECTS, {"wft_cmsobject_publish"}
+    )
+    to_state = "wfs_cmsobject_published"
+    events = ("after_add_entity",)
+    category = "translation"
+
+    def __call__(self):
+        translation = self.entity.for_entity
+        if translation.original_entity:
+            if translation.original_entity_state() != self.to_state:
+                msg = self._cw._("The original entity is not published")
+                raise ForbiddenPublishedTransition(self._cw, msg)
+            return
+        msg = self._cw._("No original entity found")
+        raise ForbiddenPublishedTransition(self._cw, msg)
+
+
+CMS_TRANSLATABLES = [etype.split("Translation")[0] for etype in CMS_I18N_OBJECTS]
+
+
+class UnPublishTranslatable(hook.Hook):
+    """Unpublish a translatable entity"""
+
+    __regid__ = "frarchives_edition.unpublish-translatable"
+    __select__ = hook.Hook.__select__ & custom_on_fire_transition(
+        CMS_TRANSLATABLES, {"wft_cmsobject_unpublish"}
+    )
+
+    to_state = "wfs_cmsobject_published"
+    events = ("after_add_entity",)
+    category = "translation"
+
+    def __call__(self):
+        entity = self.entity.for_entity
+        for translation in entity.reverse_translation_of:
+            translation.cw_adapt_to("IWorkflowable").fire_transition_if_possible(
+                "wft_cmsobject_unpublish"
+            )
 
 
 class PublishWebPage(hook.Hook):
@@ -301,7 +360,7 @@ def get_uuid(entity):
 
 class MonitorCompoudEntityChanges(hook.Hook):
     """change the modification date on the composite parent in ordre to force
-       ContentUpdateIndexES on it"""
+    ContentUpdateIndexES on it"""
 
     events = ("after_update_entity",)
     __regid__ = "frarchives_edition.compoud-monitor-changes"
@@ -369,7 +428,9 @@ class PublishWebPageOperation(hook.DataOperationMixIn, hook.Operation):
                                 "{}/_update/move/{}/{}".format(
                                     sync_url, entity.cw_etype, entity.uuid
                                 ),
-                                json={"to-section": section.uuid,},
+                                json={
+                                    "to-section": section.uuid,
+                                },
                             )
                             res.raise_for_status()
             except Exception:
@@ -399,8 +460,7 @@ class SyncCompoundMixin(object):
 
 
 class SyncRelationChangesOperation(SyncCompoundMixin, hook.DataOperationMixIn, hook.Operation):
-    """sync relation subject only if subject and object are published
-    """
+    """sync relation subject only if subject and object are published"""
 
     def postcommit_event(self):
         done = set()
@@ -436,7 +496,12 @@ class SyncEntityChangesOperation(SyncCompoundMixin, hook.DataOperationMixIn, hoo
                 if uuid is None:
                     return
                 uuid_attr, uuid_value = uuid
-                body[attr] = [{uuid_attr: uuid_value, "cw_etype": related.cw_etype,}]
+                body[attr] = [
+                    {
+                        uuid_attr: uuid_value,
+                        "cw_etype": related.cw_etype,
+                    }
+                ]
         return body
 
     def postcommit_event(self):
@@ -576,22 +641,6 @@ class CircularAddOfficialTextsOp(hook.DataOperationMixIn, hook.LateOperation):
                 if related:
                     text.cw_set(circular=related.one())
                     break
-
-
-class PurgeAuthoritiesUrl(hook.Hook):
-    """an authority has been grouped with an other, purge its URL"""
-
-    __regid__ = "frarchives_edition.authority.varnish"
-    category = "varnish"
-    __select__ = hook.Hook.__select__ & hook.match_rtype("grouped_with")
-    events = ("after_add_relation",)
-
-    def __call__(self):
-        invalidate_cache_op = InvalidateVarnishCacheOp.get_instance(self._cw)
-        entity = self._cw.entity_from_eid(self.eidfrom)
-        ivarnish = entity.cw_adapt_to("IVarnish")
-        for url in ivarnish.urls_to_purge():
-            invalidate_cache_op.add_data(url)
 
 
 def registration_callback(vreg):

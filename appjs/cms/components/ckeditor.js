@@ -28,103 +28,191 @@
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 /* global CKEDITOR */
+const React = require('react')
+
 const {Component, createElement: ce} = require('react'),
-    PropTypes = require('prop-types');
+    PropTypes = require('prop-types')
 
-const TinyMCE = require('react-tinymce');
+const TinyMCE = require('@tinymce/tinymce-react')
 
-const {default: {createEntity}} = require('../api');
+const {
+    default: {createEntity},
+} = require('../api')
 
 class CKEditorWrapper extends Component {
-
     componentDidMount() {
-        this._editor = CKEDITOR.replace(this._container);
+        this._editor = CKEDITOR.replace(this._container)
     }
 
     componentWillUnmount() {
-        this._editor.destroy();
+        this._editor.destroy()
     }
 
     getValue() {
-        return this._editor.getData();
+        return this._editor.getData()
     }
 
     render() {
-        return ce('textarea', {defaultValue: this.props.formData,
-                               ref: n => this._container = n});
+        return ce('textarea', {
+            defaultValue: this.props.formData,
+            ref: n => (this._container = n),
+        })
     }
 }
 CKEditorWrapper.propTypes = {
     formData: PropTypes.object,
-};
-
-
-function fileInputHandler(file, cb) {
-    var reader = new FileReader();
-    reader.onload = function(e) {
-        createEntity('file', {data: e.target.result, title: file.name})
-            .then(doc => {
-                if (doc.errors && doc.errors.length) {
-                    alert(JSON.stringify(doc.errors, null, 2));
-                    return;
-                }
-                cb(doc.download_url, doc.title);
-            });
-    };
-    reader.readAsDataURL(file);
 }
 
+function fileInputHandler(file, cb) {
+    var reader = new FileReader()
+    reader.onload = function(e) {
+        createEntity('file', {data: e.target.result, title: file.name}).then(
+            doc => {
+                if (doc.errors && doc.errors.length) {
+                    alert(JSON.stringify(doc.errors, null, 2))
+                    return
+                }
+                cb(doc.download_url, doc.title)
+            },
+        )
+    }
+    reader.readAsDataURL(file)
+}
 
 class TinyMCEWrapper extends Component {
-
     shouldComponentUpdate(nextProps) {
         // if value hasn't changed between the onChange event and now,
         // don't re-render the component or we'll loose the focus
-        return nextProps.value !== this.value;
+        return nextProps.value !== this.value
     }
 
     filePickerHandler(callback, value, meta) {
-        const input = document.getElementById('tinymcefile');
+        const input = document.getElementById('tinymcefile')
         if (meta.filetype === 'image') {
             // Provide image and alt text for the image dialog
-            input.click();
-            input.onchange = () => fileInputHandler(
-                input.files[0], (url, title) => callback(url, {alt: title}));
+            input.click()
+            input.onchange = () =>
+                fileInputHandler(input.files[0], (url, title) =>
+                    callback(url, {alt: title}),
+                )
         } else if (meta.filetype === 'file') {
-            input.click();
-            input.onchange = () => fileInputHandler(
-                input.files[0], (url, title) => callback(url,
-                                                         {text: title, title}));
+            input.click()
+            input.onchange = () =>
+                fileInputHandler(input.files[0], (url, title) =>
+                    callback(url, {text: title, title}),
+                )
         }
     }
 
     render() {
-        this.value = this.props.value;
-        return ce(TinyMCE, {
-            content: this.props.value,
-            config: {
-                menubar: false,
-                plugins: 'link image code lists media',
-                file_picker_types: 'image file',
-                file_picker_callback: this.filePickerHandler,
-                toolbar: 'undo redo | formatselect | bold italic | blockquote | bullist numlist | alignleft aligncenter alignright | link | image | media | code',
-                height: 400,
-            },
-            onChange: event => {
-                // store value before triggering onChange to be able to
-                // test new props against current value in shouldComponentupdate
-                this.value = event.target.getContent();
-                this.props.onChange(this.value)
-            },
-        });
+        this.value = this.props.value
+        return (
+            <TinyMCE.Editor
+                init={{
+                    language: 'fr_FR',
+                    plugins: [
+                        'advlist autolink lists link image charmap print preview anchor searchreplace visualblocks code fullscreen insertdatetime media table paste code help wordcount  imagetools toc',
+                    ],
+                    toolbar:
+                        'undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent advlist| link image | print preview media fullpage | forecolor backcolor emoticons | toc | source| help | footnotes',
+                    menu: {
+                        favs: {
+                            title: 'Favoris',
+                            items:
+                                'code | searchreplace | spellchecker | emoticons | insert',
+                        },
+                    },
+                    menubar:
+                        'favs file edit view insert format tools table help imagetools',
+                    advlist_bullet_styles: 'square, circle, disc',
+                    advlist_number_styles:
+                        'default, lower-alpha,lower-roman,upper-alpha,upper-roman',
+                    file_picker_types: 'image file',
+                    file_picker_callback: this.filePickerHandler,
+                    image_caption: true,
+                    block_formats:
+                        'Paragraph=p; Heading 2=h2; Heading 3=h3; Heading 4=h4; Heading 5=h5; Heading 6=h6; Preformatted=pre',
+                    font_formats: 'Lovelo=lovelo',
+                    formats: {
+                        well: {block: 'div', classes: 'well'},
+                    },
+                    style_formats: [
+                        {
+                            title: 'Headings',
+                            items: [
+                                {title: 'Heading 2', format: 'h2'},
+                                {title: 'Heading 3', format: 'h3'},
+                                {title: 'Heading 4', format: 'h4'},
+                                {title: 'Heading 5', format: 'h5'},
+                                {title: 'Heading 6', format: 'h6'},
+                            ],
+                        },
+                        {
+                            title: 'Inline',
+                            items: [
+                                {title: 'Bold', format: 'bold'},
+                                {title: 'Italic', format: 'italic'},
+                                {title: 'Underline', format: 'underline'},
+                                {
+                                    title: 'Strikethrough',
+                                    format: 'strikethrough',
+                                },
+                                {title: 'Superscript', format: 'superscript'},
+                                {title: 'Subscript', format: 'subscript'},
+                                {title: 'Code', format: 'code'},
+                            ],
+                        },
+                        {
+                            title: 'Blocks',
+                            items: [
+                                {title: 'Paragraph', format: 'p'},
+                                {title: 'Blockquote', format: 'blockquote'},
+                                {title: 'Div', format: 'div'},
+                            ],
+                        },
+                        {
+                            title: 'FA classes ',
+                            items: [
+                                {
+                                    title: 'Clear div',
+                                    selector: 'div',
+                                    classes: 'clearfix',
+                                },
+                                {title: 'Well div', format: 'well'},
+                            ],
+                        },
+                        {
+                            title: 'Align',
+                            items: [
+                                {title: 'Left', format: 'alignleft'},
+                                {title: 'Center', format: 'aligncenter'},
+                                {title: 'Right', format: 'alignright'},
+                                {title: 'Justify', format: 'alignjustify'},
+                            ],
+                        },
+                    ],
+                    style_formats_autohide: true,
+                    image_title: true,
+                    height: 400,
+                }}
+                onChange={event => {
+                    // store value before triggering onChange to be able to
+                    // test new props against current value in _shouldComponentupdate
+                    this.value = event.target.getContent()
+                    this.props.onChange(this.value)
+                }}
+                value={this.props.value}
+            />
+        )
     }
 }
+
 TinyMCEWrapper.propTypes = {
     value: PropTypes.string,
     onChange: PropTypes.func.isRequired,
-};
+}
 
 module.exports = {
     CKEditorWrapper,
     TinyMCEWrapper,
-};
+}

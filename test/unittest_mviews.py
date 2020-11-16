@@ -36,12 +36,21 @@ from cubicweb.devtools import testlib  # noqa
 from cubicweb.devtools import PostgresApptestConfiguration
 
 from cubicweb_francearchives.testutils import HashMixIn
+from cubicweb_francearchives.dataimport.sqlutil import delete_from_filename
 
 import utils
 from pgfixtures import setup_module, teardown_module  # noqa
 
 
 SCHEMA = "published"
+
+
+def fetch_count_entities(cnx, entity, schema="public"):
+    return cnx.system_sql(
+        "select count(*) from {schema}.cw_{table} where cw_eid={eid};".format(
+            schema=schema, eid=entity.eid, table=entity.cw_etype
+        )
+    ).fetchone()[0]
 
 
 class MViewsBaseTC(utils.FrACubicConfigMixIn, testlib.CubicWebTC):
@@ -283,7 +292,12 @@ class MViewsEAD(MViewsBaseTC):
                     fa_header=fah,
                     did=did,
                 )
-                fac = ce("FAComponent", did=did, finding_aid=fa, stable_id="ID %d" % i,)  # noqa
+                ce(
+                    "FAComponent",
+                    did=did,
+                    finding_aid=fa,
+                    stable_id="ID %d" % i,
+                )  # noqa
             cnx.commit()
 
     def test_not_published(self):
@@ -341,6 +355,91 @@ class MViewsEAD(MViewsBaseTC):
             self.assertEqual(len(rset), 1)
             rset = cnx.find("FAComponent")
             self.assertEqual(len(rset), 1)
+
+    def test_delete_unpublished_findingaid(self):
+        """Test deleting unpublished Findingaids and FAComponents.
+
+        Trying: deleting a unpublished FindingAid
+        Expecting: FindingAid and its FAComponent are deleted
+        """
+
+        with self.access() as cnx:
+            ce = cnx.create_entity
+            fa = utils.create_findingaid(cnx)
+            fac = ce(
+                "FAComponent",
+                did=ce("Did", unittitle="unittitle", unitid="unitid"),
+                stable_id="stable",
+                finding_aid=fa,
+            )
+            cnx.commit()
+        with self.access() as cnx:
+            self.assertEqual(fetch_count_entities(cnx, fa), 1)
+            self.assertEqual(fetch_count_entities(cnx, fac), 1)
+            delete_from_filename(
+                cnx, fa.stable_id, is_filename=False, interactive=False, esonly=False
+            )
+            cnx.commit()
+
+        with self.access() as cnx:
+            # for a reason we still have acces to the delete entity by eid, but not to
+            # its other attributes (fa.complete() fails)
+            fa = cnx.find("FindingAid", eid=fa.eid).one()
+            self.assertEqual(fetch_count_entities(cnx, fa), 0)
+            fac = cnx.find("FAComponent", eid=fac.eid).one()
+            self.assertEqual(fetch_count_entities(cnx, fac), 0)
+
+    def test_delete_published_findingaid(self):
+        """Test deleting published Findingaids and FAComponents.
+
+        Trying: deleting a published FindingAid
+        Expecting: FindingAid and its FAComponent are deleted from
+                   both schema
+        """
+        with self.access() as cnx:
+            self.assertEqual(len(cnx.find("FindingAid")), 10)
+            ce = cnx.create_entity
+            fa = utils.create_findingaid(cnx)
+            fac = ce(
+                "FAComponent",
+                did=ce("Did", unittitle="unittitle", unitid="unitid"),
+                stable_id="stable",
+                finding_aid=fa,
+            )
+            cnx.commit()
+        with self.access() as cnx:
+            fa = cnx.find("FindingAid", eid=fa.eid).one()
+            fa.cw_adapt_to("IWorkflowable").fire_transition("wft_cmsobject_publish")
+            cnx.commit()
+        with self.access() as cnx:
+            self.assertEqual(fetch_count_entities(cnx, fa), 1)
+            self.assertEqual(fetch_count_entities(cnx, fa, schema="published"), 1)
+            self.assertEqual(fetch_count_entities(cnx, fac), 1)
+            self.assertEqual(fetch_count_entities(cnx, fac, schema="published"), 1)
+        with self.access() as cnx:
+            fa = cnx.find("FindingAid", eid=fa.eid).one()
+            delete_from_filename(
+                cnx, fa.stable_id, is_filename=False, interactive=False, esonly=False
+            )
+            cnx.commit()
+        with self.access() as cnx:
+            # for a reason we still have acces to the delete entity by eid, but not to
+            # its other attributes (fa.complete() fails)
+            fa = cnx.find("FindingAid", eid=fa.eid).one()
+            self.assertEqual(fetch_count_entities(cnx, fa), 0)
+            self.assertEqual(fetch_count_entities(cnx, fa, schema="published"), 0)
+            self.assertFalse(
+                cnx.system_sql(
+                    "select count(*) from entities where eid={eid};".format(eid=fa.eid)
+                ).fetchone()[0]
+            )
+            self.assertEqual(fetch_count_entities(cnx, fac), 0)
+            self.assertEqual(fetch_count_entities(cnx, fac, schema="published"), 0)
+            self.assertFalse(
+                cnx.system_sql(
+                    "select count(*) from entities where eid={eid};".format(eid=fac.eid)
+                ).fetchone()[0]
+            )
 
 
 if __name__ == "__main__":

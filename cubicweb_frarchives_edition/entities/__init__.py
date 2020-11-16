@@ -37,6 +37,8 @@ import encodings
 
 import urllib.parse
 
+from logilab.common.decorators import monkeypatch
+
 from logilab.common.registry import yes
 
 from cubicweb.entities import AnyEntity, fetch_config
@@ -47,6 +49,8 @@ from cubicweb_francearchives.entities.indexes import (
     ExternalId as BaseExternalId,
     ExternalUri as BaseExternalUri,
 )
+
+from cubicweb_francearchives.entities.cms import TranslationMixin
 
 
 class FACollectionItemMapper(CollectionItemMapper):
@@ -96,7 +100,12 @@ def parse_dataurl(url):
 
 class RqTask(AnyEntity):
     __regid__ = "RqTask"
-    fetch_attrs, cw_fetch_order = fetch_config(["title", "name",])
+    fetch_attrs, cw_fetch_order = fetch_config(
+        [
+            "title",
+            "name",
+        ]
+    )
 
     def dc_title(self):
         return "{} ({})".format(self.title, self.name)
@@ -112,3 +121,12 @@ class ExternalId(BaseExternalId):
     @property
     def samesas_history_id(self):
         return self.extid
+
+
+@monkeypatch(TranslationMixin)
+def original_entity_state(self):
+    original_entity = self.original_entity
+    if original_entity:
+        adapted = original_entity.cw_adapt_to("IWorkflowable")
+        if adapted:
+            return adapted.state

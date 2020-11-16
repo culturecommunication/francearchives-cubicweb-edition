@@ -27,27 +27,31 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-import {render} from 'react-dom';
-import {Component, createElement as ce} from 'react';
+/* global data */
 
-import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
+import {render} from 'react-dom'
+import {Component, createElement as ce} from 'react'
 
-import './logs-table';
+import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table'
 
+const PropTypes = require('prop-types')
+
+import './logs-table'
 
 function titleFormat(cell) {
-    return ce('a', {href: cell[1]}, cell[0]);
+    return ce('a', {href: cell[1]}, cell[0])
 }
 
 class RqTable extends Component {
-
     render() {
         const {data: selectedData} = this.props,
-        dataLength = selectedData.length;
+            dataLength = selectedData.length
         return ce(
-            'div', null,
+            'div',
+            null,
             ce(
-                BootstrapTable, {
+                BootstrapTable,
+                {
                     data: selectedData,
                     striped: true,
                     hover: true,
@@ -61,41 +65,48 @@ class RqTable extends Component {
                         sizePerPageList: [
                             {
                                 text: '20',
-                                value: 20
+                                value: 20,
                             },
                             {
                                 text: '50',
-                                value: 50
+                                value: 50,
                             },
                             {
                                 text: '100',
-                                value: 100
+                                value: 100,
                             },
                             {
                                 text: '500',
-                                value: 500
+                                value: 500,
                             },
                             {
                                 text: `tout (${dataLength})`,
-                                value: dataLength
+                                value: dataLength,
                             },
-                        ]
-                    }
+                        ],
+                    },
                 },
-                ce(TableHeaderColumn, {isKey: true, dataField: 'eid', hidden: true}),
-                ce(TableHeaderColumn, {dataField: 'title',
-                                       dataFormat: titleFormat, width: '80%'}, 'Titre'),
-                ce(TableHeaderColumn, {dataField: 'state'}, 'État')
-            )
-        );
+                ce(TableHeaderColumn, {
+                    isKey: true,
+                    dataField: 'eid',
+                    hidden: true,
+                }),
+                ce(
+                    TableHeaderColumn,
+                    {dataField: 'title', dataFormat: titleFormat, width: '80%'},
+                    'Titre',
+                ),
+                ce(TableHeaderColumn, {dataField: 'state'}, 'État'),
+            ),
+        )
     }
-
 }
 
-const target = document.getElementById('bs-table-container');
+RqTable.propTypes = {
+    data: PropTypes.object.isRequired,
+}
+
+const target = document.getElementById('bs-table-container')
 if (target !== null) {
-    render(
-        ce(RqTable, {data: data}),
-        target
-    );
+    render(ce(RqTable, {data: data}), target)
 }

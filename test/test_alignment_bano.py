@@ -180,8 +180,7 @@ class BanoAlignTC(FrACubicConfigMixIn, CubicWebTC):
         self.assertEqual(actual, expected)
 
     def test_build_record_lyon(self):
-        """Test a label without whitespaces
-        """
+        """Test a label without whitespaces"""
         locations = [("foo", "bar", "", "", "Lyon--Célestins--Place des", "baz", "foobar", "")]
         actual = list(bano_align.build_record(locations))
         expected = [locations[0] + ({"city": "Lyon", "voie": "Célestins--Place des"},)]

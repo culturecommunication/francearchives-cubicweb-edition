@@ -27,55 +27,95 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-const {Component, createElement: ce} = require('react');
+const {Component, createElement: ce} = require('react')
 const {spinner} = require('./fa'),
-      {BootstrapTable: BT, TableHeaderColumn: THC} = require('react-bootstrap-table');
+    {
+        BootstrapTable: BT,
+        TableHeaderColumn: THC,
+    } = require('react-bootstrap-table')
 
-const {default: {
-    jsonFetch,
-    getUiSchema,
-}} = require('../api');
-
+const {
+    default: {jsonFetch, getUiSchema},
+} = require('../api')
 
 class SearchCWUsers extends Component {
     constructor(props, ctx) {
-        super(props, ctx);
-        this.state = {data: null, loadingEditor: false, formData: null};
+        super(props, ctx)
+        this.state = {data: null, loadingEditor: false, formData: null}
     }
 
     componentDidMount() {
         Promise.all([
             jsonFetch('/cwusers'),
             getUiSchema('CWUser'),
-        ]).then(([data, uiSchema]) => this.setState({data, uiSchema}));
+        ]).then(([data, uiSchema]) => this.setState({data, uiSchema}))
     }
 
     render() {
-        const {data} = this.state;
-        const body = data === null ? ce(spinner) :
-                  ce(BT, {data, striped:true,
-                          hover:true,
+        const {data} = this.state
+        const body =
+            data === null
+                ? ce(spinner)
+                : ce(
+                      BT,
+                      {
+                          data,
+                          striped: true,
+                          hover: true,
                           search: true,
                           pagination: true,
-                         },
-                     ce(THC, {dataField:'eid', isKey:true, hidden: true}, 'eid'),
-                     ce(THC, {dataField: 'login', dataSort:true,
-                              dataFormat: (cell, cwuser) => ce('a', {
-                                  href: cwuser.absoluteUrl}, cwuser.login)}, 'Identifiant'),
-                     ce(THC, {dataField: 'firstname', dataSort:true}, 'Nom'),
-                     ce(THC, {dataField: 'surname', dataSort:true}, 'Prénom'),
-                     ce(THC, {dataField: 'in_group_name', dataSort:true}, 'Group'),
-                    ce(THC, {dataField: 'use_email', dataSort:true,
+                      },
+                      ce(
+                          THC,
+                          {dataField: 'eid', isKey: true, hidden: true},
+                          'eid',
+                      ),
+                      ce(
+                          THC,
+                          {
+                              dataField: 'login',
+                              dataSort: true,
                               dataFormat: (cell, cwuser) =>
-                              {return cwuser.use_email !== undefined ? cwuser.use_email.map(e => e.address).join(', '): null}},
-                             'Courriel')
-                    );
-        return ce('div', null,
-                  ce('h1',
-                     null,
-                     "Rechercher des utilisateurs"),
-                  body);
+                                  ce(
+                                      'a',
+                                      {
+                                          href: cwuser.absoluteUrl,
+                                      },
+                                      cwuser.login,
+                                  ),
+                          },
+                          'Identifiant',
+                      ),
+                      ce(THC, {dataField: 'firstname', dataSort: true}, 'Nom'),
+                      ce(THC, {dataField: 'surname', dataSort: true}, 'Prénom'),
+                      ce(
+                          THC,
+                          {dataField: 'in_group_name', dataSort: true},
+                          'Group',
+                      ),
+                      ce(
+                          THC,
+                          {
+                              dataField: 'use_email',
+                              dataSort: true,
+                              dataFormat: (cell, cwuser) => {
+                                  return cwuser.use_email !== undefined
+                                      ? cwuser.use_email
+                                            .map(e => e.address)
+                                            .join(', ')
+                                      : null
+                              },
+                          },
+                          'Courriel',
+                      ),
+                  )
+        return ce(
+            'div',
+            null,
+            ce('h1', null, 'Rechercher des utilisateurs'),
+            body,
+        )
     }
 }
 
-module.exports = SearchCWUsers;
+module.exports = SearchCWUsers

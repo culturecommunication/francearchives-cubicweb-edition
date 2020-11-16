@@ -28,64 +28,74 @@
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 const {Component, createElement: ce} = require('react'),
-    PropTypes = require('prop-types');
+    PropTypes = require('prop-types')
 
-const {default: Form} = require('react-jsonschema-form');
+const {default: Form} = require('react-jsonschema-form')
 
 const {TinyMCEWrapper} = require('./ckeditor'),
-      {spinner} = require('./fa'),
-      {FilePicker, DatePicker, ImagePicker, AutoCompleteField} = require('./widgets'),
-      {showErrors} = require('../actions'),
-      {CustomFieldTemplateConnected} = require('../containers/form');
+    {spinner} = require('./fa'),
+    {
+        FilePicker,
+        DatePicker,
+        ImagePicker,
+        AutoCompleteField,
+    } = require('./widgets'),
+    {showErrors} = require('../actions'),
+    {CustomFieldTemplateConnected} = require('../containers/form')
 
+const {
+    default: {getSchema, getUiSchema, createEntity},
+} = require('../api')
 
-const {default: {
-    getSchema,
-    getUiSchema,
-    createEntity,
-}} = require('../api');
-
-const {buildFormData} = require('../utils');
-
-
+const {buildFormData} = require('../utils')
 
 function ErrorListTop({errors}) {
     if (!errors || errors.length === 0) {
-        return null;
+        return null
     }
-    return ce('div', {className: "panel panel-danger errors"},
-              ce('div',{className: "panel-heading"},
-                 ce('h3', {className: "panel-title"}, 'Errors')),
-              ce('ul', {className: 'list-group'},
-                 errors.map((error, i) => ce(
-                     'li',
-                     {key: i, className: 'list-group-item text-danger'},
-                     error.stack))));
+    return ce(
+        'div',
+        {className: 'panel panel-danger errors'},
+        ce(
+            'div',
+            {className: 'panel-heading'},
+            ce('h3', {className: 'panel-title'}, 'Errors'),
+        ),
+        ce(
+            'ul',
+            {className: 'list-group'},
+            errors.map((error, i) =>
+                ce(
+                    'li',
+                    {key: i, className: 'list-group-item text-danger'},
+                    error.stack,
+                ),
+            ),
+        ),
+    )
 }
 
-
-
 class CmsForm extends Form {
-
     renderErrors() {
-        const {status, errors} = this.state;
-        const {showErrorList, serverErrors} = this.props;
+        const {status, errors} = this.state
+        const {showErrorList, serverErrors} = this.props
         if (serverErrors) {
             serverErrors.forEach(err => {
                 if (err.source && err.source.pointer) {
-                    errors.push({stack: `${err.source.pointer}: ${err.details}`});
+                    errors.push({
+                        stack: `${err.source.pointer}: ${err.details}`,
+                    })
                 } else {
-                    errors.unshift({stack: `${err.details}`});
+                    errors.unshift({stack: `${err.details}`})
                 }
-            });
+            })
         }
-        if (status !== "editing" && errors.length && showErrorList !== false) {
-            return ce(ErrorListTop, {errors});
+        if (status !== 'editing' && errors.length && showErrorList !== false) {
+            return ce(ErrorListTop, {errors})
         }
-        return null;
+        return null
     }
 }
-
 
 CmsForm.defaultProps = {
     widgets: {
@@ -98,120 +108,128 @@ CmsForm.defaultProps = {
     fields: {
         autocompleteField: AutoCompleteField,
     },
-};
+}
 
-
-const location_reload = document.location.reload.bind(document.location);
+const location_reload = document.location.reload.bind(document.location)
 
 class CmsFormWrapper extends Component {
-
     constructor(props, context) {
-        super(props, context);
-        this.onSubmit = this.onSubmit.bind(this);
-        this.onCancel = this.props.onCancel || location_reload;
-        this.state = {loading: false, formData: null, errors:null};
+        super(props, context)
+        this.onSubmit = this.onSubmit.bind(this)
+        this.onCancel = this.props.onCancel || location_reload
+        this.state = {loading: false, formData: null, errors: null}
     }
 
     UNSAFE_componentWillReceiveProps(nextProps) {
-        this.onCancel = nextProps.onCancel || location_reload;
+        this.onCancel = nextProps.onCancel || location_reload
     }
 
     componentWillUnmount() {
-        this.unmounted = true;
+        this.unmounted = true
     }
 
     onSubmit(ev) {
-        this.setState({formData: ev.formData,
-                       loading: true});
-        return this.props.onSubmit(ev)
-            .then(() => {
-                if (!this.unmounted) {
-                    this.setState({loading: false});
-                }
-            });
+        this.setState({formData: ev.formData, loading: true})
+        return this.props.onSubmit(ev).then(() => {
+            if (!this.unmounted) {
+                this.setState({loading: false})
+            }
+        })
     }
 
     render() {
         const {loading, formData} = this.state,
-              formProps = Object.assign({formData:formData}, this.props);
+            formProps = Object.assign({formData: formData}, this.props)
         if (this.props.children !== undefined) {
-            return ce(CmsForm, formProps);
+            return ce(CmsForm, formProps)
         }
-        formProps.onSubmit = this.onSubmit;
-        return ce(CmsForm, formProps,
-                  ce('div', {className: 'btn-group'},
-                     ce('button', {
-                         'type': 'button',
-                         onClick: this.onCancel,
-                         className: 'btn btn-default'}, 'annuler'),
-                     ce('button', {type: 'submit', className: 'btn btn-primary'},
-                        loading ? ce(spinner) : '',
-                        'enregistrer')));
+        formProps.onSubmit = this.onSubmit
+        return ce(
+            CmsForm,
+            formProps,
+            ce(
+                'div',
+                {className: 'btn-group'},
+                ce(
+                    'button',
+                    {
+                        type: 'button',
+                        onClick: this.onCancel,
+                        className: 'btn btn-default',
+                    },
+                    'annuler',
+                ),
+                ce(
+                    'button',
+                    {type: 'submit', className: 'btn btn-primary'},
+                    loading ? ce(spinner) : '',
+                    'enregistrer',
+                ),
+            ),
+        )
     }
 }
-
 
 CmsFormWrapper.propTypes = {
     onCancel: PropTypes.func,
     onSubmit: PropTypes.func.isRequired,
     children: PropTypes.node,
-};
-
+}
 
 exports.CmsForm = CmsFormWrapper
 
-
-
-
 class AddEntityForm extends Component {
     constructor(props) {
-        super(props);
-        this.state = {schema: null, uiSchema: null,
-                      formData: props.formData || null,
-                      errors:null};
-        this.onSubmit = this.onSubmit.bind(this);
-        this.formTitle = this.props.formTitle || null;
-        this.customValidate = this.customValidate.bind(this);
-        this.onChange = this.onChange.bind(this);
+        super(props)
+        this.state = {
+            schema: null,
+            uiSchema: null,
+            formData: props.formData || null,
+            errors: null,
+        }
+        this.onSubmit = this.onSubmit.bind(this)
+        this.formTitle = this.props.formTitle || null
+        this.customValidate = this.customValidate.bind(this)
+        this.onChange = this.onChange.bind(this)
     }
 
     onChange(formState) {
         this.setState({
-            formData: buildFormData(formState.formData, this.state.schema)});
+            formData: buildFormData(formState.formData, this.state.schema),
+        })
         if (this.props.onChange) {
-            this.props.onChange(formState);
+            this.props.onChange(formState)
         }
     }
 
     customValidate(_, errors) {
-        return errors;
+        return errors
     }
 
     onSubmit(ev) {
-        this.setState({formData: ev.formData});
-        return createEntity(this.props.etype, ev.formData)
-            .then(doc => {
-                if (doc.errors && doc.errors.length) {
-                    this.props.dispatch(showErrors(doc.errors));
-                    return;
-                } else if (doc.absoluteUrl) {
-                    document.location.replace(doc.absoluteUrl);
-                }
-            });
+        this.setState({formData: ev.formData})
+        return createEntity(this.props.etype, ev.formData).then(doc => {
+            if (doc.errors && doc.errors.length) {
+                this.props.dispatch(showErrors(doc.errors))
+                return
+            } else if (doc.absoluteUrl) {
+                document.location.replace(doc.absoluteUrl)
+            }
+        })
     }
 
     componentDidMount() {
         Promise.all([
             getSchema(this.props.etype, null, 'creation'),
             getUiSchema(this.props.etype),
-        ]).then(([schema, uiSchema]) => this.setState({schema, uiSchema}));
+        ]).then(([schema, uiSchema]) => this.setState({schema, uiSchema}))
     }
 
     render() {
-        const {schema, uiSchema, formData, errors} = this.state;
-        let body;
+        const {schema, uiSchema, formData, errors} = this.state
+        let body
         if (schema === null) {
-            body = ce(spinner);
+            body = ce(spinner)
         } else {
             body = ce(CmsFormWrapper, {
                 schema,
@@ -222,12 +240,11 @@ class AddEntityForm extends Component {
                 FieldTemplate: CustomFieldTemplateConnected,
                 validate: this.customValidate,
                 onSubmit: this.onSubmit,
-            });
+            })
         }
-        let title = this.formTitle === null ? null : ce('h1', null, this.formTitle);
-        return ce('div', null,
-                  title,
-                  body);
+        let title =
+            this.formTitle === null ? null : ce('h1', null, this.formTitle)
+        return ce('div', null, title, body)
     }
 }
 
@@ -237,6 +254,6 @@ AddEntityForm.propTypes = {
     dispatch: PropTypes.func.isRequired,
     etype: PropTypes.string.isRequired,
     formTitle: PropTypes.string,
-};
+}
 
-exports.AddEntityForm = AddEntityForm;
+exports.AddEntityForm = AddEntityForm

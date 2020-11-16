@@ -17,7 +17,7 @@ msgid "1 document"
 msgstr ""
 
 #, python-format
-msgid "A department archive with \"%s\" code already exists"
+msgid "A Service with \"%s\" code already exists"
 msgstr ""
 
 msgid ""
@@ -26,6 +26,9 @@ msgid ""
 msgstr ""
 "Fichier CSV invalide. Ce fichier doit contenir les colonnes \"Code_insee\", "
 "\"URL\", \"Couleur\" et \"Legende\"séparées par \",\""
+
+msgid "Context of import"
+msgstr ""
 
 msgid "Following files are empty : {}"
 msgstr ""
@@ -45,6 +48,9 @@ msgstr ""
 msgid "Impossible to delete this card"
 msgstr ""
 
+msgid "Impossible to publish"
+msgstr ""
+
 msgid "Intitules de la rubrique presentation"
 msgstr ""
 
@@ -52,6 +58,12 @@ msgid "Missing data"
 msgstr ""
 
 msgid "New RqTask"
+msgstr ""
+
+msgid "No original entity found"
+msgstr ""
+
+msgid "Normalize indexes labels"
 msgstr ""
 
 msgid "OAIRepository"
@@ -72,9 +84,28 @@ msgstr ""
 msgid "Section"
 msgstr ""
 
+msgid "See other files referencing documents with identical content"
+msgstr ""
+
+msgid "See other files referencing the same document (same filename)"
+msgstr ""
+
+msgid "See the file (access by eid)"
+msgstr ""
+
 msgid ""
 "Service \"{}\" does not exist. Check the ziped file name \"{}\" or create a "
 "new service before uploading the file again"
+msgstr ""
+
+msgid ""
+"The \"content\" field HTML is not valid. Please,\n"
+"                correct the HTML or choose \"no_summary\" value for "
+"\"summary_policy\"\n"
+"                field"
+msgstr ""
+
+msgid "The original entity is not published"
 msgstr ""
 
 msgid "This RqTask"
@@ -110,6 +141,9 @@ msgstr "calculate and import alignments to BANO"
 msgid "align-geoname"
 msgstr "calculate alignments to GeoNames"
 
+msgid "all services"
+msgstr ""
+
 msgid "bad task eid"
 msgstr ""
 
@@ -123,6 +157,9 @@ msgid "compute_alignments_all"
 msgstr "[align database] align entire database"
 
 msgid "compute_location_authorities_to_group"
+msgstr ""
+
+msgid "context_service"
 msgstr ""
 
 msgid "creating File (RqTask %(linkto)s output_file File)"
@@ -166,6 +203,9 @@ msgstr ""
 
 msgctxt "RqTask"
 msgid "ended_at"
+msgstr ""
+
+msgid "english"
 msgstr ""
 
 msgid "enqueued_at"
@@ -221,6 +261,20 @@ msgctxt "FindingAid"
 msgid "fatask_findingaid_object"
 msgstr ""
 
+msgid "fatask_person"
+msgstr ""
+
+msgctxt "RqTask"
+msgid "fatask_person"
+msgstr ""
+
+msgid "fatask_person_object"
+msgstr ""
+
+msgctxt "Person"
+msgid "fatask_person_object"
+msgstr ""
+
 msgid "findingaid eid"
 msgstr ""
 
@@ -228,6 +282,9 @@ msgid "force-delete-old-findingaids"
 msgstr ""
 
 msgid "force-import-oai"
+msgstr ""
+
+msgid "german"
 msgstr ""
 
 msgid "group_location_authorities"
@@ -249,6 +306,21 @@ msgid "import_oai"
 msgstr ""
 
 msgid "in_state_facet"
+msgstr "In state"
+
+msgid "index authorities"
+msgstr ""
+
+msgid "index services"
+msgstr ""
+
+msgid "index_agent"
+msgstr ""
+
+msgid "index_location"
+msgstr ""
+
+msgid "index_subject"
 msgstr ""
 
 msgid "input file must be a ZIP or a XML file"
@@ -278,6 +350,9 @@ msgstr ""
 
 msgctxt "RqTask"
 msgid "name"
+msgstr ""
+
+msgid "no"
 msgstr ""
 
 msgid "no XML files found in zip"
@@ -310,6 +385,9 @@ msgstr ""
 
 msgctxt "OAIImportTask"
 msgid "oaiimport_task_object"
+msgstr ""
+
+msgid "original ressource"
 msgstr ""
 
 msgid "output_descr"
@@ -353,6 +431,10 @@ msgctxt "BaseContent"
 msgid "referenced_files"
 msgstr ""
 
+msgctxt "BaseContentTranslation"
+msgid "referenced_files"
+msgstr ""
+
 msgctxt "Card"
 msgid "referenced_files"
 msgstr ""
@@ -362,6 +444,10 @@ msgid "referenced_files"
 msgstr ""
 
 msgctxt "CommemorationItem"
+msgid "referenced_files"
+msgstr ""
+
+msgctxt "CommemorationItemTranslation"
 msgid "referenced_files"
 msgstr ""
 
@@ -381,11 +467,24 @@ msgctxt "Section"
 msgid "referenced_files"
 msgstr ""
 
+msgctxt "SectionTranslation"
+msgid "referenced_files"
+msgstr ""
+
 msgid "referenced_files_object"
 msgstr ""
 
 msgctxt "File"
 msgid "referenced_files_object"
+msgstr ""
+
+msgid "required property"
+msgstr ""
+
+msgid "run_dead_links"
+msgstr "[linkchecker] check site for dead links"
+
+msgid "run_index_kibana"
 msgstr ""
 
 msgid "service"
@@ -400,8 +499,14 @@ msgstr ""
 msgid "service code of the productor (required only for xml, optional for zip)"
 msgstr ""
 
+msgid "should_normalize"
+msgstr ""
+
 msgid "simplified-csv"
 msgstr "do not include Geogname information"
+
+msgid "spanish"
+msgstr ""
 
 msgid "started_at"
 msgstr ""
@@ -488,6 +593,9 @@ msgstr "cancel"
 
 msgid "wft_faimport_run"
 msgstr "run"
+
+msgid "yes"
+msgstr ""
 
 msgid "zip file"
 msgstr ""

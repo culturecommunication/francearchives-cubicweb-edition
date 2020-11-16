@@ -28,17 +28,27 @@
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-const {createElement: ce} = require('react');
-
+const {createElement: ce} = require('react')
 
 function FormItem({label, value, name, id}) {
-    return ce('div', {className: 'form-group'},
-              ce('label', null,
-                 label,
-                 ce('input', {name, id, defaultValue: value, className: 'form-control',
-                              style: {fontWeight: 'initial', width: '100%'}})));
+    return ce(
+        'div',
+        {className: 'form-group'},
+        ce(
+            'label',
+            null,
+            label,
+            ce('input', {
+                name,
+                id,
+                defaultValue: value,
+                className: 'form-control',
+                style: {fontWeight: 'initial', width: '100%'},
+            }),
+        ),
+    )
 }
 
 module.exports = {
     FormItem,
-};
+}

@@ -119,11 +119,7 @@ class DeleteFindingAidsTC(TaskTC):
                 {"name": "delete_finding_aids", "file": filename, "title": "delete_finding_aids"}
             )
             upload_files = [
-                (
-                    "fileobj",
-                    filename,
-                    b"\n".join([b"stable_id", b"foobar3456", b"baz2345"])
-                )
+                ("fileobj", filename, b"\n".join([b"stable_id", b"foobar3456", b"baz2345"]))
             ]
             post_kwargs = {"params": [("data", data)], "upload_files": upload_files}
             self.webapp.post(
@@ -157,9 +153,7 @@ class DeleteFindingAidsTC(TaskTC):
             data = json.dumps(
                 {"name": "delete_finding_aids", "file": filename, "title": "delete_finding_aids"}
             )
-            upload_files = [
-                ("fileobj", filename, b"\n".join([b"eadid", b"1234"]))
-            ]
+            upload_files = [("fileobj", filename, b"\n".join([b"eadid", b"1234"]))]
             post_kwargs = {"params": [("data", data)], "upload_files": upload_files}
             self.webapp.post(
                 "/RqTask/?schema_type=delete_finding_aids",

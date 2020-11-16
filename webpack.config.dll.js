@@ -38,7 +38,7 @@ const config = module.exports = {
                  'redux', 'react-redux', 'redux-logger', 'redux-thunk',
                  'immutable',
                  'react-jsonschema-form',
-                 'react-tinymce', 'react-widgets', 'react-bootstrap-table',
+                 '@tinymce/tinymce-react', 'react-widgets', 'react-bootstrap-table',
                  'moment',
                  'lodash',
                  'lodash-es',

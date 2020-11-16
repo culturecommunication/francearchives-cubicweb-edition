@@ -27,33 +27,33 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-'use strict';
+'use strict'
 
-const Immutable = require('immutable');
+const Immutable = require('immutable')
 
-const {actionTypes} = require('./actions');
+const {actionTypes} = require('./actions')
 
 const defaultAppState = Immutable.fromJS({
     showPanel: false,
     errors: [],
-});
+})
 
 function app(state = defaultAppState, action) {
     switch (action.type) {
-    case actionTypes.TOGGLE_PANEL:
-        return state.set('showPanel', !state.get('showPanel'));
-    case actionTypes.SHOW_PANEL:
-        return state.set('showPanel', true);
+        case actionTypes.TOGGLE_PANEL:
+            return state.set('showPanel', !state.get('showPanel'))
+        case actionTypes.SHOW_PANEL:
+            return state.set('showPanel', true)
         // return m(state, {showPanel: true});
-    case actionTypes.SHOW_ERRORS:
-        return state.set('errors', Immutable.fromJS(action.payload));
+        case actionTypes.SHOW_ERRORS:
+            return state.set('errors', Immutable.fromJS(action.payload))
     }
-    return state;
+    return state
 }
 
 module.exports = function rootReducer(state, action) {
     return state.withMutations(state => {
-        const appState = state.get('app');
-        return state.set('app', app(appState, action));
-    });
-};
+        const appState = state.get('app')
+        return state.set('app', app(appState, action))
+    })
+}

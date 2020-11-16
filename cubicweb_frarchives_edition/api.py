@@ -105,7 +105,10 @@ def jsonschema_adapter(cnx, **context):
 
 
 @json_config(
-    name="uischema", route_name="cwentities", request_method="GET", context=ETypeResource,
+    name="uischema",
+    route_name="cwentities",
+    request_method="GET",
+    context=ETypeResource,
 )
 def etype_json_uischema(context, request):
     """Return the uischema for the entity type bound to `context`."""
@@ -121,7 +124,8 @@ def etype_json_uischema(context, request):
 
 
 @view_config(
-    route_name="delete_entity", context=Unauthorized,
+    route_name="delete_entity",
+    context=Unauthorized,
 )
 def deletion_unauthorized(exc, request):
     """Exception view for Unauthorized error on JSON request."""
@@ -132,7 +136,8 @@ def deletion_unauthorized(exc, request):
 
 
 @json_config(
-    route_name="delete_entity", context=ValidationError,
+    route_name="delete_entity",
+    context=ValidationError,
 )
 def deletion_failed(exc, request):
     """Exception view for ValidationError on JSON request."""
@@ -165,7 +170,9 @@ def etype_role_schema(context, request):
 
 
 @json_config(
-    route_name="cwentities", context=ETypeResource, request_method="POST",
+    route_name="cwentities",
+    context=ETypeResource,
+    request_method="POST",
 )
 def create_entity(context, request):
     """Create a new entity from JSON data."""
@@ -200,7 +207,10 @@ def create_entity(context, request):
 
 
 @json_config(
-    name="uischema", route_name="cwentities", request_method="GET", context=RelationshipResource,
+    name="uischema",
+    route_name="cwentities",
+    request_method="GET",
+    context=RelationshipResource,
 )
 def relationship_uischema(context, request):
     vreg = request.registry["cubicweb.registry"]
@@ -217,16 +227,15 @@ def relationship_uischema(context, request):
 )
 def list_available_entities(context, request):
     params = request.params.copy()
-    params["q"] = "%{}%".format(request.params["q"])
     entities = []
+    if "target_type" in request.params:
+        target_types = (request.params["target_type"],)
+    else:
+        target_types = [t.type for t in context.target_schemas]
     cwreq = request.cw_request
-    for tschema in context.target_schemas:
-        ttype = tschema.type
+    for ttype in target_types:
         adapter = cwreq.vreg["adapters"].select("IAvailable", cwreq, etype=ttype, **params)
-        rql = adapter.rql()
-        rset = request.cw_request.execute(rql, params)
-        for entity in rset.entities():
-            entities.append(entity.cw_adapt_to("IAvailable").serialize())
+        entities.extend(adapter.candidates(**params))
     return {"data": entities}
 
 
@@ -290,7 +299,8 @@ def add_workflow_transition(context, request):
 
 
 @jsonschema_config(
-    context=WorkflowTransitionResource, decorator=[entity_from_context],
+    context=WorkflowTransitionResource,
+    decorator=[entity_from_context],
 )
 def workflow_transition_schema(context, request):
     """Return the JSON schema of TrInfo entity type restricted to possible

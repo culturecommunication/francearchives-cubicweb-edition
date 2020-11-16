@@ -42,10 +42,18 @@ from yams.buildobjs import (
 )
 from cubicweb.schema import make_workflowable
 
+
+from cubicweb_francearchives import CMS_I18N_OBJECTS
 from cubicweb_francearchives.schema.ead import FindingAid
 from cubicweb_francearchives.schema import cms as schema_cms
 
-for etype in [FindingAid] + [getattr(schema_cms, cms_type) for cms_type in schema_cms.CMS_OBJECTS]:
+for etype in (
+    [FindingAid]
+    + [getattr(schema_cms, cms_type) for cms_type in schema_cms.CMS_OBJECTS]
+    + [getattr(schema_cms, cms_type) for cms_type in CMS_I18N_OBJECTS]
+    + [schema_cms.GlossaryTerm]
+    + [schema_cms.FaqItem]
+):
     make_workflowable(etype)
 
 
@@ -71,6 +79,12 @@ class oaiimport_task(RelationDefinition):
 class fatask_findingaid(RelationDefinition):
     subject = "RqTask"
     object = "FindingAid"
+    cardinality = "**"
+
+
+class fatask_person(RelationDefinition):
+    subject = "RqTask"
+    object = "Person"
     cardinality = "**"
 
 
@@ -126,6 +140,10 @@ def set_users_permissions(schema):
         "FAHeader",
         "ExternalUri",
         "File",  # 'IndexRole'
+        "SectionTranslation",
+        "BaseContentTranslation",
+        "CommemorationItemTranslation",
+        "FaqItemTranslation",
     ]
     for etype in etypes:
         schema[etype].permissions.update(
@@ -154,7 +172,7 @@ class referenced_files(RelationDefinition):
         "CommemoCollection",
         "ExternRef",
         "BaseContent",
-    )
+    ) + CMS_I18N_OBJECTS
     object = "File"
     cardinality = "**"
 

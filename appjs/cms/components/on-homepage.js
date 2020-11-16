@@ -29,44 +29,44 @@
  */
 
 const {createElement: ce, Component} = require('react'),
-    PropTypes = require('prop-types');
+    PropTypes = require('prop-types')
 
-const {default: {getEntity, getSchema}} = require('../api');
+const {
+    default: {getEntity, getSchema},
+} = require('../api')
 
-
-const {spinner, icon} = require('./fa');
-
+const {spinner, icon} = require('./fa')
 
 class OnHomePageIcon extends Component {
     constructor(props) {
-        super(props);
-        this.state = {onHomePage: null, loading: true};
-        this.entity = props.entity.toJS();
+        super(props)
+        this.state = {onHomePage: null, loading: true}
+        this.entity = props.entity.toJS()
     }
 
     componentDidMount() {
-        const {cw_etype, eid} = this.entity;
-        getSchema(cw_etype, eid, 'edition').then(d => this.schema = d);
+        const {cw_etype, eid} = this.entity
+        getSchema(cw_etype, eid, 'edition').then(d => (this.schema = d))
         return getEntity(cw_etype, eid).then(d => {
-            this.entity = d;
-            this.setState({onHomePage: d.on_homepage, loading: false});
-        });
+            this.entity = d
+            this.setState({onHomePage: d.on_homepage, loading: false})
+        })
     }
 
     render() {
         const {onHomePage, loading} = this.state,
-              iconName = `star${onHomePage ? '' : '-o'}`;
-        let content;
+            iconName = `star${onHomePage ? '' : '-o'}`
+        let content
         if (loading) {
-            content = ce(spinner);
+            content = ce(spinner)
         } else {
-            content = ce(icon, {name: iconName});
+            content = ce(icon, {name: iconName})
         }
-        return ce('h2', {title: "sur la page d'accueil"}, content);
+        return ce('h2', {title: "sur la page d'accueil"}, content)
     }
 }
 OnHomePageIcon.propTypes = {
     entity: PropTypes.object,
 }
 
-module.exports = OnHomePageIcon;
+module.exports = OnHomePageIcon

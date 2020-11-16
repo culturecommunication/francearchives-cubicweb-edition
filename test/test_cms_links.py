@@ -67,7 +67,7 @@ class CommemoLinkTests(FrACubicConfigMixIn, PyramidCWTest):
         if status != 200:
             return None
         schema = response.json
-        return [l["href"] for l in schema["links"] if l["rel"] == "related.children"]
+        return [link["href"] for link in schema["links"] if link["rel"] == "related.children"]
 
     def test_commemocollection_addlink(self):
         coll = self.coll

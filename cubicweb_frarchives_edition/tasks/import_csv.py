@@ -42,7 +42,13 @@ def process_import_csv(reader, filepath, metadata_filepath, services_map, log):
 
 @rqjob
 def import_csv(
-    cnx, zip_description, force_delete=True, auto_align=False, auto_dedupe=True, taskeid=None
+    cnx,
+    zip_description,
+    auto_dedupe,
+    context_service,
+    force_delete=True,
+    auto_align=False,
+    taskeid=None,
 ):
     launch_task(
         cnx,
@@ -50,8 +56,9 @@ def import_csv(
         process_import_csv,
         zip_description["filepaths"],
         metadata_filepath=zip_description["metadata"],
-        auto_dedupe=auto_align,
-        auto_align=auto_align,
         force_delete=force_delete,
+        auto_align=auto_align,
+        context_service=context_service,
+        auto_dedupe=auto_dedupe,
         taskeid=taskeid,
     )

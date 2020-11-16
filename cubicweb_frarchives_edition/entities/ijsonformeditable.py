@@ -94,8 +94,26 @@ class CircularJsonFormEditableAdapter(JsonFormEditableAdapter):
             "abrogation_date",
         ):
             defs.update(
-                {attr_date: {"ui:widget": "dateEditor",},}
+                {
+                    attr_date: {
+                        "ui:widget": "dateEditor",
+                    },
+                }
             )
+        return defs
+
+
+class OAIRepositoryJsonFormEditableAdapter(JsonFormEditableAdapter):
+    __select__ = JsonFormEditableAdapter.__select__ & is_instance("OAIRepository")
+
+    def ui_schema(self):
+        defs = super(OAIRepositoryJsonFormEditableAdapter, self).ui_schema()
+        defs.update(
+            {
+                "should_normalize": {"ui:widget": "radio"},
+                "context_service": {"ui:widget": "radio"},
+            }
+        )
         return defs
 
 
@@ -103,21 +121,71 @@ class CmsObjectJsonFormEditableAdapter(JsonFormEditableAdapter):
     __abstract__ = True
 
     def ui_schema(self):
-        return {"content": {"ui:widget": "wysiwygEditor",}}
+        return {
+            "content": {
+                "ui:widget": "wysiwygEditor",
+            }
+        }
 
 
-class BaseContentJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter):
-    __select__ = is_instance("BaseContent")
+class RelatedTranslationMixin(object):
+    rtype = "translation_of"
+
+    def translations_edit_path(self):
+        translations = {"en": "", "de": "", "es": ""}
+        translations.update(
+            dict(
+                [
+                    (lang, "{}/{}".format(etype.lower(), trad))
+                    for lang, trad, etype in self._cw.execute(
+                        """Any L, T, E WHERE T translation_of X,
+                  T language L, T is ET, ET name E, X eid %(e)s""",
+                        {"e": self.entity.eid},
+                    )
+                ]
+            )
+        )
+        return translations
+
+    def related(self):
+        defs = super(RelatedTranslationMixin, self).related()
+        eschema = self._cw.vreg.schema[self.entity.cw_etype]
+        _ = self._cw._
+        defs[self.rtype] = {
+            "fetchPossibleTargets": False,
+            "multiple": True,
+            "etype": eschema.objrels[self.rtype].targets()[0],
+            "rtype": self.rtype,
+            "languages": {"en": _("english"), "de": _("german"), "es": _("spanish")},
+            "pathes": self.translations_edit_path(),
+        }
+        return defs
+
+
+class SectionTranslationJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter):
+    __select__ = is_instance("SectionTranslation")
 
     def ui_schema(self):
-        defs = super(BaseContentJsonFormEditableAdapter, self).ui_schema()
+        defs = super(SectionTranslationJsonFormEditableAdapter, self).ui_schema()
         defs.update(
-            {"basecontent_service": {"ui:field": "autocompleteField",},}
+            {
+                "content": {
+                    "ui:widget": "wysiwygEditor",
+                },
+                "language": {"ui:disabled": {}},
+                "ui:order": [
+                    "title",
+                    "subtitle",
+                    "content",
+                    "short_description",
+                    "language",
+                ],
+            }
         )
         return defs
 
 
-class TopSectionJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter):
+class TopSectionJsonFormEditableAdapter(RelatedTranslationMixin, CmsObjectJsonFormEditableAdapter):
     __select__ = is_instance("Section") & score_entity(lambda x: x.cssimage)
 
     def related(self):
@@ -128,7 +196,9 @@ class TopSectionJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter):
         return defs
 
 
-class OtherSectionJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter):
+class OtherSectionJsonFormEditableAdapter(
+    RelatedTranslationMixin, CmsObjectJsonFormEditableAdapter
+):
     __select__ = is_instance("Section") & ~score_entity(lambda x: x.cssimage)
 
 
@@ -138,25 +208,114 @@ class NewsContentJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter):
     def ui_schema(self):
         defs = super(NewsContentJsonFormEditableAdapter, self).ui_schema()
         defs.update(
-            {"start_date": {"ui:widget": "dateEditor",}, "stop_date": {"ui:widget": "dateEditor",},}
+            {
+                "start_date": {
+                    "ui:widget": "dateEditor",
+                },
+                "stop_date": {
+                    "ui:widget": "dateEditor",
+                },
+            }
         )
         return defs
 
 
-class CommemorationItemJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter):
-    __select__ = is_instance("CommemorationItem")
-
+class RelatedAuthorityMixin(object):
     def related(self):
-        defs = super(CommemorationItemJsonFormEditableAdapter, self).related()
-        rtype = "target"
+        defs = super(RelatedAuthorityMixin, self).related()
         _ = self._cw._
-        for rtype in ("index_location", "index_agent", "index_subject"):
-            defs[rtype] = {
-                "fetchPossibleTargets": False,
-                "multiple": True,
-                "rtype": rtype,
-                "title": _(rtype),
+        rtype = "related_authority"
+        defs[rtype] = {
+            "fetchPossibleTargets": False,
+            "multiple": True,
+            "rtype": rtype,
+            "title": _(rtype),
+            "titles": [_("index_location"), _("index_agent"), _("index_subject")],
+            "etargets": ["LocationAuthority", "AgentAuthority", "SubjectAuthority"],
+        }
+        return defs
+
+
+class BaseContentJsonFormEditableAdapter(
+    RelatedAuthorityMixin, RelatedTranslationMixin, CmsObjectJsonFormEditableAdapter
+):
+    __select__ = is_instance("BaseContent")
+
+    def ui_schema(self):
+        defs = super(BaseContentJsonFormEditableAdapter, self).ui_schema()
+        defs.update(
+            {
+                "basecontent_service": {
+                    "ui:field": "autocompleteField",
+                },
+                "summary": {"ui:widget": "wysiwygEditor"},
             }
+        )
+        defs.update(
+            {
+                "ui:order": [
+                    "title",
+                    "content",
+                    "summary",
+                    "summary_policy",
+                    "on_homepage",
+                    "order",
+                    "basecontent_service",
+                ]
+            }
+        )
+        return defs
+
+
+class BaseContentTranslationJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter):
+    __select__ = is_instance("BaseContentTranslation")
+
+    def ui_schema(self):
+        defs = super(BaseContentTranslationJsonFormEditableAdapter, self).ui_schema()
+        defs.update(
+            {
+                "summary": {
+                    "ui:widget": "wysiwygEditor",
+                },
+                "language": {"ui:disabled": {}},
+                "ui:order": [
+                    "title",
+                    "content",
+                    "summary",
+                    "language",
+                ],
+            }
+        )
+        return defs
+
+
+class CommemorationItemJsonFormEditableAdapter(
+    RelatedTranslationMixin, RelatedAuthorityMixin, CmsObjectJsonFormEditableAdapter
+):
+    __select__ = is_instance(
+        "CommemorationItem",
+    )
+
+
+class CommemorationItemTranslationJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter):
+    __select__ = is_instance("CommemorationItemTranslation")
+
+    def ui_schema(self):
+        defs = super(CommemorationItemTranslationJsonFormEditableAdapter, self).ui_schema()
+        defs.update(
+            {
+                "content": {
+                    "ui:widget": "wysiwygEditor",
+                },
+                "language": {"ui:disabled": {}},
+                "ui:order": [
+                    "title",
+                    "subtitle",
+                    "content",
+                    "language",
+                ],
+            }
+        )
         return defs
 
 
@@ -166,7 +325,11 @@ class CommemoDateJsonFormEditableAdapter(JsonFormEditableAdapter):
     def ui_schema(self):
         defs = super(CommemoDateJsonFormEditableAdapter, self).ui_schema()
         defs.update(
-            {"date": {"ui:widget": "dateEditor",},}
+            {
+                "date": {
+                    "ui:widget": "dateEditor",
+                },
+            }
         )
         return defs
 
@@ -179,7 +342,9 @@ class CardJsonFormEditableAdapter(JsonFormEditableAdapter):
 
     def ui_schema(self):
         return {
-            "content": {"ui:widget": "wysiwygEditor",},
+            "content": {
+                "ui:widget": "wysiwygEditor",
+            },
         }
 
     def get_ancestors(self):
@@ -191,11 +356,22 @@ class ImageJsonFormEditableAdapter(JsonFormEditableAdapter):
 
     def ui_schema(self):
         defs = {
-            "caption": {"ui:widget": "wysiwygEditor",},
-            "description": {"ui:widget": "wysiwygEditor",},
+            "caption": {
+                "ui:widget": "wysiwygEditor",
+            },
+            "description": {
+                "ui:widget": "wysiwygEditor",
+            },
             "image_file": {
-                "items": {"data": {"ui:widget": "imageEditor",},},
-                "ui:options": {"removable": False, "addable": False,},
+                "items": {
+                    "data": {
+                        "ui:widget": "imageEditor",
+                    },
+                },
+                "ui:options": {
+                    "removable": False,
+                    "addable": False,
+                },
             },
         }
         return defs
@@ -214,27 +390,18 @@ class FingingAidJsonFormEditableAdapter(JsonFormEditableAdapter):
         return []
 
 
-class ExternRefJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter):
+class ExternRefJsonFormEditableAdapter(RelatedAuthorityMixin, CmsObjectJsonFormEditableAdapter):
     __select__ = is_instance("ExternRef")
 
     def ui_schema(self):
         defs = super(ExternRefJsonFormEditableAdapter, self).ui_schema()
         defs.update(
-            {"exref_service": {"ui:field": "autocompleteField",},}
-        )
-        return defs
-
-    def related(self):
-        defs = super(ExternRefJsonFormEditableAdapter, self).related()
-        rtype = "target"
-        _ = self._cw._
-        for rtype in ("index_location", "index_agent", "index_subject"):
-            defs[rtype] = {
-                "fetchPossibleTargets": False,
-                "multiple": True,
-                "rtype": rtype,
-                "title": _(rtype),
+            {
+                "exref_service": {
+                    "ui:field": "autocompleteField",
+                },
             }
+        )
         return defs
 
 
@@ -243,8 +410,12 @@ class MapJsonFormEditableAdapter(JsonFormEditableAdapter):
 
     def ui_schema(self):
         return {
-            "top_content": {"ui:widget": "wysiwygEditor",},
-            "bottom_content": {"ui:widget": "wysiwygEditor",},
+            "top_content": {
+                "ui:widget": "wysiwygEditor",
+            },
+            "bottom_content": {
+                "ui:widget": "wysiwygEditor",
+            },
         }
 
 
@@ -253,7 +424,9 @@ class ServiceJsonFormEditableAdapter(JsonFormEditableAdapter):
 
     def ui_schema(self):
         return {
-            "other": {"ui:widget": "wysiwygEditor",},
+            "other": {
+                "ui:widget": "wysiwygEditor",
+            },
         }
 
 
@@ -262,7 +435,16 @@ class LocationAuthorityJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter)
 
     def ui_schema(self):
         defs = super(LocationAuthorityJsonFormEditableAdapter, self).ui_schema()
-        defs.update({"longitude": {"ui:readonly": "true",}, "latitude": {"ui:readonly": "true",}})
+        defs.update(
+            {
+                "longitude": {
+                    "ui:readonly": "true",
+                },
+                "latitude": {
+                    "ui:readonly": "true",
+                },
+            }
+        )
         return defs
 
 
@@ -271,6 +453,20 @@ class CWUserJsonFormEditableAdapter(JsonFormEditableAdapter):
 
     def get_ancestors(self):
         return []
+
+
+class GlossaryTermJsonFormEditableAdapter(JsonFormEditableAdapter):
+    __select__ = is_instance("GlossaryTerm")
+
+    def ui_schema(self):
+        defs = super(GlossaryTermJsonFormEditableAdapter, self).ui_schema()
+        defs.update(
+            {
+                "short_description": {"ui:widget": "wysiwygEditor"},
+                "description": {"ui:widget": "wysiwygEditor"},
+            }
+        )
+        return defs
 
 
 class RqTaskJsonFormEditableAdapter(JsonFormEditableAdapter):
@@ -287,7 +483,11 @@ class ImportEadRqTaskJsonFormEditableAdapter(RqTaskJsonFormEditableAdapter):
 
     def ui_schema(self):
         return {
-            "file": {"ui:widget": "filepicker",},
+            "file": {
+                "ui:widget": "filepicker",
+            },
+            "should_normalize": {"ui:widget": "radio"},
+            "context_service": {"ui:widget": "radio"},
         }
 
 
@@ -298,7 +498,9 @@ class ImportEacRqTaskJsonFormEditableAdapter(RqTaskJsonFormEditableAdapter):
 
     def ui_schema(self):
         return {
-            "file": {"ui:widget": "filepicker",},
+            "file": {
+                "ui:widget": "filepicker",
+            },
         }
 
 
@@ -309,8 +511,26 @@ class ImportCSVTaskJsonFormEditableAdapter(RqTaskJsonFormEditableAdapter):
 
     def ui_schema(self):
         return {
-            "file": {"ui:widget": "filepicker",},
-            "metadata": {"ui:widget": "filepicker",},
+            "file": {
+                "ui:widget": "filepicker",
+            },
+            "metadata": {
+                "ui:widget": "filepicker",
+            },
+            "should_normalize": {"ui:widget": "radio"},
+            "context_service": {"ui:widget": "radio"},
+        }
+
+
+class ImportOaiTaskJsonFormEditableAdapter(RqTaskJsonFormEditableAdapter):
+    __select__ = RqTaskJsonFormEditableAdapter.__select__ & match_kwargs(
+        {"schema_type": "import_oai"}
+    )
+
+    def ui_schema(self):
+        return {
+            "should_normalize": {"ui:widget": "radio"},
+            "context_service": {"ui:widget": "radio"},
         }
 
 
@@ -321,7 +541,9 @@ class ImportAuthoritiesRqTaskJsonFormEditableAdapter(RqTaskJsonFormEditableAdapt
 
     def ui_schema(self):
         return {
-            "file": {"ui:widget": "filepicker",},
+            "file": {
+                "ui:widget": "filepicker",
+            },
         }
 
 
@@ -332,7 +554,9 @@ class GroupLocAuthoritiesAlignmentRqTaskJsonFormEditableAdapter(RqTaskJsonFormEd
 
     def ui_schema(self):
         return {
-            "file": {"ui:widget": "filepicker",},
+            "file": {
+                "ui:widget": "filepicker",
+            },
         }
 
 
@@ -343,5 +567,41 @@ class DeleteFindingAidsRqTaskJsonFormEditableAdapter(RqTaskJsonFormEditableAdapt
 
     def ui_schema(self):
         return {
-            "file": {"ui:widget": "filepicker",},
+            "file": {
+                "ui:widget": "filepicker",
+            },
         }
+
+
+class FaqItemJsonFormEditableAdapter(RelatedTranslationMixin, CmsObjectJsonFormEditableAdapter):
+    __select__ = is_instance("FaqItem")
+
+    def ui_schema(self):
+        defs = super(FaqItemJsonFormEditableAdapter, self).ui_schema()
+        defs.update(
+            {
+                "question": {"ui:widget": "wysiwygEditor"},
+                "answer": {"ui:widget": "wysiwygEditor"},
+            }
+        )
+        return defs
+
+
+class FaqItemTranslationJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter):
+    __select__ = is_instance("FaqItemTranslation")
+
+    def ui_schema(self):
+        defs = super(FaqItemTranslationJsonFormEditableAdapter, self).ui_schema()
+        defs.update(
+            {
+                "question": {"ui:widget": "wysiwygEditor"},
+                "answer": {"ui:widget": "wysiwygEditor"},
+                "language": {"ui:disabled": {}},
+                "ui:order": [
+                    "question",
+                    "anwser",
+                    "language",
+                ],
+            }
+        )
+        return defs

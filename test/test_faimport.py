@@ -32,7 +32,6 @@
 """cubicweb-frarchives_edition tests for FindingAid imports"""
 
 # standard library imports
-import sys
 import json
 import shutil
 import zipfile
@@ -41,15 +40,13 @@ import os.path as osp
 
 # third party imports
 import rq
-import fakeredis
 
 # library specific imports
-from cubicweb.devtools import PostgresApptestConfiguration
-from cubicweb.pyramid.test import PyramidCWTest
 
 from cubicweb_francearchives.testutils import HashMixIn, OaiSickleMixin
 from cubicweb_frarchives_edition.rq import work
-from utils import FrACubicConfigMixIn, create_findingaid
+from utils import create_findingaid, TaskTC
+
 from pgfixtures import setup_module, teardown_module  # noqa
 
 
@@ -77,39 +74,14 @@ class FAImportArchiveMixIn(object):
         return zipf
 
 
-class FAImportsBaseTC(FrACubicConfigMixIn, PyramidCWTest):
+class FAImportsBaseTC(TaskTC):
     """FindingAid import test cases base class."""
-
-    configcls = PostgresApptestConfiguration
-    settings = {
-        "cubicweb.bwcompat": False,
-        "pyramid.debug_notfound": True,
-        "cubicweb.session.secret": "stuff",
-        "cubicweb.auth.authtkt.session.secret": "stuff",
-        "cubicweb.auth.authtkt.persistent.secret": "stuff",
-        "francearchives.autoinclude": "no",
-    }
 
     def setUp(self):
         """Set up job queue and configuration."""
         super(FAImportsBaseTC, self).setUp()
-        self._rq_connection = rq.Connection(fakeredis.FakeStrictRedis())
-        self._rq_connection.__enter__()
         self.config.global_set_option("ead-services-dir", self.datapath("ir_data", "import"))
         self.config.global_set_option("eac-services-dir", self.datapath("ir_data", "import"))
-
-    def tearDown(self):
-        """Clean up job queue."""
-        super(FAImportsBaseTC, self).tearDown()
-        self._rq_connection.__exit__(*sys.exc_info())
-
-    def includeme(self, config):
-        config.include("cubicweb_frarchives_edition.api")
-        config.include("cubicweb_francearchives.pviews")
-
-    def work(self, cnx):
-        """Start task."""
-        return work(cnx, burst=True, worker_class=rq.worker.SimpleWorker)
 
 
 class FAImportsOAITC(OaiSickleMixin, FAImportsBaseTC):
@@ -156,7 +128,15 @@ class FAImportsOAITC(OaiSickleMixin, FAImportsBaseTC):
         self.filename = "oai_dc_sample.xml"
         with self.admin_access.cnx() as cnx:
             eid = cnx.execute('Any X WHERE X is OAIRepository, X name "oai_dc"').one().eid
-            data = json.dumps({"name": "import_oai", "title": "oai_dc", "oairepository": eid})
+            data = json.dumps(
+                {
+                    "name": "import_oai",
+                    "title": "oai_dc",
+                    "oairepository": eid,
+                    "should_normalize": True,
+                    "context_service": True,
+                }
+            )
             post_kwargs = {"params": [("data", data)]}
             self.login()
             self.webapp.post(
@@ -166,7 +146,7 @@ class FAImportsOAITC(OaiSickleMixin, FAImportsBaseTC):
                 **post_kwargs
             )
             task = cnx.find("RqTask").one()
-            self.assertEqual(task.name, "import_oai")
+            self.assertEqual(task.name, "import_oai (oai_dc)")
             job = task.cw_adapt_to("IRqJob")
             self.assertEqual(job.status, "queued")
             self.work(cnx)
@@ -185,7 +165,15 @@ class FAImportsOAITC(OaiSickleMixin, FAImportsBaseTC):
         self.filename = "oai_ead_sample.xml"
         with self.admin_access.cnx() as cnx:
             eid = cnx.execute('Any X WHERE X is OAIRepository, X name "oai_ead"').one().eid
-            data = json.dumps({"name": "import_oai", "title": "oai_ead", "oairepository": eid})
+            data = json.dumps(
+                {
+                    "name": "import_oai",
+                    "title": "oai_ead",
+                    "oairepository": eid,
+                    "should_normalize": True,
+                    "context_service": True,
+                }
+            )
             post_kwargs = {"params": [("data", data)]}
             self.login()
             self.webapp.post(
@@ -194,7 +182,7 @@ class FAImportsOAITC(OaiSickleMixin, FAImportsBaseTC):
                 headers={"Accept": "application/json"},
                 **post_kwargs
             )
-            task = cnx.execute("Any X WHERE X is RqTask, X name 'import_oai'").one()
+            task = cnx.execute("Any X WHERE X is RqTask, X name 'import_oai (oai_ead)'").one()
             job = task.cw_adapt_to("IRqJob")
             self.assertEqual(job.status, "queued")
             self.work(cnx)
@@ -257,7 +245,11 @@ class FAImportsTC(HashMixIn, FAImportArchiveMixIn, FAImportsBaseTC):
             "name": task_name,
             "title": "a task",
             "file": basename,
+            "should_normalize": False,
+            "context_service": True,
+            "service": service,
         }
+        print(data)
         return dict(
             params=[("data", json.dumps(data))],
             upload_files=[("fileobj", basename, open(zip_path, "rb").read())],
@@ -542,7 +534,7 @@ class FAImportsTC(HashMixIn, FAImportArchiveMixIn, FAImportsBaseTC):
 
 
 class LocAuthorityGroupTC(FAImportsBaseTC):
-    """ test cases.
+    """test cases.
 
     The test cases assert that the 'compute_location_authorities_to_group' and
     'group_location_authorities' tasks are
@@ -614,7 +606,12 @@ class LocAuthorityGroupTC(FAImportsBaseTC):
         """ generate csv with candidates to group"""
         self.login()
         task_name = "compute_location_authorities_to_group"
-        data = json.dumps({"name": task_name, "title": task_name,})
+        data = json.dumps(
+            {
+                "name": task_name,
+                "title": task_name,
+            }
+        )
         post_kwargs = {"params": [("data", data)]}
         self.webapp.post(
             "/RqTask/?schema_type={}".format(task_name),

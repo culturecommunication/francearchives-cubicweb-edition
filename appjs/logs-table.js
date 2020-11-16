@@ -27,74 +27,90 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-import {render} from 'react-dom';
-import {Component, createElement as ce} from 'react';
+/* global logs */
 
-import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
+import {render} from 'react-dom'
+import {Component, createElement as ce} from 'react'
 
+import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table'
 
-function caretRender(direction, fieldName) {
-    const carets = [];
-    let selected = false;
+const PropTypes = require('prop-types')
+
+function caretRender(direction) {
+    const carets = []
+    let selected = false
     if (direction === 'asc') {
-        selected = true;
-        carets.push(ce('i', {className: 'fa fa-caret-up'}));
+        selected = true
+        carets.push(ce('i', {className: 'fa fa-caret-up'}))
     } else if (direction === 'desc') {
-        selected = true;
-        carets.push(ce('i', {className: 'fa fa-caret-down'}));
+        selected = true
+        carets.push(ce('i', {className: 'fa fa-caret-down'}))
     } else {
         carets.push(
             ce('i', {className: 'fa fa-caret-up'}),
-            ce('i', {className: 'fa fa-caret-down'})
-        );
+            ce('i', {className: 'fa fa-caret-down'}),
+        )
     }
-    return ce('span', {
-        className: `circulartable_caret ${selected ? 'circulartable_caret-selected' : ''}`
-    }, ...carets);
+    return ce(
+        'span',
+        {
+            className: `circulartable_caret ${
+                selected ? 'circulartable_caret-selected' : ''
+            }`,
+        },
+        ...carets,
+    )
 }
 
-
-
 class LogsTable extends Component {
-
     constructor(props) {
-        super(props);
-        this.state = {selectedSeverity: this.props.all_levels_default,
-                      selectedLogs: this.props.logs};
-        this.updateSeverity = this.updateSeverity.bind(this);
-        this.buildOptions = this.buildOptions.bind(this);
+        super(props)
+        this.state = {
+            selectedSeverity: this.props.all_levels_default,
+            selectedLogs: this.props.logs,
+        }
+        this.updateSeverity = this.updateSeverity.bind(this)
+        this.buildOptions = this.buildOptions.bind(this)
     }
 
     updateSeverity(ev) {
-        ev.preventDefault();
-        const selectedSeverity = ev.target.value;
+        ev.preventDefault()
+        const selectedSeverity = ev.target.value
         this.setState({
             selectedSeverity,
-            selectedLogs: (selectedSeverity === this.props.all_levels_default ? this.props.logs :
-                this.props.logs.filter(d => d.severity === selectedSeverity))
-        });
+            selectedLogs:
+                selectedSeverity === this.props.all_levels_default
+                    ? this.props.logs
+                    : this.props.logs.filter(
+                          d => d.severity === selectedSeverity,
+                      ),
+        })
     }
 
     buildOptions() {
         const all_levels = [this.props.all_levels_default].concat(
-            Array.from(new Set(this.props.logs.map(value => value.severity))));
-        return all_levels.map(
-            (b, idx) => ce('option', {key: `bfield-${idx}`, value: b}, b)
-        );
+            Array.from(new Set(this.props.logs.map(value => value.severity))),
+        )
+        return all_levels.map((b, idx) =>
+            ce('option', {key: `bfield-${idx}`, value: b}, b),
+        )
     }
 
     render() {
         const {selectedSeverity, selectedLogs} = this.state,
-              dataLength = selectedLogs.length;
+            dataLength = selectedLogs.length
         return ce(
-            'div', null,
+            'div',
+            null,
             ce('span', null, 'Sélectionner un niveau : '),
             ce(
-                'select', {value: selectedSeverity, onChange: this.updateSeverity},
-                this.buildOptions()
+                'select',
+                {value: selectedSeverity, onChange: this.updateSeverity},
+                this.buildOptions(),
             ),
             ce(
-                BootstrapTable, {
+                BootstrapTable,
+                {
                     data: selectedLogs,
                     striped: true,
                     hover: true,
@@ -108,50 +124,88 @@ class LogsTable extends Component {
                         sizePerPageList: [
                             {
                                 text: '20',
-                                value: 20
+                                value: 20,
                             },
                             {
                                 text: '50',
-                                value: 50
+                                value: 50,
                             },
                             {
                                 text: '100',
-                                value: 100
+                                value: 100,
                             },
                             {
                                 text: `tout (${selectedLogs.length})`,
-                                value: dataLength
+                                value: dataLength,
                             },
-                        ]
-                    }
+                        ],
+                    },
                 },
                 //ce(TableHeaderColumn, {isKey: true, dataField: 'eid', hidden: true}),
-                ce(TableHeaderColumn, {isKey: true, dataField: 'severity', with: '20%', dataSort: true, caretRender}, 'Sévérité'),
-                ce(TableHeaderColumn, {
-                    dataField: 'date',
-                    with: '5%',
-                    dataSort: true,
-                    caretRender,
-                    dataFormat(cell) {
-                        if (!cell) {
-                            return;
-                        }
-                        const [date, time] = cell.split(' '),
-                              [year, month, day] = date.split('-');
-                        return `${day}/${month}/${year} ${time}`;
-                    }}, 'Date'),
-                ce(TableHeaderColumn, {dataField: 'time', width: '20%', dataSort: true, caretRender}, 'Temps'),
-                ce(TableHeaderColumn, {dataField: 'message',  width: '50%'}, 'Message'),
+                ce(
+                    TableHeaderColumn,
+                    {
+                        isKey: true,
+                        dataField: 'severity',
+                        with: '20%',
+                        dataSort: true,
+                        caretRender,
+                    },
+                    'Sévérité',
+                ),
+                ce(
+                    TableHeaderColumn,
+                    {
+                        dataField: 'date',
+                        with: '5%',
+                        dataSort: true,
+                        caretRender,
+                        dataFormat(cell) {
+                            if (!cell) {
+                                return
+                            }
+                            const [date, time] = cell.split(' '),
+                                [year, month, day] = date.split('-')
+                            return `${day}/${month}/${year} ${time}`
+                        },
+                    },
+                    'Date',
+                ),
+                ce(
+                    TableHeaderColumn,
+                    {
+                        dataField: 'time',
+                        width: '20%',
+                        dataSort: true,
+                        caretRender,
+                    },
+                    'Temps',
+                ),
+                ce(
+                    TableHeaderColumn,
+                    {
+                        dataField: 'message',
+                        width: '50%',
+                        dataFormat(cell) {
+                            return `<div>${cell}</div>`
+                        },
+                    },
+                    'Message',
+                ),
             ),
-        );
+        )
     }
-
 }
 
-const target = document.getElementById('logs-table-container');
+LogsTable.propTypes = {
+    all_levels_default: PropTypes.string,
+    logs: PropTypes.object.isRequired,
+}
+
+const target = document.getElementById('logs-table-container')
 if (target !== null) {
     render(
         ce(LogsTable, {logs: logs, all_levels_default: '-- tous --'}),
-        target
-    );
+        target,
+    )
 }

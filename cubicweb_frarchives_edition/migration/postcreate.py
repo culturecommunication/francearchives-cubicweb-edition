@@ -34,6 +34,7 @@
 the cube is added to an existing instance.
 """
 from cubicweb_francearchives.schema.cms import CMS_OBJECTS
+from cubicweb_francearchives import CMS_I18N_OBJECTS
 
 from cubicweb_frarchives_edition import workflows
 
@@ -44,8 +45,8 @@ from cubicweb_frarchives_edition.mviews import (
     build_indexes,
 )
 
-for etype in CMS_OBJECTS + ("FindingAid",):
-    if etype == "Section":
+for etype in CMS_OBJECTS + ("FindingAid", "GlossaryTerm", "FaqItem") + CMS_I18N_OBJECTS:
+    if etype in ("Section", "SectionTranslation"):
         workflows.section_workflow(add_workflow, etype)
     else:
         workflows.cmsobject_workflow(add_workflow, etype)

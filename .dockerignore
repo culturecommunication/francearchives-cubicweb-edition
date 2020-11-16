@@ -1,0 +1,13 @@
+cubicweb_frarchives_edition.egg-info
+data/bundle-*
+test/data/bfss*
+test/data/database*
+node_modules
+.tox
+.cache
+.coverage
+.eslintcache
+vendor-manifest.json
+dist
+sphinx/_build
+sphinx/conf.py

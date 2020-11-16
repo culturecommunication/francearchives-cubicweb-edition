@@ -28,32 +28,34 @@
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-const {connect} = require('react-redux');
+const {connect} = require('react-redux')
 
-const {IndexEntityRelatedEditor, EntityRelatedEditor,
-       CssImageEntityRelatedEditor} = require('../components/relatededitor');
+const {
+    EntityRelatedEditor,
+    CssImageEntityRelatedEditor,
+} = require('../components/relatededitor')
 
+const {
+    IndexEntityRelatedEditor,
+} = require('../components/relatedauthoritieseditor')
 
-exports.EntityRelatedEditor = connect(
-    function mapStateToProps(state) {
-        return {entity: state.getIn(['model', 'entity']),
-                rtypes: state.getIn(['model', 'related'])};
+exports.EntityRelatedEditor = connect(function mapStateToProps(state) {
+    return {
+        entity: state.getIn(['model', 'entity']),
+        rtypes: state.getIn(['model', 'related']),
     }
-)(EntityRelatedEditor);
+})(EntityRelatedEditor)
 
-
-
-exports.IndexEntityRelatedEditor = connect(
-    function mapStateToProps(state) {
-        return {entity: state.getIn(['model', 'entity']),
-                rtypes: state.getIn(['model', 'related'])};
+exports.IndexEntityRelatedEditor = connect(function mapStateToProps(state) {
+    return {
+        entity: state.getIn(['model', 'entity']),
+        rtypes: state.getIn(['model', 'related']),
     }
-)(IndexEntityRelatedEditor);
+})(IndexEntityRelatedEditor)
 
-
-exports.CssImageEntityRelatedEditor = connect(
-    function mapStateToProps(state) {
-        return {entity: state.getIn(['model', 'entity']),
-                rtypes: state.getIn(['model', 'related'])};
+exports.CssImageEntityRelatedEditor = connect(function mapStateToProps(state) {
+    return {
+        entity: state.getIn(['model', 'entity']),
+        rtypes: state.getIn(['model', 'related']),
     }
-)(CssImageEntityRelatedEditor);
+})(CssImageEntityRelatedEditor)

@@ -40,6 +40,7 @@ from cubicweb_jsonschema.api import (
 
 from cubicweb_jsonschema.api.entities import allow_for_entity_relation
 
+from cubicweb_frarchives_edition import update_suggest_es
 from cubicweb_frarchives_edition.api import json_config
 from cubicweb_frarchives_edition.faapi.resources import (
     FAComponentResource,
@@ -51,17 +52,6 @@ from cubicweb_frarchives_edition.faapi.resources import (
 )
 
 
-def update_suggest_es(request, auths):
-    cnx = request.cw_cnx
-    service = cnx.vreg["services"].select("reindex-suggest", cnx)
-    try:
-        service.index_authorities(auths)
-    except Exception:
-        import traceback
-
-        traceback.print_exc()
-
-
 @json_config(
     route_name="frarchives_edition.faapi",
     context=AuthorityResource,
@@ -70,10 +60,15 @@ def update_suggest_es(request, auths):
 )
 def group_authorities(context, request):
     body = request.json_body
-    all_grouped_auths = context.entity.group(body)
-    request.cw_cnx.commit()
+    try:
+        all_grouped_auths = context.entity.group(body)
+    except Exception as error:
+        raise httpexceptions.HTTPBadRequest(error)
     # update suggest for context.entity
-    update_suggest_es(request, all_grouped_auths)
+    cnx = request.cw_cnx
+    update_suggest_es(cnx, all_grouped_auths)
+    # remove all cnx.transaction_data cache
+    request.cw_cnx.drop_entity_cache()
     url = context.entity.absolute_url()
     raise httpexceptions.HTTPCreated(
         location=url,
@@ -83,7 +78,9 @@ def group_authorities(context, request):
 
 
 @json_config(
-    route_name="frarchives_edition.faapi", context=IndexResources, request_method=("GET", "HEAD"),
+    route_name="frarchives_edition.faapi",
+    context=IndexResources,
+    request_method=("GET", "HEAD"),
 )
 def get_fa_indexes(context, request):
     return [
@@ -99,7 +96,9 @@ def get_fa_indexes(context, request):
 
 
 @json_config(
-    route_name="frarchives_edition.faapi", context=RelatedAuthorityResource, request_method="POST",
+    route_name="frarchives_edition.faapi",
+    context=RelatedAuthorityResource,
+    request_method="POST",
 )
 def add_new_authority(context, request):
     oldauth = context.index.authority
@@ -108,7 +107,8 @@ def add_new_authority(context, request):
     # as SuggestIndexEsOperation is called too early
     # and the new authority has not all indexed documents yet
     if oldauth:
-        update_suggest_es(request, [oldauth[0], auth])
+        cnx = request.cw_cnx
+        update_suggest_es(cnx, [oldauth[0], auth])
     url = auth.absolute_url()
     raise httpexceptions.HTTPCreated(
         location=url,
@@ -118,7 +118,9 @@ def add_new_authority(context, request):
 
 
 @json_config(
-    route_name="frarchives_edition.faapi", context=SameAsResource, request_method="GET",
+    route_name="frarchives_edition.faapi",
+    context=SameAsResource,
+    request_method="GET",
 )
 def get_same_as(context, request):
     cnx = request.cw_cnx
@@ -133,14 +135,19 @@ def get_same_as(context, request):
     vreg = request.registry["cubicweb.registry"]
     rtype, role = ("same_as", "subject")
     mapper = vreg["mappers"].select(
-        "jsonschema.collection", request.cw_request, rtype=rtype, role=role,
+        "jsonschema.collection",
+        request.cw_request,
+        rtype=rtype,
+        role=role,
     )
     request.response.allow = allow_for_entity_relation(entity, rtype, role)
     return mapper.serialize(rset.entities())
 
 
 @json_config(
-    route_name="frarchives_edition.faapi", context=SameAsResource, request_method="PUT",
+    route_name="frarchives_edition.faapi",
+    context=SameAsResource,
+    request_method="PUT",
 )
 def edit_same_as(context, request):
     cnx = request.cw_cnx
@@ -234,7 +241,9 @@ def edit_same_as(context, request):
 
 
 @json_config(
-    route_name="frarchives_edition.faapi", context=FAComponentResource, name="indexes",
+    route_name="frarchives_edition.faapi",
+    context=FAComponentResource,
+    name="indexes",
 )
 def fac_index_view(context, request):
     cnx = request.cw_cnx
@@ -263,7 +272,9 @@ WHERE
 
 
 @json_config(
-    route_name="frarchives_edition.faapi", context=FindingaidResource, name="indexes",
+    route_name="frarchives_edition.faapi",
+    context=FindingaidResource,
+    name="indexes",
 )
 def fa_index_view(context, request):
     cnx = request.cw_cnx

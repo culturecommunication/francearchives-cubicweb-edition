@@ -48,6 +48,8 @@ nature qu'ils soient, qui pourraient survenir en raison d'une
 utilisation de ces fichiers à d'autres fins que de tester la présente
 application.
 
+Black
+-----
 
 Pour lancer **black** ::
 
@@ -61,6 +63,37 @@ Pour lancer le linter javascript ::
 Pour lancer le linter javascript avec une correction automatique des erreurs triviales ::
 
   npm run lint -- --fix
+
+
+Ajouter **black** dans les hooks **hg** ::
+
+créer le script `path_hook` (exemple de code) ::
+
+  #!/bin/sh
+  for fpath in $(hg status --no-status --modified --added | grep ".py$") ; do
+    black ${fpath}
+  done
+
+
+et appeler le ̀.hg\hgrc` du projet ::
+
+  [hooks]
+  precommit = path_to_hook
+  pre-amend = path_to_hook
+
+il est possible d'intégrer la config utilisée pour le projet ::
+
+  #!/bin/sh
+  for fpath in $(hg status --no-status --modified --added | grep ".py$") ; do
+    black --config $1 ${fpath}
+  done
+
+
+et appeler le ̀.hg\hgrc` du projet ::
+
+  [hooks]
+  precommit = path_to_hook pyproject.toml
+  pre-amend = path_to_hook pyproject.toml
 
 
 Contributrices et contributeurs

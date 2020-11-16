@@ -44,13 +44,17 @@ from cubicweb_frarchives_edition.rq import rqjob
 
 def log_results(log, deleted, ids, not_found, forbidden):
     log.info(
-        "processed %s identifiers", len(ids),
+        "processed %s identifiers",
+        len(ids),
     )
     if deleted:
         log.info("deleted %s FindingAids: %s", len(deleted), "; ".join(deleted))
     if not_found:
-        log.error("could not find %d FindingAids with stable_ids/eadids: %s",
-                  len(not_found), "; ".join(not_found))
+        log.error(
+            "could not find %d FindingAids with stable_ids/eadids: %s",
+            len(not_found),
+            "; ".join(not_found),
+        )
     if forbidden:
         log.error(
             "you have no permission to delete %d FindingAids: %s",
@@ -88,29 +92,35 @@ def delete_findingaids(cnx, filename):
         rset = cnx.execute(
             """Any X, S, N WHERE X is FindingAid, X stable_id S,
                X findingaid_support FS?, FS data_name N,
-               X stable_id %(id)s OR X eadid %(id)s""", {
-                "id": irid}
+               X stable_id %(id)s OR X eadid %(id)s""",
+            {"id": irid},
         )
         if not rset:
             not_found.append(irid)
             continue
         for entity, stable_id, filename in rset.iter_rows_with_entities():
             if not entity.cw_has_perm("delete"):
-                forbidden.append("csv_id: {}, stable id: {}, filename: {})".format(
-                    irid, stable_id, filename or ''))
+                forbidden.append(
+                    "csv_id: {}, stable id: {}, filename: {})".format(
+                        irid, stable_id, filename or ""
+                    )
+                )
             try:
-                delete_from_filename(cnx, stable_id, is_filename=False,
-                                     interactive=False, esonly=False)
+                delete_from_filename(
+                    cnx, stable_id, is_filename=False, interactive=False, esonly=False
+                )
                 # no commit here because it is already done in sqlutil.delete_from_filename
                 cnx.vreg["services"].select("sync", cnx).sync([("delete", entity)])
             except (ConnectionError, ProtocolError, NotFoundError):
-                log.error("elasticsearch indexation failed for FindingAid %s",
-                          entity.absolute_url())
+                log.error(
+                    "elasticsearch indexation failed for FindingAid %s", entity.absolute_url()
+                )
             except Exception:
                 log.error("unable to delete FindingAid %s ", entity.absolute_url())
                 log.error("abort deletion")
                 log_results(log, deleted, ids, not_found, forbidden)
                 return
-            deleted.append("csv_id: {}, stable id: {}, filename: {})".format(
-                irid, stable_id, filename or ''))
+            deleted.append(
+                "csv_id: {}, stable id: {}, filename: {})".format(irid, stable_id, filename or "")
+            )
     log_results(log, deleted, ids, not_found, forbidden)

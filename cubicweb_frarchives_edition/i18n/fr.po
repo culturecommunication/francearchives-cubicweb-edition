@@ -17,9 +17,8 @@ msgid "1 document"
 msgstr ""
 
 #, python-format
-msgid "A department archive with \"%s\" code already exists"
+msgid "A Service with \"%s\" code already exists"
 msgstr ""
-"Une service d'archives départementales avec le code \"%s\" existe déjà."
 
 msgid ""
 "CSV file invalid. It must contain \"Code_insee\", \"URL\", \"Couleur\" and "
@@ -27,6 +26,9 @@ msgid ""
 msgstr ""
 "Fichier CSV invalide. Ce fichier doit contenir les colonnes \"Code_insee\", "
 "\"URL\", \"Couleur\" et \"Legende\"séparées par \",\""
+
+msgid "Context of import"
+msgstr "Contexte de groupement des entrées d'index"
 
 msgid "Following files are empty : {}"
 msgstr ""
@@ -46,6 +48,9 @@ msgstr ""
 msgid "Impossible to delete this card"
 msgstr ""
 
+msgid "Impossible to publish"
+msgstr ""
+
 msgid "Intitules de la rubrique presentation"
 msgstr ""
 
@@ -54,6 +59,12 @@ msgstr "Données manquantes"
 
 msgid "New RqTask"
 msgstr ""
+
+msgid "No original entity found"
+msgstr "Le document original n'a pas été trouvé"
+
+msgid "Normalize indexes labels"
+msgstr "Normaliser les libellés des entrées d'index"
 
 msgid "OAIRepository"
 msgstr ""
@@ -73,12 +84,37 @@ msgstr "Tâches"
 msgid "Section"
 msgstr "Rubrique"
 
+msgid "See other files referencing documents with identical content"
+msgstr ""
+"Voir tout les fichiers qui référencent les documents avec le même contenu "
+"(les noms des fichiers peuvent être différents) "
+
+msgid "See other files referencing the same document (same filename)"
+msgstr ""
+"Voir les fichiers qui référencent le même document (le même nom du fichier)"
+
+msgid "See the file (access by eid)"
+msgstr "Voir la fiche du fichier (accès par eid)"
+
 msgid ""
 "Service \"{}\" does not exist. Check the ziped file name \"{}\" or create a "
 "new service before uploading the file again"
 msgstr ""
 "Le service \"{}\" n'existe pas. Vérifiez l'archive zip \"{}\" ou créez un "
 "nouveau service avant de téléverser à nouveau cette archive"
+
+msgid ""
+"The \"content\" field HTML is not valid. Please,\n"
+"                correct the HTML or choose \"no_summary\" value for "
+"\"summary_policy\"\n"
+"                field"
+msgstr ""
+"Le HTML du champ \"contenu\" n'est pas valid. Veuillez corriger le HTML ou "
+"choisissez la valeur \"ne pas générer de sommaire\" pour le champ "
+"\"génération automatique du sommaire\"."
+
+msgid "The original entity is not published"
+msgstr "Le document original n'est pas publié"
 
 msgid "This RqTask"
 msgstr "Cette tâche"
@@ -113,6 +149,9 @@ msgstr "calculer et importer les alignements vers BANO"
 msgid "align-geoname"
 msgstr "calculer les alignements vers GeoNames"
 
+msgid "all services"
+msgstr "tous les services"
+
 msgid "bad task eid"
 msgstr "identifiant de tâche non valide"
 
@@ -128,6 +167,9 @@ msgstr "[align database] aligner la base de données en entière"
 msgid "compute_location_authorities_to_group"
 msgstr "[Geonames] générer un CSV avec les candidats au groupement"
 
+msgid "context_service"
+msgstr ""
+
 msgid "creating File (RqTask %(linkto)s output_file File)"
 msgstr ""
 
@@ -141,7 +183,7 @@ msgid "cssimage"
 msgstr ""
 
 msgid "cssimage_object"
-msgstr ""
+msgstr "image css"
 
 msgctxt "CssImage"
 msgid "cssimage_object"
@@ -170,6 +212,9 @@ msgstr ""
 msgctxt "RqTask"
 msgid "ended_at"
 msgstr "terminé à"
+
+msgid "english"
+msgstr "anglais"
 
 msgid "enqueued_at"
 msgstr "ajouté dans la file à"
@@ -224,6 +269,20 @@ msgctxt "FindingAid"
 msgid "fatask_findingaid_object"
 msgstr ""
 
+msgid "fatask_person"
+msgstr "personnes importées"
+
+msgctxt "RqTask"
+msgid "fatask_person"
+msgstr ""
+
+msgid "fatask_person_object"
+msgstr ""
+
+msgctxt "Person"
+msgid "fatask_person_object"
+msgstr ""
+
 msgid "findingaid eid"
 msgstr ""
 
@@ -232,6 +291,9 @@ msgstr "supprimer les éventuels IR déjà présents"
 
 msgid "force-import-oai"
 msgstr ""
+
+msgid "german"
+msgstr "allemand"
 
 msgid "group_location_authorities"
 msgstr "[Geonames] grouper les location authorities"
@@ -252,7 +314,22 @@ msgid "import_oai"
 msgstr "importer des intruments de recherche depuis un dépôt OAI (import_oai)"
 
 msgid "in_state_facet"
-msgstr "états"
+msgstr "États"
+
+msgid "index authorities"
+msgstr "reindexer les autorités (\"authority_siaf\" index)"
+
+msgid "index services"
+msgstr "reindexer les services (\"service_siaf\" index)"
+
+msgid "index_agent"
+msgstr "autorités Agents"
+
+msgid "index_location"
+msgstr "autorités Lieux"
+
+msgid "index_subject"
+msgstr "autorités Sujets"
 
 msgid "input file must be a ZIP or a XML file"
 msgstr "le fichier doit être une archive ZIP ou au format XML"
@@ -287,6 +364,9 @@ msgctxt "RqTask"
 msgid "name"
 msgstr ""
 
+msgid "no"
+msgstr "non"
+
 msgid "no XML files found in zip"
 msgstr ""
 
@@ -319,6 +399,9 @@ msgctxt "OAIImportTask"
 msgid "oaiimport_task_object"
 msgstr ""
 
+msgid "original ressource"
+msgstr ""
+
 msgid "output_descr"
 msgstr "description du résultat"
 
@@ -341,7 +424,7 @@ msgid "output_file"
 msgstr ""
 
 msgid "output_file_object"
-msgstr ""
+msgstr "fichier de résultats des tâches"
 
 msgctxt "File"
 msgid "output_file_object"
@@ -360,6 +443,10 @@ msgctxt "BaseContent"
 msgid "referenced_files"
 msgstr ""
 
+msgctxt "BaseContentTranslation"
+msgid "referenced_files"
+msgstr ""
+
 msgctxt "Card"
 msgid "referenced_files"
 msgstr ""
@@ -369,6 +456,10 @@ msgid "referenced_files"
 msgstr ""
 
 msgctxt "CommemorationItem"
+msgid "referenced_files"
+msgstr ""
+
+msgctxt "CommemorationItemTranslation"
 msgid "referenced_files"
 msgstr ""
 
@@ -388,18 +479,31 @@ msgctxt "Section"
 msgid "referenced_files"
 msgstr ""
 
-msgid "referenced_files_object"
+msgctxt "SectionTranslation"
+msgid "referenced_files"
 msgstr ""
+
+msgid "referenced_files_object"
+msgstr "référencé dans des contenus éditoriaux"
 
 msgctxt "File"
 msgid "referenced_files_object"
 msgstr ""
 
+msgid "required property"
+msgstr "champ obligatoire"
+
+msgid "run_dead_links"
+msgstr "[linkchecker] vérifier les liens du site"
+
+msgid "run_index_kibana"
+msgstr "[kibana] réindexer les index Kibana (autorités et services)"
+
 msgid "service"
 msgstr ""
 
 msgid "service code"
-msgstr ""
+msgstr "code de service"
 
 msgid "service code (required only for xml, optional for zip)"
 msgstr "le code du service"
@@ -407,9 +511,14 @@ msgstr "le code du service"
 msgid "service code of the productor (required only for xml, optional for zip)"
 msgstr "le code du service producteur (obligatoire pour le fichier XML)"
 
-msgid "simplified-csv"
+msgid "should_normalize"
 msgstr ""
-"ne pas inclure l'information sur l'index d'origine"
+
+msgid "simplified-csv"
+msgstr "ne pas inclure l'information sur l'index d'origine"
+
+msgid "spanish"
+msgstr "espagnol"
 
 msgid "started_at"
 msgstr "démarré à"
@@ -430,7 +539,7 @@ msgid "subtasks"
 msgstr ""
 
 msgid "subtasks_object"
-msgstr ""
+msgstr "sous-tâche de"
 
 msgctxt "RqTask"
 msgid "subtasks_object"
@@ -497,12 +606,22 @@ msgstr "annuler"
 msgid "wft_faimport_run"
 msgstr "lancer"
 
+msgid "yes"
+msgstr "oui"
+
 msgid "zip file"
 msgstr "archive zip"
 
 #, python-brace-format
 msgid "{count} documents"
 msgstr ""
+
+#~ msgid "A department archive with \"%s\" code already exists"
+#~ msgstr ""
+#~ "Une service d'archives départementales avec le code \"%s\" existe déjà."
+
+#~ msgid "Access to files"
+#~ msgstr "Accès au fichiers"
 
 #~ msgid "Add locations"
 #~ msgstr "Ajouter des lieux"
@@ -536,6 +655,11 @@ msgstr ""
 
 #~ msgid "No circular with circ_id \"{}\" has been found"
 #~ msgstr "Aucun cirulaire avec l'identifant (circ_id) \"{}\" n'a été trouvé"
+
+#~ msgid "See all files referencing the same document (acces by datahash)"
+#~ msgstr ""
+#~ "Voir les fiches de tous les fichiers qui référencent le même document "
+#~ "(accès par data_hash)"
 
 #~ msgctxt "inlined:Service.service_social_network.subject"
 #~ msgid "SocialNetwork"
@@ -616,6 +740,9 @@ msgstr ""
 
 #~ msgid "export_authorities"
 #~ msgstr "[export authorities] exporter autorités lieux"
+
+#~ msgid "french"
+#~ msgstr "français"
 
 #~ msgid "harvest_url"
 #~ msgstr "URL de moissonnage"

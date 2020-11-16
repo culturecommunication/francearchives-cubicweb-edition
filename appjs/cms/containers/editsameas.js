@@ -27,109 +27,155 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-import React from 'react';
-import {connect} from 'react-redux';
-import PropTypes from 'prop-types';
+import React from 'react'
+import {connect} from 'react-redux'
+import PropTypes from 'prop-types'
 
-import Api from '../api';
+import Api from '../api'
 
 function Spinner() {
-    return <i className="fa fa-spin fa-spinner"></i>;
+    return <i className="fa fa-spin fa-spinner"></i>
 }
-
 
 class SameAsItem extends React.Component {
     constructor(props) {
-        super(props);
-        this.onUriChange = this.onUriChange.bind(this);
-        this.onLabelChange = this.onLabelChange.bind(this);
-        this.onDelete = this.onDelete.bind(this);
+        super(props)
+        this.onUriChange = this.onUriChange.bind(this)
+        this.onLabelChange = this.onLabelChange.bind(this)
+        this.onDelete = this.onDelete.bind(this)
     }
 
     updateAttr(name, value) {
-        const partialProps = {[name]: value};
-        this.props.onChange(Object.assign({}, this.props.item, partialProps));
+        const partialProps = {[name]: value}
+        this.props.onChange(Object.assign({}, this.props.item, partialProps))
     }
 
     onLabelChange(ev) {
-        ev.preventDefault();
-        this.updateAttr('label', ev.target.value);
+        ev.preventDefault()
+        this.updateAttr('label', ev.target.value)
     }
 
     onUriChange(ev) {
-        ev.preventDefault();
-        this.updateAttr('uri', ev.target.value);
+        ev.preventDefault()
+        this.updateAttr('uri', ev.target.value)
     }
 
     onDelete(ev) {
-        ev.preventDefault();
-        this.updateAttr('toDelete', true);
+        ev.preventDefault()
+        this.updateAttr('toDelete', true)
     }
 
     render() {
-        const {label, uri, source, latitude, longitude, link} = this.props.item;
-        let uriInput, coordinatesIntput=null, sourceInput=null;
-        if (uri === undefined) { /* ExternalId entity */
-            uriInput = <input className="form-control" value={uri} disabled="disabled" />;
+        const {label, uri, source, latitude, longitude, link} = this.props.item
+        let uriInput,
+            coordinatesIntput = null,
+            sourceInput = null
+        if (uri === undefined) {
+            /* ExternalId entity */
+            uriInput = (
+                <input
+                    className="form-control"
+                    value={uri}
+                    disabled="disabled"
+                />
+            )
+        } else {
+            uriInput = (
+                <input
+                    className="form-control"
+                    value={uri}
+                    onChange={this.onUriChange}
+                />
+            )
         }
-        else {
-            uriInput = <input className="form-control" value={uri} onChange={this.onUriChange} />;
-        }
-        if (source !== undefined) { /* new form*/
+        if (source !== undefined) {
+            /* new form*/
             sourceInput = (
                 <div className="form-group">
                     <label className="control-label col-xs-1">source</label>
                     <div className="col-xs-11">
-                        <input className="form-control" value={source} disabled="disabled"  />
+                        <input
+                            className="form-control"
+                            value={source}
+                            disabled="disabled"
+                        />
                     </div>
-                </div>);
+                </div>
+            )
         }
         if (latitude && longitude) {
-           let mapUri = uri || link;
-           coordinatesIntput = (
-            <div>
-               <div className="form-group">
-                    <label className="control-label col-xs-1">latitude</label>
-                    <div className="col-xs-4">
-                        <input className="form-control" value={latitude} disabled="disabled" />
+            let mapUri = uri || link
+            coordinatesIntput = (
+                <div>
+                    <div className="form-group">
+                        <label className="control-label col-xs-1">
+                            latitude
+                        </label>
+                        <div className="col-xs-4">
+                            <input
+                                className="form-control"
+                                value={latitude}
+                                disabled="disabled"
+                            />
+                        </div>
+                        <label className="control-label col-xs-1">
+                            longitude
+                        </label>
+                        <div className="col-xs-4">
+                            <input
+                                className="form-control"
+                                value={longitude}
+                                disabled="disabled"
+                            />
+                        </div>
+                        <label className="control-label col-xs-1">
+                            voir la carte
+                        </label>
+                        <a
+                            href={mapUri}
+                            className="fa-stack fa-lg url_link col-xs-2"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <i className="fa fa-circle fa-stack-2x"></i>
+                            <i className="fa fa-arrow-right  fa-stack-1x fa-inverse"></i>
+                        </a>
                     </div>
-                    <label className="control-label col-xs-1">longitude</label>
-                    <div className="col-xs-4">
-                        <input className="form-control" value={longitude} disabled="disabled" />
-                    </div>
-                   <label className="control-label col-xs-1">voir la carte</label>
-                       <a href={mapUri} className="fa-stack fa-lg url_link col-xs-2"
-                           target="_blank"
-                           rel="noopener noreferrer">
-                           <i className="fa fa-circle fa-stack-2x"></i>
-                           <i className="fa fa-arrow-right  fa-stack-1x fa-inverse"></i>
-                       </a>
                 </div>
-            </div>
-            );
+            )
         }
         return (
             <div style={{position: 'relative'}}>
-                <button className="btn btn-danger" onClick={this.onDelete} style={{position: 'absolute', right: '0.1em'}}>
+                <button
+                    className="btn btn-danger"
+                    onClick={this.onDelete}
+                    style={{position: 'absolute', right: '0.1em'}}
+                >
                     <i className="fa-times fa"></i>
                 </button>
                 <fieldset>
-                  <legend>Alignement</legend>
-                  <div className="form-group">
-                    <label className="control-label col-xs-1">libéllé</label>
-                    <div className="col-xs-11">
-                        <input className="form-control" value={label} onChange={this.onLabelChange} />
+                    <legend>Alignement</legend>
+                    <div className="form-group">
+                        <label className="control-label col-xs-1">
+                            libéllé
+                        </label>
+                        <div className="col-xs-11">
+                            <input
+                                className="form-control"
+                                value={label}
+                                onChange={this.onLabelChange}
+                            />
+                        </div>
                     </div>
-                  </div>
-                <div className="form-group">
-                    <label className="control-label col-xs-1">uri</label>
-                    <div className="col-xs-11">{ uriInput }</div>
-                </div>
-                {coordinatesIntput}
-                {sourceInput}
-              </fieldset>
+                    <div className="form-group">
+                        <label className="control-label col-xs-1">uri</label>
+                        <div className="col-xs-11">{uriInput}</div>
+                    </div>
+                    {coordinatesIntput}
+                    {sourceInput}
+                </fieldset>
             </div>
-        );
+        )
     }
 }
 
@@ -145,91 +191,101 @@ SameAsItem.propTypes = {
     }).isRequired,
     onChange: PropTypes.func.isRequired,
     onDelete: PropTypes.func.isRequired,
-};
+}
 
 function SameAsList({data, onItemChange}) {
     return (
         <ul className="list-group">
-            {data.map((link, itemrank) => (link.toDelete !== true &&
-                <li className="list-group-item" key={link.eid}>
-                    <SameAsItem item={link}
-                        onChange={(item) => onItemChange(item, itemrank)} />
-                </li>
-            ))}
+            {data.map(
+                (link, itemrank) =>
+                    link.toDelete !== true && (
+                        <li className="list-group-item" key={link.eid}>
+                            <SameAsItem
+                                item={link}
+                                onChange={item => onItemChange(item, itemrank)}
+                            />
+                        </li>
+                    ),
+            )}
         </ul>
-    );
+    )
 }
 
 SameAsList.propTypes = {
     data: PropTypes.array.isRequired,
     onItemChange: PropTypes.func.isRequired,
-};
+}
 
 class EditSameAsComp extends React.Component {
     constructor(props) {
-        super(props);
-        this.state = {data: null, loading: true, submitting: false,
-                      shouldSubmit: false, errors:false};
-        this.onItemChange = this.onItemChange.bind(this);
-        this.onAdd = this.onAdd.bind(this);
-        this.onSubmit = this.onSubmit.bind(this);
+        super(props)
+        this.state = {
+            data: null,
+            loading: true,
+            submitting: false,
+            shouldSubmit: false,
+            errors: false,
+        }
+        this.onItemChange = this.onItemChange.bind(this)
+        this.onAdd = this.onAdd.bind(this)
+        this.onSubmit = this.onSubmit.bind(this)
     }
 
     componentDidMount() {
         const {entity} = this.props,
-            eid = entity.get('eid');
-        Api.jsonFetch(`/fa/authority/${eid}/same_as`)
-            .then(data => {
-                if (data.length === 0) {
-                    data = [{uri: '', label: ''}];
-                }
-                this.setState({data, loading: false});
-            });
+            eid = entity.get('eid')
+        Api.jsonFetch(`/fa/authority/${eid}/same_as`).then(data => {
+            if (data.length === 0) {
+                data = [{uri: '', label: ''}]
+            }
+            this.setState({data, loading: false})
+        })
     }
 
     onSubmit(ev) {
-        ev.preventDefault();
+        ev.preventDefault()
         const {data} = this.state,
             {entity} = this.props,
-            eid = entity.get('eid');
-        Api.jsonFetch(
-            `/fa/authority/${eid}/same_as`,
-            {method: 'PUT', body: JSON.stringify(data)}
-        ).then(doc => {
-            if (doc.errors && doc.errors.length) {
-                this.setState({'errors': doc.errors});
-            } else {
-                document.location.reload();
-            }
+            eid = entity.get('eid')
+        Api.jsonFetch(`/fa/authority/${eid}/same_as`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
         })
-        .catch(err => console.error('oups', err));
+            .then(doc => {
+                if (doc.errors && doc.errors.length) {
+                    this.setState({errors: doc.errors})
+                } else {
+                    document.location.reload()
+                }
+            })
+            .catch(err => console.error('oups', err))
     }
 
     onAdd() {
-        const {data} = this.state;
-        data.push({uri: '', label: ''});
-        this.setState({data, shouldSubmit: true});
+        const {data} = this.state
+        data.push({uri: '', label: ''})
+        this.setState({data, shouldSubmit: true})
     }
 
     onItemChange(item, itemrank) {
         const {data} = this.state,
-            itemInData = data[itemrank];
-        Object.assign(itemInData, item);
-        this.setState({data, shouldSubmit: true});
+            itemInData = data[itemrank]
+        Object.assign(itemInData, item)
+        this.setState({data, shouldSubmit: true})
     }
 
     onCancel(ev) {
-        ev.preventDefault();
-        document.location.reload();
+        ev.preventDefault()
+        document.location.reload()
     }
 
     render() {
         const {data, submitting, loading, shouldSubmit, errors} = this.state,
-              {entity} = this.props,
-              title = entity.get('dc_title'),
-              i18netype = entity.get('i18n_cw_etype'),
-              reltitle = 'pour ajouter des alignements';
-        let errorsDiv = null;
+            {entity} = this.props,
+            title = entity.get('dc_title'),
+            i18netype = entity.get('i18n_cw_etype'),
+            reltitle = 'pour ajouter des alignements'
+        let errorsDiv = null
         if (loading) {
             return (
                 <div>
@@ -237,21 +293,29 @@ class EditSameAsComp extends React.Component {
                     <h2>{reltitle}</h2>
                     <Spinner />
                 </div>
-            );
+            )
         }
         if (errors) {
-            errorsDiv = <div className="panel panel-danger errors">
-              <div className="panel-heading">
-                  <h3 className="panel-title">Errors</h3>
-                  <ul className="list-group">
-                  { errors.map((error, i) => // eslint-disable-line no-unused-vars
-                     <li className="list-group-item text-danger" key="{i}">
-                     { error.details };
-                    </li>
-                  )}
-                 </ul>
-              </div>
-            </div>
+            errorsDiv = (
+                <div className="panel panel-danger errors">
+                    <div className="panel-heading">
+                        <h3 className="panel-title">Errors</h3>
+                        <ul className="list-group">
+                            {errors.map((
+                                error,
+                                i, // eslint-disable-line no-unused-vars
+                            ) => (
+                                <li
+                                    className="list-group-item text-danger"
+                                    key="{i}"
+                                >
+                                    {error.details};
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+            )
         }
         return (
             <div>
@@ -260,31 +324,35 @@ class EditSameAsComp extends React.Component {
                 </h1>
 
                 <div className="cms_add_link">
-                    <button className="btn btn-default" onClick={this.onAdd}>Cliquer ici</button>
+                    <button className="btn btn-default" onClick={this.onAdd}>
+                        Cliquer ici
+                    </button>
                     &nbsp;{reltitle}
                 </div>
-                { errors ? errorsDiv : null }
+                {errors ? errorsDiv : null}
                 <form className="form-horizontal" onSubmit={this.onSubmit}>
                     <SameAsList data={data} onItemChange={this.onItemChange} />
-                    <button className="btn btn-default" onClick={this.onCancel}>annuler</button>
-                    <button disabled={!shouldSubmit}className="btn btn-primary" type="submit">
+                    <button className="btn btn-default" onClick={this.onCancel}>
+                        annuler
+                    </button>
+                    <button
+                        disabled={!shouldSubmit}
+                        className="btn btn-primary"
+                        type="submit"
+                    >
                         {submitting ? <Spinner /> : null}
                         enregistrer
                     </button>
                 </form>
             </div>
-        );
+        )
     }
 }
 
-
 EditSameAsComp.propTypes = {
     entity: PropTypes.object.isRequired,
-};
+}
 
-
-export const EditSameAs = connect(
-    function mapStateToProps(state) {
-        return {entity: state.getIn(['model', 'entity'])};
-    },
-)(EditSameAsComp);
+export const EditSameAs = connect(function mapStateToProps(state) {
+    return {entity: state.getIn(['model', 'entity'])}
+})(EditSameAsComp)

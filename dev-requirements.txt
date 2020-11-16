@@ -2,8 +2,6 @@ fakeredis == 1.0.5
 mock
 webtest
 pifpaf
-git+https://github.com/culturecommunication/francearchives-cubicweb#egg=cubicweb-francearchives
-https://hg.logilab.org/users/siaf/cubicweb-jsonschema/archive/0.1.2.tar.bz2#egg=cubicweb-jsonschema
+hg+https://franceachives:897dYPJQQeoTuw1Es-Hw@forge.extranet.logilab.fr/francearchives/cubicweb-francearchives/@default
 https://hg.logilab.org/users/siaf/yams/archive/tip.tar.bz2#egg=yams
-elasticsearch==7.1.0
-elasticsearch-dsl==7.1.0
+logilab-common==1.4.4

@@ -247,6 +247,10 @@ as $$
 begin
   delete from {{schema}}.cw_{{etype|lower}}
     where cw_eid=old.cw_eid;
+    {% if etype == 'FindingAid' %}
+-- delete published FAComponents
+    delete from {{schema}}.cw_facomponent as fac where fac.cw_finding_aid=old.cw_eid;
+    {% endif %}
   return old;
 end;
 $$;

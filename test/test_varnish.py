@@ -51,7 +51,7 @@ def lang_urls(rest_path):
 class VarnishTests(EsSerializableMixIn, FrACubicConfigMixIn, CubicWebTC):
     def assertBanned(self, call_args_list, urls):
         ban_commands = [("ban req.url ~", url) for url in urls]
-        self.assertCountEqual([call[0] for call in call_args_list], ban_commands)
+        self.assertCountEqual(sorted([call[0] for call in call_args_list]), sorted(ban_commands))
 
     @patch("cubicweb_varnish.varnishadm.VarnishCLI.execute")
     @patch("cubicweb_varnish.varnishadm.VarnishCLI.connect")
@@ -464,6 +464,71 @@ class VarnishTests(EsSerializableMixIn, FrACubicConfigMixIn, CubicWebTC):
                     lang_urls(facomp.rest_path()),
                     lang_urls("inventaires/"),
                     lang_urls("inventaires/FRAN"),
+                ),
+            )
+
+    @patch("cubicweb_varnish.varnishadm.VarnishCLI.execute")
+    @patch("cubicweb_varnish.varnishadm.VarnishCLI.connect")
+    def test_glossaryterm_publish_unpublish_cache_invalidation(self, _connect, cli_execute):
+        with self.admin_access.repo_cnx() as cnx:
+            term = cnx.create_entity(
+                "GlossaryTerm",
+                term="Dr Who",
+                short_description="doctor Who?",
+                description="doctor Who?",
+            )
+            cnx.commit()
+            cli_execute.reset_mock()
+            term.cw_adapt_to("IWorkflowable").fire_transition("wft_cmsobject_publish")
+            cnx.commit()
+            rest_path = term.rest_path()
+            self.assertBanned(
+                cli_execute.call_args_list,
+                chain(
+                    lang_urls(rest_path),
+                    lang_urls("glossaire"),
+                ),
+            )
+            cli_execute.reset_mock()
+            term.cw_adapt_to("IWorkflowable").fire_transition("wft_cmsobject_unpublish")
+            cnx.commit()
+            self.assertBanned(
+                cli_execute.call_args_list,
+                chain(
+                    lang_urls(rest_path),
+                    lang_urls("glossaire"),
+                ),
+            )
+
+    @patch("cubicweb_varnish.varnishadm.VarnishCLI.execute")
+    @patch("cubicweb_varnish.varnishadm.VarnishCLI.connect")
+    def test_faq_publish_unpublish_cache_invalidation(self, _connect, cli_execute):
+        with self.admin_access.repo_cnx() as cnx:
+            term = cnx.create_entity(
+                "FaqItem",
+                question="Who?",
+                answer="doctor Who.",
+            )
+            cnx.commit()
+            cli_execute.reset_mock()
+            term.cw_adapt_to("IWorkflowable").fire_transition("wft_cmsobject_publish")
+            cnx.commit()
+            rest_path = term.rest_path()
+            self.assertBanned(
+                cli_execute.call_args_list,
+                chain(
+                    lang_urls(rest_path),
+                    lang_urls("faq"),
+                ),
+            )
+            cli_execute.reset_mock()
+            term.cw_adapt_to("IWorkflowable").fire_transition("wft_cmsobject_unpublish")
+            cnx.commit()
+            self.assertBanned(
+                cli_execute.call_args_list,
+                chain(
+                    lang_urls(rest_path),
+                    lang_urls("faq"),
                 ),
             )
 

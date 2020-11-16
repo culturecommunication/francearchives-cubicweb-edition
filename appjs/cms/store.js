@@ -27,41 +27,40 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-'use strict';
+'use strict'
 
 const {createStore, applyMiddleware} = require('redux'),
-      {Iterable} = require('immutable'),
-      thunk = require('redux-thunk').default;
+    {Iterable} = require('immutable'),
+    thunk = require('redux-thunk').default
 
 const rootReducer = require('./reducers'),
-      {middleware: api} = require('./middleware/api');
+    {middleware: api} = require('./middleware/api')
 
-const middlewares = [thunk, api];
-import {createLogger} from 'redux-logger';
-
+const middlewares = [thunk, api]
+import {createLogger} from 'redux-logger'
 
 function stateTransformer(state) {
     if (Iterable.isIterable(state)) {
-        return state.toJS();
+        return state.toJS()
     } else {
-        return state;
+        return state
     }
 }
 
 if (process.env.NODE_ENV !== 'production') {
     // transform immutable structure to plain object
     // (recipe from redux-logger README.md)
-    middlewares.push(createLogger({collapsed: true, stateTransformer}));
+    middlewares.push(createLogger({collapsed: true, stateTransformer}))
 }
 
 function configureStore(initialState) {
-  return createStore(
-      rootReducer,
-      initialState,
-      applyMiddleware(...middlewares)
-  );
+    return createStore(
+        rootReducer,
+        initialState,
+        applyMiddleware(...middlewares),
+    )
 }
 
 export default {
     configureStore,
-};
+}

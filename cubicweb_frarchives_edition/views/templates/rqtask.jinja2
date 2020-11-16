@@ -22,6 +22,12 @@
         <script type="text/javascript">
             var data = {{ authrecords.data }};
         </script>
+    {% elif persons %}
+        <h2>{{ persons.title }}</h2>
+        <div id="bs-table-container"></div>
+        <script type="text/javascript">
+            var data = {{ persons.data }};
+        </script>
     {% else %}
        <script type="text/javascript">
             var data = [];

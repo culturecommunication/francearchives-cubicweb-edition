@@ -29,57 +29,65 @@
  */
 
 const {createElement: ce, Component} = require('react'),
-      PropTypes = require('prop-types');
+    PropTypes = require('prop-types')
 
+const {
+    default: {addTransition, getTransitionsSchema},
+} = require('../api')
 
-const {default: {addTransition, getTransitionsSchema}} = require('../api');
-
-
-const {spinner, icon} = require('./fa');
-
+const {spinner, icon} = require('./fa')
 
 class PublishBtn extends Component {
     constructor(props) {
-        super(props);
-        this.state = {possibleTransition: null, loading: true};
-        this.entity = props.entity.toJS();
-        this.fireTransition = this.fireTransition.bind(this);
+        super(props)
+        this.state = {possibleTransition: null, loading: true}
+        this.entity = props.entity.toJS()
+        this.fireTransition = this.fireTransition.bind(this)
     }
 
     updatePossibleTransition() {
-        const {cw_etype, eid} = this.entity;
-        return getTransitionsSchema(cw_etype, eid)
-            .then(s => this.setState({possibleTransition: s.definitions.TrInfo.properties.name.enum[0],
-                                      loading: false}));
+        const {cw_etype, eid} = this.entity
+        return getTransitionsSchema(cw_etype, eid).then(s =>
+            this.setState({
+                possibleTransition:
+                    s.definitions.TrInfo.properties.name.enum[0],
+                loading: false,
+            }),
+        )
     }
 
     componentDidMount() {
-        this.updatePossibleTransition();
+        this.updatePossibleTransition()
     }
 
     fireTransition() {
         const {possibleTransition} = this.state,
-              {cw_etype, eid} = this.entity;
-        this.setState({loading: true});
+            {cw_etype, eid} = this.entity
+        this.setState({loading: true})
         addTransition(cw_etype, eid, {name: possibleTransition}).then(
-            this.updatePossibleTransition.bind(this));
+            this.updatePossibleTransition.bind(this),
+        )
     }
 
     render() {
-        const {possibleTransition, loading} = this.state;
-        const iconeName = possibleTransition === 'wft_cmsobject_publish' ? 'send-o' : 'send';
-        let content;
+        const {possibleTransition, loading} = this.state
+        const iconeName =
+            possibleTransition === 'wft_cmsobject_publish' ? 'send-o' : 'send'
+        let content
         if (possibleTransition === null || loading) {
-            content = ce(spinner);
+            content = ce(spinner)
         } else {
-            content = ce(icon, {name: iconeName, className: 'pointer',
-                                onClick: this.fireTransition});
+            content = ce(icon, {
+                name: iconeName,
+                className: 'pointer',
+                onClick: this.fireTransition,
+            })
         }
-        return ce('h2', {title: 'publier/dépublier'}, content);
+        return ce('h2', {title: 'publier/dépublier'}, content)
     }
 }
 PublishBtn.propTypes = {
     entity: PropTypes.object,
 }
 
-module.exports = PublishBtn;
+module.exports = PublishBtn

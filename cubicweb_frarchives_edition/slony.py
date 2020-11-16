@@ -77,7 +77,12 @@ def create_master(cnx, sqlschema="published", skip_entities=(), skip_relations=(
             "set add table (set id=1, origin=1, id=%(idx)s, "
             "fully qualified name='%(schema)s.%(table)s', "
             "comment='table for entity %(entity)s');"
-            % {"idx": idx, "table": table, "entity": eschema.type, "schema": schemaname,}
+            % {
+                "idx": idx,
+                "table": table,
+                "entity": eschema.type,
+                "schema": schemaname,
+            }
         )
         idx += 1
 
@@ -90,7 +95,12 @@ def create_master(cnx, sqlschema="published", skip_entities=(), skip_relations=(
                 "set add table (set id=1, origin=1, id=%(idx)s, "
                 "fully qualified name='%(schema)s.%(table)s', "
                 "comment='table for relation %(rel)s');"
-                % {"idx": idx, "table": table, "rel": rschema.type, "schema": schemaname,}
+                % {
+                    "idx": idx,
+                    "table": table,
+                    "rel": rschema.type,
+                    "schema": schemaname,
+                }
             )
         idx += 1
     return "\n".join(output)

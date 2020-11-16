@@ -7,6 +7,7 @@
     "test": "test"
   },
   "dependencies": {
+    "@tinymce/tinymce-react": "^3.6.0",
     "classnames": "^2.2.3",
     "immutable": "^3.8.1",
     "lodash": "^4.17.15",
@@ -26,7 +27,7 @@
     "react-redux": "^7.1.3",
     "react-router": "^5.1.2",
     "react-router-dom": "^5.1.2",
-    "react-select": "^1.0.0-rc.3",
+    "react-select": "^3.0.8",
     "react-tinymce": "^0.7.0",
     "react-widgets": "^4.4.11",
     "react-widgets-moment": "^4.0.27",
@@ -49,6 +50,8 @@
     "eslint-plugin-react": "^7.18.0",
     "jsdom": "^13.0.0",
     "mocha": "^6.0.2",
+    "nyc": "^15.0.0",
+    "prettier": "1.19.1",
     "react-addons-test-utils": "^15.3.2",
     "sinon": "^1.17.5",
     "uglify": "^0.1.5",
@@ -56,13 +59,17 @@
     "webpack-cli": "^3.3.10"
   },
   "scripts": {
+    "clean": "rm -rf build",
+    "format": "prettier --check 'appjs/*'",
+    "format:fix": "prettier --write 'appjs/*'",
     "test": "NODE_ENV=test mocha --require @babel/register appjs/test",
     "test-cms": "NODE_ENV=test mocha --require @babel/register appjs/cms/test",
-    "build": "NODE_ENV=production webpack --progress  --mode=production --config webpack.config.dll.js && NODE_ENV=production webpack --progress --mode=production",
+    "test-coverage": "NODE_ENV=test nyc mocha --require @babel/register appjs/cms/test",
+    "build": "NODE_ENV=production webpack --progress  --mode=production --config webpack.config.dll.js && NODE_ENV=production webpack --progress --mode=production && prettier --check 'appjs/cms/*js'",
     "build-dev": "webpack --progress --mode=development",
     "watch": "webpack --progress -d --watch --mode=development",
     "tar": "cd data && tar czf pnia_content-data.tar.gz bundle*.js",
-    "lint": "eslint --cache appjs/cms"
+    "lint": "eslint --cache appjs/"
   },
   "author": "LOGILAB <contact@logilab.fr>",
   "license": "private"

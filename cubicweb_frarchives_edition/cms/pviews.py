@@ -52,7 +52,8 @@ LOG = logging.getLogger(__name__)
 
 
 @json_config(
-    route_name="cmssection", request_method="POST",
+    route_name="cmssection",
+    request_method="POST",
 )
 def move_section(request):
     req = request.cw_request
@@ -73,7 +74,10 @@ def move_section(request):
 
 
 @json_config(
-    route_name="cwentities", context=ETypeResource, request_method="GET", request_param="attrs",
+    route_name="cwentities",
+    context=ETypeResource,
+    request_method="GET",
+    request_param="attrs",
 )
 def get_entities_json(context, request):
     """Render multiple entities in JSON format."""
@@ -117,7 +121,8 @@ def service(request):
 
 
 @view_config(
-    route_name="downloadable", context=EntityResource,
+    route_name="downloadable",
+    context=EntityResource,
 )
 def download(context, request):
     """Download view for entities with BFSS managed "data" attribute."""
@@ -138,7 +143,9 @@ def logout(request):
     raise httpexceptions.HTTPSeeOther(url, headers=headers)
 
 
-@view_config(route_name="non-repris",)
+@view_config(
+    route_name="non-repris",
+)
 def unclassified_section(request):
     rset = request.cw_request.execute("Any X WHERE X is Section, X name %(n)s", {"n": "non-repris"})
     return httpexceptions.HTTPFound(location=rset.one().absolute_url())
@@ -183,8 +190,6 @@ def faservices(request):
         EXISTS(F service X, F is FindingAid)
         """
     )
-    if not rset:
-        raise httpexceptions.HTTPNotFound()
     entities = []
     for eid, name, name2, short_name, code in rset:
         entities.append({"code": code, "name": "{} ({})".format(name or name2, code)})
@@ -200,12 +205,14 @@ def faforservice(request):
         raise httpexceptions.HTTPNotFound()
     rset = req.execute(
         """
-        Any F, EADID, SID, NAME, FNAME, CDATE, SNAME, OAI
+        Any F, EADID, SID, TITLEPROPER, UNITTITLE, UNITID, FNAME, CDATE, SNAME, OAI
         ORDERBY CDATE DESC WHERE F is FindingAid,
         F service S, S code %(code)s,
-        F eadid EADID, F did D, D unittitle NAME,
+        F eadid EADID,
+        F fa_header FA, FA titleproper TITLEPROPER,
+        F did D, D unittitle UNITTITLE, D unitid UNITID,
         F stable_id SID,
-        F findingaid_support FS, FS data_name FNAME,
+        F findingaid_support FS?, FS data_name FNAME,
         F creation_date CDATE,
         F oai_id OAI,
         F in_state ST?, ST name SNAME
@@ -214,7 +221,19 @@ def faforservice(request):
     )
     entities = []
     _ = req._
-    for eid, eadid, stable_id, name, filename, creation_date, status, oai in rset:
+    for (
+        eid,
+        eadid,
+        stable_id,
+        titleproper,
+        unittitle,
+        unitid,
+        filename,
+        creation_date,
+        status,
+        oai,
+    ) in rset:
+        name = titleproper or unittitle or unitid or "???"
         entities.append(
             {
                 "eid": eid,

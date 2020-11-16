@@ -22,6 +22,7 @@ env:
 rules:
   react/no-multi-comp: off
   react/jsx-indent-props: [2, 4]
+  react/no-unescaped-entities: 0
   object-curly-spacing: ["error", "never"]
   object-shorthand: off
   no-unused-vars: ["error", {"argsIgnorePattern": "_$"}]

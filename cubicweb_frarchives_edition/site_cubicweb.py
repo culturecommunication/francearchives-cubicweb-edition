@@ -74,6 +74,46 @@ options = (
             "level": 2,
         },
     ),
+    (
+        "tinymce-key",
+        {
+            "type": "string",
+            "default": "z1su7cyfbql76bw5u2un462erbimfg3wasuec8lf5ebo5fmm",
+            "help": "https://www.tiny.cloud APIKEY",
+            "group": "UI",
+            "level": 2,
+        },
+    ),
+    (
+        "linkchecker-output",
+        {
+            "type": "string",
+            "default": "/tmp",
+            "help": "linkchecker output file name",
+            "group": "linkchecker",
+            "level": 2,
+        },
+    ),
+    (
+        "linkchecker-config",
+        {
+            "type": "string",
+            "default": "",
+            "help": "linkchecker configuration file",
+            "group": "linkchecker",
+            "level": 2,
+        },
+    ),
+    (
+        "dead-links-output",
+        {
+            "type": "string",
+            "default": "",
+            "help": "dead links output directory",
+            "group": "linkchecker",
+            "level": 2,
+        },
+    ),
 )
 
 

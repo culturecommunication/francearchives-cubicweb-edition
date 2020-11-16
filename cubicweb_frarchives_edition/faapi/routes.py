@@ -34,5 +34,7 @@ from .resources import RootResource
 
 def includeme(config):
     config.add_route(
-        "frarchives_edition.faapi", "/fa/*traverse", factory=RootResource,
+        "frarchives_edition.faapi",
+        "/fa/*traverse",
+        factory=RootResource,
     )

@@ -34,6 +34,7 @@ import shutil
 import logging
 
 import rq
+import redis
 import rq.exceptions
 
 import traceback
@@ -49,98 +50,16 @@ from cubicweb.predicates import match_kwargs, is_instance
 from cubicweb.server.hook import DataOperationMixIn, Operation
 from cubicweb.view import EntityAdapter, Adapter
 
-from cubicweb_francearchives.dataimport import usha1
+from cubicweb_francearchives.dataimport import usha1, normalize_entry
 from cubicweb_francearchives.cssimages import HERO_SIZES, thumbnail_name, static_css_dir
 
-
-class IAvailableMixin(object):
-    __regid__ = "IAvailable"
+from cubicweb_frarchives_edition import UnpublishFilesOp
 
 
-class IEntityAvailable(IAvailableMixin, EntityAdapter):
-    __select__ = is_instance("Any")
-
-    def serialize(self):
-        return {"eid": self.entity.eid, "title": self.entity.dc_title()}
-
-
-class IEtypeAvailable(IAvailableMixin, Adapter):
-    __select__ = match_kwargs("etype")
-
-    def rql(self):
-        raise NotImplementedError()
-
-
-class IConceptAvailable(IEtypeAvailable):
-    __select__ = IEtypeAvailable.__select__ & match_kwargs({"etype": "Concept"})
-
-    def rql(self):
-        return (
-            "Any X WHERE X is Concept, X preferred_label L, "
-            "L label LL HAVING LOWER(UNACCENT(LL)) ILIKE %(q)s"
-        )
-
-
-class IServiceAvailable(IEtypeAvailable):
-    __select__ = IEtypeAvailable.__select__ & match_kwargs({"etype": "Service"})
-
-    def rql(self):
-        return """
-        DISTINCT Any X, XN, XN2, XL WITH X, XN, XN2, XL BEING (
-          (Any X, XN, XN2, XL WHERE X is Service,
-           X name2 XN2, X level XL,
-           X name XN HAVING LOWER(UNACCENT(XN)) ILIKE %(q)s)
-          UNION
-          (Any X, XN, XN2, XL WHERE X is Service,
-           X name XN, X level XL,
-           X name2 XN2 HAVING LOWER(UNACCENT(XN2)) ILIKE %(q)s)
-          UNION
-          (Any X, XN, XN2, XL WHERE X is Service,
-           X name XN, X name2 XN2, X level XL,
-           X category C HAVING LOWER(UNACCENT(C)) ILIKE %(q)s)
-        )
+class EsAuthorityCandidatesMixin(object):
+    def candidates_response(self, query_string, cw_etype):
         """
-
-
-class IAgentAuthority(IEtypeAvailable):
-    __select__ = IEtypeAvailable.__select__ & match_kwargs({"etype": "AgentAuthority"})
-
-    def rql(self):
-        return "Any X WHERE X is AgentAuthority, X label L " "HAVING LOWER(UNACCENT(L)) ILIKE %(q)s"
-
-
-class ILocationAuthority(IEtypeAvailable):
-    __select__ = IEtypeAvailable.__select__ & match_kwargs({"etype": "LocationAuthority"})
-
-    def rql(self):
-        return (
-            "Any X WHERE X is LocationAuthority, X label L " "HAVING LOWER(UNACCENT(L)) ILIKE %(q)s"
-        )
-
-
-class ISubjectAuthority(IEtypeAvailable):
-    __select__ = IEtypeAvailable.__select__ & match_kwargs({"etype": "SubjectAuthority"})
-
-    def rql(self):
-        return (
-            "Any X WHERE X is SubjectAuthority, X label L " "HAVING LOWER(UNACCENT(L)) ILIKE %(q)s"
-        )
-
-
-class IToGroupMixin(object):
-    __regid__ = "IToGroup"
-
-
-class IEntityToGroup(IToGroupMixin, EntityAdapter):
-    __select__ = is_instance("AgentAuthority", "LocationAuthority", "SubjectAuthority")
-
-    def serialize(self):
-        return {"eid": self.entity.eid, "title": self.entity.dc_title()}
-
-    def candidates(self, query_string):
-        """
-        dispaly candidates authorities which can be grouped :
-
+        select candidates authorities which can be grouped :
         1/ candidate authority must be of the same cw_etype as the main authority
         2/ candidate authority must not be already grouped
         """
@@ -155,7 +74,7 @@ class IEntityToGroup(IToGroupMixin, EntityAdapter):
         must = [
             {"match": {"text": {"query": query_string, "operator": "and"}}},
             # only display authorities of the same cw_etype
-            {"match": {"cw_etype": self.entity.cw_etype}},
+            {"match": {"cw_etype": cw_etype}},
             # do not display already grouped authorities
             {"match": {"grouped": False}},
         ]
@@ -164,13 +83,141 @@ class IEntityToGroup(IToGroupMixin, EntityAdapter):
             response = search.execute()
         except NotFoundError:
             return []
-        build_url = self._cw.build_url
+        except Exception as ex:
+            self.error("%r, %r", self, ex)
+            return []
+        if not (response and response.hits.total.value):
+            return []
+        return response
+
+
+class IAvailableMixin(object):
+    __regid__ = "IAvailable"
+
+    def candidates(self):
+        raise NotImplementedError()
+
+
+class IEntityAvailable(IAvailableMixin, EntityAdapter):
+    __select__ = is_instance("Any")
+
+    def candidates(self):
+        return {"eid": self.entity.eid, "title": self.entity.dc_title()}
+
+
+class IEtypeAvailable(IAvailableMixin, Adapter):
+    __select__ = match_kwargs("etype")
+
+    def __init__(self, _cw, **kwargs):
+        super(IEtypeAvailable, self).__init__(_cw, **kwargs)
+        self.etype = kwargs.pop("etype")
+
+
+class PostgresMixin(object):
+    """search data in postgres"""
+
+    def candidates(self, **params):
+        rset = self.candidates_rset(**params)
+        return [{"title": title, "eid": eid} for eid, title in rset]
+
+    def candidates_rset(self, **params):
+        raise NotImplementedError()
+
+
+class IConceptAvailable(PostgresMixin, IEtypeAvailable):
+    __select__ = IEtypeAvailable.__select__ & match_kwargs({"etype": "Concept"})
+
+    def candidates_rset(self, **params):
+        return self._cw.execute(
+            """
+        Any X, LL WHERE X is Concept, X preferred_label L,
+        L label LL HAVING NORMALIZE_ENTRY(LL) ILIKE %(q)s
+        """,
+            {"q": "%{}%".format(normalize_entry(params["q"]))},
+        )
+
+
+class IServiceAvailable(PostgresMixin, IEtypeAvailable):
+    __select__ = IEtypeAvailable.__select__ & match_kwargs({"etype": "Service"})
+
+    def candidates_rset(self, **params):
+        return self._cw.execute(
+            """
+        DISTINCT Any X, XN, XN2, C WITH X, XN, XN2, C BEING (
+          (Any X, XN, XN2, C WHERE X is Service,
+           X name2 XN2, X code C,
+           X name XN HAVING NORMALIZE_ENTRY(XN) ILIKE %(q)s)
+          UNION
+          (Any X, XN, XN2, C WHERE X is Service,
+           X name XN, X code C,
+           X name2 XN2 HAVING NORMALIZE_ENTRY(XN2) ILIKE %(q)s)
+          UNION
+          (Any X, XN, XN2, C WHERE X is Service,
+           X name XN, X name2 XN2,
+           X code C HAVING NORMALIZE_ENTRY(C) ILIKE %(q)s)
+        )        """,
+            {"q": "%{}%".format(normalize_entry(params["q"]))},
+        )
+
+    def candidates(self, **params):
+        rset = self.candidates_rset(**params)
+        return [{"title": name or name2 or code, "eid": eid} for eid, name, name2, code in rset]
+
+
+class IAuthorityAvailable(EsAuthorityCandidatesMixin, IEtypeAvailable):
+    __select__ = IEtypeAvailable.__select__ & (
+        match_kwargs({"etype": "AgentAuthority"})
+        | match_kwargs({"etype": "LocationAuthority"})
+        | match_kwargs({"etype": "SubjectAuthority"})
+    )
+
+    def candidates(self, **params):
+        response = self.candidates_response(params["q"], params["target_type"])
         results = []
-        if not (response or response.hits.total.value):
+        if not (response and response.hits.total.value):
+            return []
+        _ = self._cw._
+        countlabel_templates = (_("0 document"), _("1 document"), _("{count} documents"))
+        eid = params.get("eid")
+        related = []
+        if eid:
+            entity = self._cw.entity_from_eid(eid)
+            related = [e[0] for e in entity.related(params["rtype"])]
+        for result in response:
+            if related and result.eid in related:
+                continue
+            count = result.count if hasattr(result, "count") else 0
+            countlabel = countlabel_templates[min(count, 2)].format(count=count)
+            indextype = result.type if "type" in result else result.cw_etype
+            title = "{title}, {etype} - {countlabel}".format(
+                title=result.text, etype=_(indextype), countlabel=countlabel
+            )
+            results.append(
+                {"url": self._cw.build_url(result.urlpath), "title": title, "eid": result.eid}
+            )
+        return results
+
+
+class IEntityToGroup(EsAuthorityCandidatesMixin, EntityAdapter):
+    __regid__ = "IToGroup"
+    __select__ = is_instance("AgentAuthority", "LocationAuthority", "SubjectAuthority")
+
+    def serialize(self):
+        return {"eid": self.entity.eid, "title": self.entity.dc_title()}
+
+    def candidates(self, query_string):
+        """
+        dispaly candidates authorities which can be grouped :
+
+        1/ candidate authority must be of the same cw_etype as the main authority
+        2/ candidate authority must not be already grouped
+        """
+        response = self.candidates_response(query_string, self.entity.cw_etype)
+        results = []
+        if not (response and response.hits.total.value):
             return results
-        if response and response.hits.total.value:
-            _ = self._cw._
-            countlabel_templates = (_("0 document"), _("1 document"), _("{count} documents"))
+        _ = self._cw._
+        countlabel_templates = (_("0 document"), _("1 document"), _("{count} documents"))
         for result in response:
             if result.eid == self.entity.eid:
                 continue
@@ -180,13 +227,18 @@ class IEntityToGroup(IToGroupMixin, EntityAdapter):
             title = "{title}, {etype} - {countlabel}".format(
                 title=result.text, etype=_(indextype), countlabel=countlabel
             )
-            results.append({"url": build_url(result.urlpath), "title": title, "eid": result.eid})
+            results.append(
+                {"url": self._cw.build_url(result.urlpath), "title": title, "eid": result.eid}
+            )
         return results
 
 
 class StartRqTaskOp(DataOperationMixIn, Operation):
     def postcommit_event(self):
-        queue = rq.Queue()
+        # use connection if it exists (e.g. one created by FakeRedis), else create new connection
+        # the demo does not seem to connect automatically to the redis instance, so we need
+        # to manually create it
+        queue = rq.Queue(connection=rq.connections.get_current_connection() or redis.Redis())
         for args, kwargs in self.cnx.transaction_data.get("rq_tasks", []):
             kwargs.setdefault("job_timeout", "2h")
             queue.enqueue(*args, **kwargs)
@@ -252,7 +304,10 @@ class RqTaskJob(IRqJob):
     __select__ = IRqJob.__select__ & is_instance("RqTask")
 
     def handle_failure(self, *exc_info):
-        update = dict(log=Binary(self.log.encode("utf-8")), status=rq.job.JobStatus.FAILED,)
+        update = dict(
+            log=Binary(self.log.encode("utf-8")),
+            status=rq.job.JobStatus.FAILED,
+        )
         for attr in ("enqueued_at", "started_at"):
             update[attr] = getattr(self, attr)
         self.entity.cw_set(**update)
@@ -319,20 +374,22 @@ class IFileSync(EntityAdapter):
         else:
             query = queries[0]
         rset = self._cw.execute(query, {"e": self.entity.eid})
-        return [fpath.getvalue() for fpath, in rset]
+        return [(fpath.getvalue(), eid) for fpath, eid in rset]
 
     def delete(self):
-        for fpath in self.files_to_sync():
+        for fpath, feid in self.files_to_sync():
             fullpath = osp.join(self.pub_appfiles_dir.encode("utf-8"), osp.basename(fpath))
             if osp.exists(fullpath):
-                os.remove(fullpath)
+                UnpublishFilesOp.get_instance(self._cw).add_data(
+                    (self.entity, feid, fpath, fullpath)
+                )
 
     def copy(self):
         if not self.pub_appfiles_dir:
             return
         if not osp.exists(self.pub_appfiles_dir):
             os.makedirs(self.pub_appfiles_dir)
-        for fpath in self.files_to_sync():
+        for fpath, feid in self.files_to_sync():
             fullpath = osp.join(self.pub_appfiles_dir.encode("utf-8"), osp.basename(fpath))
             copy(fpath, fullpath)
 
@@ -343,11 +400,11 @@ class FindingAidIFileSync(IFileSync):
     @staticmethod
     def queries():
         return (
-            "Any FSPATH(FD) WHERE FA findingaid_support F, F data FD, "
+            "Any FSPATH(FD), F WHERE FA findingaid_support F, F data FD, "
             'FA eid %(e)s, F data_name ILIKE "%.pdf"',
-            "Any FSPATH(FD) WHERE FA ape_ead_file F, F data FD, " "FA eid %(e)s",
-            "Any FSPATH(FD) WHERE FA fa_referenced_files F, F data FD, " "FA eid %(e)s",
-            "Any FSPATH(FD) WHERE FAC finding_aid FA, FAC fa_referenced_files F, F data FD, "
+            "Any FSPATH(FD), F WHERE FA ape_ead_file F, F data FD, " "FA eid %(e)s",
+            "Any FSPATH(FD), F WHERE FA fa_referenced_files F, F data FD, " "FA eid %(e)s",
+            "Any FSPATH(FD), F WHERE FAC finding_aid FA, FAC fa_referenced_files F, F data FD, "
             "FA eid %(e)s",
         )
 
@@ -375,13 +432,15 @@ class FindingAidIFileSync(IFileSync):
         return ""
 
     def delete(self):
-        for fpath in self.files_to_sync():
+        for fpath, feid in self.files_to_sync():
             fullpath = self.get_fullpath(fpath)
             if osp.exists(fullpath):
-                os.remove(fullpath)
+                UnpublishFilesOp.get_instance(self._cw).add_data(
+                    (self.entity, feid, fpath, fullpath)
+                )
 
     def copy(self):
-        for fpath in self.files_to_sync():
+        for fpath, feid in self.files_to_sync():
             fullpath = self.get_fullpath(fpath)
             copy(fpath, fullpath)
 
@@ -392,8 +451,8 @@ class CircularFileSync(IFileSync):
     @staticmethod
     def queries():
         return (
-            "Any FSPATH(FD) WHERE X attachment F, F data FD, X eid %(e)s",
-            "Any FSPATH(FD) WHERE X additional_attachment F, F data FD, X eid %(e)s",
+            "Any FSPATH(FD), F WHERE X attachment F, F data FD, X eid %(e)s",
+            "Any FSPATH(FD), F WHERE X additional_attachment F, F data FD, X eid %(e)s",
         )
 
 
@@ -402,7 +461,9 @@ class RichContentFileSyncMixin(object):
         q = super(RichContentFileSyncMixin, self).queries()
         if not self.entity.e_schema.has_relation("referenced_files", "subject"):
             return q
-        return q + ("Any FSPATH(FD) WHERE F is File, F data FD, X eid %(e)s, X referenced_files F",)
+        return q + (
+            "Any FSPATH(FD), F WHERE F is File, F data FD, X eid %(e)s, X referenced_files F",
+        )
 
 
 class ImageFileSync(IFileSync):
@@ -411,7 +472,7 @@ class ImageFileSync(IFileSync):
 
     def queries(self):
         return (
-            "Any FSPATH(FD) WHERE X {} I, I image_file F, F data FD, "
+            "Any FSPATH(FD), F WHERE X {} I, I image_file F, F data FD, "
             "X eid %(e)s".format(self.rtype),
         )
 
@@ -426,7 +487,9 @@ class SectionFileSync(RichContentFileSyncMixin, CommemoFileSync):
 
     def queries(self):
         q = super(SectionFileSync, self).queries()
-        return q + ("Any FSPATH(FD) WHERE X eid %(e)s, I cssimage_of X, I image_file F, F data FD",)
+        return q + (
+            "Any FSPATH(FD), F WHERE X eid %(e)s, I cssimage_of X, I image_file F, F data FD",
+        )
 
     @cachedproperty
     def published_static_css_dir(self):
@@ -456,6 +519,10 @@ class SectionFileSync(RichContentFileSyncMixin, CommemoFileSync):
         super(SectionFileSync, self).copy()
 
 
+class SectionTranslationFileSync(RichContentFileSyncMixin, IFileSync):
+    __select__ = IFileSync.__select__ & is_instance("SectionTranslation")
+
+
 class ServiceFileSync(ImageFileSync):
     __select__ = ImageFileSync.__select__ & is_instance("Service")
     rtype = "service_image"
@@ -469,6 +536,10 @@ class NewsFileSync(RichContentFileSyncMixin, ImageFileSync):
 class BaseContentFileSync(RichContentFileSyncMixin, ImageFileSync):
     __select__ = ImageFileSync.__select__ & is_instance("BaseContent")
     rtype = "basecontent_image"
+
+
+class BaseContentTranslationFileSync(RichContentFileSyncMixin, IFileSync):
+    __select__ = IFileSync.__select__ & is_instance("BaseContentTranslation")
 
 
 class CommemorationItemFileSync(RichContentFileSyncMixin, ImageFileSync):

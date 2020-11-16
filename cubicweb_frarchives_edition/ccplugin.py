@@ -65,12 +65,19 @@ from cubicweb.pyramid import settings_from_cwconfig
 from cubicweb.toolsutils import Command
 
 from cubicweb_francearchives import CMS_OBJECTS
+from cubicweb_francearchives import CMS_I18N_OBJECTS
 from cubicweb_francearchives import admincnx
 from cubicweb_francearchives.ccplugin import ImportEAD
 
 
 from cubicweb_frarchives_edition import load_leaflet_json
 from cubicweb_frarchives_edition import ALIGN_IMPORT_DIR
+from cubicweb_frarchives_edition.entities.kibana import (
+    IndexESIRKibana,
+    IndexESServicesKibana,
+    IndexESAuthoritiesKibana,
+    IndexEsKibanaLauncher,
+)
 from cubicweb_frarchives_edition.rq import work
 from cubicweb_frarchives_edition.slony import create_master, add_slave, start_slave
 from cubicweb_frarchives_edition.alignments import setup
@@ -79,6 +86,7 @@ from cubicweb_frarchives_edition.alignments.importers import (
     BanoAlignImporter,
 )
 from cubicweb_frarchives_edition.alignments.align import AgentAligner
+from cubicweb_frarchives_edition.alignments.group_subjects import group_subject_authorities
 
 HERE = osp.dirname(osp.abspath(__file__))
 
@@ -104,7 +112,9 @@ class SetupInitialState(Command):
     def run(self, args):
         appid = args.pop()
         with admincnx(appid) as cnx:
-            for etype in {"FindingAid"} | set(CMS_OBJECTS) - {"ExternRef", "Map"}:
+            for etype in (
+                {"FindingAid"} | set(CMS_OBJECTS) - {"ExternRef", "Map"} | set(CMS_I18N_OBJECTS)
+            ):
                 print("migrating", etype)
                 rset = cnx.execute(
                     "Any S WHERE S is State, S state_of WF, X default_workflow WF, "
@@ -139,13 +149,18 @@ class PeriodicOaiImport(Command):
         appid = args.pop()
         connection = get_rq_redis_connection(appid)
         with admincnx(appid) as cnx, rq.Connection(connection):
-            for (oairepoeid,) in cnx.execute("Any X WHERE X is OAIRepository"):
+            for (oairepoeid, auto_dedupe, context_service) in cnx.execute(
+                """Any X, A, S WHERE X is OAIRepository,
+                    X should_normalize A, X context_service S"""
+            ):
                 service = cnx.entity_from_eid(oairepoeid).service[0]
                 task_title = "import-oai delta {code} ({date})".format(
                     code=service.code, date=datetime.utcnow().strftime("%Y-%m-%d")
                 )
                 rqtask = cnx.create_entity("RqTask", name="import_oai", title=task_title)
-                rqtask.cw_adapt_to("IRqJob").enqueue(import_oai, oairepoeid, publish=True)
+                rqtask.cw_adapt_to("IRqJob").enqueue(
+                    import_oai, oairepoeid, auto_dedupe, context_service, publish=True
+                )
                 cnx.commit()
 
 
@@ -249,10 +264,7 @@ class GenerateSlonyMaster(Command):
         config = cwcfg.config_for(appid, debugmode=self["debug"])
         init_cmdline_log_threshold(config, self["loglevel"])
 
-        skip_entities = (
-            "FAFileImport",
-            "FAOAIPMHImport",
-        )
+        skip_entities = ()
         skip_relations = ("imported_findingaid",)
         mih = config.migration_handler()
         try:
@@ -306,15 +318,30 @@ class GenerateSlonySlave(Command):
         ),
         (
             "slave-db-name",
-            {"type": "string", "short": "n", "default": None, "help": "slave database name",},
+            {
+                "type": "string",
+                "short": "n",
+                "default": None,
+                "help": "slave database name",
+            },
         ),
         (
             "slave-db-user",
-            {"type": "string", "short": "U", "default": None, "help": "slave database user",},
+            {
+                "type": "string",
+                "short": "U",
+                "default": None,
+                "help": "slave database user",
+            },
         ),
         (
             "slave-db-password",
-            {"type": "password", "short": "P", "default": "", "help": "slave database password",},
+            {
+                "type": "password",
+                "short": "P",
+                "default": "",
+                "help": "slave database password",
+            },
         ),
         ("debug", {"short": "D", "action": "store_true", "help": "start server in debug mode."}),
         (
@@ -402,7 +429,11 @@ class ImportAlignments(Command):
         ),
         (
             "force",
-            {"action": "store_true", "default": False, "help": ("Override user alignments"),},
+            {
+                "action": "store_true",
+                "default": False,
+                "help": ("Override user alignments"),
+            },
         ),
     ]
 
@@ -481,7 +512,13 @@ class SetupDatabase(Command):
     witness_table = None
 
     options = (
-        ("datadir", {"type": "string", "help": ("folder where database files are downloaded"),}),
+        (
+            "datadir",
+            {
+                "type": "string",
+                "help": ("folder where database files are downloaded"),
+            },
+        ),
         (
             "update",
             {
@@ -578,7 +615,7 @@ class SetupDatabase(Command):
         else:
             print("\n-> Use database files from " "the following folder:\n    {0}".format(datadir))
         if setup.table_exists(dbparams, self.witness_table) and not self.get("update"):
-            print("\n-> Database already exists. Use `--update=y` to update.".format(datadir))
+            print("\n-> Database already exists. Use `--update=y` to update.".format())
             return
         table_owner = sconf["db-user"] if dbparams["user"] != sconf["db-user"] else None
         self.load_data(appid, dbparams, datadir, table_owner=table_owner)
@@ -695,5 +732,82 @@ class ImportAlignmentAgent(Command):
             fp.close()
 
 
-CWCTL.register(GenerateSlonyMaster)
-CWCTL.register(GenerateSlonySlave)
+@CWCTL.register
+class ReloadJsonMap(Command):
+    """reload IR map data"""
+
+    name = "reload-map"
+    arguments = "<instance>"
+    max_args = min_args = 1
+
+    def run(self, args):
+        """reload IR map data"""
+        appid = args.pop()
+        with admincnx(appid) as cnx:
+            # update json for leafleat
+            load_leaflet_json(cnx)
+
+
+@CWCTL.register
+class GroupSimilarSubjects(Command):
+    """group similar subjects
+
+    <instance id>
+      identifier of the instance
+    """
+
+    name = "group-subjects"
+    arguments = "<instance>"
+    max_args = min_args = 1
+    options = [
+        (
+            "dry-run",
+            {
+                "type": "yn",
+                "default": True,
+                "help": "set to False if you want to perform the grouping",
+            },
+        ),
+        (
+            "directory",
+            {
+                "type": "string",
+                "default": "/tmp",
+                "help": "directory to directory where subjects_togroup_DATE.csv will be written",
+            },
+        ),
+        (
+            "limit",
+            {
+                "type": "int",
+                "default": "110000",
+                "help": "limit on documents number linked to an autority",
+            },
+        ),
+    ]
+
+    def run(self, args):
+        """reload IR map data"""
+        appid = args.pop()
+        directory = self.config.directory
+        if directory and not osp.isdir(directory):
+            print('\n-> the specified directory "{}" does not exist. \n'.format(directory))
+            return
+        with admincnx(appid) as cnx:
+            dry_run = self.config.dry_run
+            if dry_run:
+                print("\n-> no grouping will be performed.")
+            group_subject_authorities(
+                cnx, dry_run=dry_run, directory=directory, limitdoc=self.config.limit
+            )
+
+
+for cmdclass in (
+    GenerateSlonyMaster,
+    GenerateSlonySlave,
+    IndexESIRKibana,
+    IndexESServicesKibana,
+    IndexESAuthoritiesKibana,
+    IndexEsKibanaLauncher,
+):
+    CWCTL.register(cmdclass)

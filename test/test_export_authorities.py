@@ -230,7 +230,11 @@ class ExportTC(TaskTC):
         with self.admin_access.cnx() as cnx:
             self.login()
             data = json.dumps(
-                {"name": "export_locationauthorities", "title": "export", "services": "FRAD000",}
+                {
+                    "name": "export_locationauthorities",
+                    "title": "export",
+                    "services": "FRAD000",
+                }
             )
             post_kwargs = {"params": [("data", data)]}
             self.webapp.post(
@@ -298,7 +302,11 @@ class ExportTC(TaskTC):
         with self.admin_access.cnx() as cnx:
             self.login()
             data = json.dumps(
-                {"name": "export_agentauthorities", "title": "export", "services": "FRAD000",}
+                {
+                    "name": "export_agentauthorities",
+                    "title": "export",
+                    "services": "FRAD000",
+                }
             )
             post_kwargs = {"params": [("data", data)]}
             self.webapp.post(
@@ -319,7 +327,7 @@ class ExportTC(TaskTC):
             # CSV files exist and file related to Wikidata contains 2 rows
             filenames = [
                 "databnf/frad000-{today}.csv".format(today=today()),
-                "wikidata/frad000-{today}.csv".format(today=today())
+                "wikidata/frad000-{today}.csv".format(today=today()),
             ]
             fieldnames = [
                 "identifiant_AgentAuthority",
@@ -364,7 +372,11 @@ class ExportTC(TaskTC):
         with self.admin_access.cnx() as cnx:
             self.login()
             data = json.dumps(
-                {"name": "export_subjectauthorities", "title": "export", "services": "FRAD000",}
+                {
+                    "name": "export_subjectauthorities",
+                    "title": "export",
+                    "services": "FRAD000",
+                }
             )
             post_kwargs = {"params": [("data", data)]}
             self.webapp.post(
@@ -427,7 +439,12 @@ class ExportTC(TaskTC):
         # run task
         with self.admin_access.cnx() as cnx:
             self.login()
-            data = json.dumps({"name": "export_locationauthorities", "title": "export",})
+            data = json.dumps(
+                {
+                    "name": "export_locationauthorities",
+                    "title": "export",
+                }
+            )
             post_kwargs = {"params": [("data", data)]}
             self.webapp.post(
                 "/RqTask/?schema_type=export_locationauthorities",
@@ -443,10 +460,11 @@ class ExportTC(TaskTC):
             output_file = job.output_file[0]
             # CSV files geoname/frad000.csv and geoname/frad001.csv exist
             self._check_zip_archive(
-                output_file, {
+                output_file,
+                {
                     "geoname/frad000-{today}.csv".format(today=today()): [],
-                    "geoname/frad001-{today}.csv".format(today=today()): []
-                }
+                    "geoname/frad001-{today}.csv".format(today=today()): [],
+                },
             )
 
     def test_export_nonaligned_location(self):
@@ -483,7 +501,7 @@ class ExportTC(TaskTC):
             # CSV files nonaligned/frad000.csv and nonaligned/frad001.csv exist and contain 2 rows
             filenames = [
                 "nonaligned/frad000-{today}.csv".format(today=today()),
-                "nonaligned/frad001-{today}.csv".format(today=today())
+                "nonaligned/frad001-{today}.csv".format(today=today()),
             ]
             fieldnames = [
                 "identifiant_LocationAuthority",
@@ -676,7 +694,7 @@ class ExportTC(TaskTC):
             # CSV files geonames/frad000.csv and nonaligned/frad000.csv exist
             filenames = [
                 "geoname/frad000-{today}.csv".format(today=today()),
-                "nonaligned/frad000-{today}.csv".format(today=today())
+                "nonaligned/frad000-{today}.csv".format(today=today()),
             ]
             # simplified CSV file format
             fieldnames = [

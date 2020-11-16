@@ -28,17 +28,18 @@
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-const {connect} = require('react-redux');
+const {connect} = require('react-redux')
 
-const Add = require('../components/add');
+const Add = require('../components/add')
 
-const {showErrors} = require('../actions');
-
+const {showErrors} = require('../actions')
 
 module.exports = connect(
     function mapStateToProps(state) {
-        return {entity: state.getIn(['model', 'entity']),
-                errors: state.getIn(['app', 'errors'])};
+        return {
+            entity: state.getIn(['model', 'entity']),
+            errors: state.getIn(['app', 'errors']),
+        }
     },
-    {showErrors}
-)(Add);
+    {showErrors},
+)(Add)

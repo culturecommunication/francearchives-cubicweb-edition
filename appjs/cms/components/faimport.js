@@ -28,30 +28,37 @@
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 const {createElement: ce, Component} = require('react'),
-      PropTypes = require('prop-types'),
-      {Link} = require('react-router-dom');
+    PropTypes = require('prop-types'),
+    {Link} = require('react-router-dom')
 
-const {icon} = require('../components/fa');
-
+const {icon} = require('../components/fa')
 
 class FaImport extends Component {
     constructor(props) {
-        super(props);
-        this.state = {loading: true};
+        super(props)
+        this.state = {loading: true}
     }
 
     render() {
-        return ce('div', null,
-                  ce('h3', {title: "Ajouter un tâche d'import/export"},
-                     ce(Link, {onClick: this.props.forceShowPanel,
-                               to: 'fatask'},
-                        ce(icon, {name: 'tasks'}),
-                        'Manipuler les données')));
+        return ce(
+            'div',
+            null,
+            ce(
+                'h3',
+                {title: "Ajouter un tâche d'import/export"},
+                ce(
+                    Link,
+                    {onClick: this.props.forceShowPanel, to: 'fatask'},
+                    ce(icon, {name: 'tasks'}),
+                    'Manipuler les données',
+                ),
+            ),
+        )
     }
 }
 
 FaImport.propTypes = {
     forceShowPanel: PropTypes.func.isRequired,
-};
+}
 
-module.exports = FaImport;
+module.exports = FaImport

@@ -31,6 +31,7 @@
 
 from logilab.common.decorators import monkeypatch
 
+from cubicweb_francearchives.entities.cms import TranslatableCmsObject
 from cubicweb_francearchives.entities.es import PniaIFullTextIndexSerializable
 from cubicweb_francearchives.entities.ead import FAComponentIFTIAdapter
 
@@ -50,10 +51,21 @@ _orig_fa_serialize = FAComponentIFTIAdapter.serialize
 
 
 @monkeypatch(FAComponentIFTIAdapter)  # noqa
-def serialize(self, *args, **kwargs):
+def serialize(self, *args, **kwargs):  # noqa
     data = _orig_fa_serialize(self, *args, **kwargs)
     if self.entity.cw_etype == "FindingAid":
         wf = self.entity.cw_adapt_to("IWorkflowable")
         if wf and wf.state:
             data["in_state"] = wf.state
     return data
+
+
+_orig_i18n_query = TranslatableCmsObject.i18n_query
+
+
+@monkeypatch(TranslatableCmsObject)  # noqa
+def i18n_query(self, *args, **kwargs):
+    query = _orig_i18n_query(self, *args, **kwargs)
+    if kwargs.get("published"):
+        query += ", X in_state S, S name 'wfs_cmsobject_published'"
+    return query

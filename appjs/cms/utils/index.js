@@ -27,49 +27,55 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-import {forOwn, get, has} from 'lodash/object';
+import {forOwn, get, has} from 'lodash/object'
 
 export function buildFormData(entity, schema) {
     // Return a formData object suitable for usage in a
     // react-jsonschema-form's Form with `schema`. This is built by filter out
     // `entity` JSON document from fields that do no not appear in
     // `schema`.
-    let eschema = null;
+    let eschema = null
     if (schema.definitions !== undefined) {
-        eschema = schema.definitions[entity.cw_etype] || null;
+        eschema = schema.definitions[entity.cw_etype] || null
     }
     if (eschema === null) {
-        eschema = schema;
-     }
-    const formData = {};
+        eschema = schema
+    }
+    const formData = {}
 
     function iteratee(value, key) {
-        const target = get(entity, key, null);
+        const target = get(entity, key, null)
         if (target === null) {
-            return;
+            return
         }
         if (value.type === 'array') {
             if (!has(value, 'items.$ref')) {
-                console.warn('unhandled items kind', value, `in ${key} property`);
-                return;
+                console.warn(
+                    'unhandled items kind',
+                    value,
+                    `in ${key} property`,
+                )
+                return
             }
-            const ref = get(value, 'items.$ref');
+            const ref = get(value, 'items.$ref')
             const prefix = '#/definitions/'
             if (!ref.startsWith(prefix)) {
-                throw new Error(`unhandled reference kind ${ref}`);
+                throw new Error(`unhandled reference kind ${ref}`)
             }
-            const targetType = ref.slice(prefix.length);
+            const targetType = ref.slice(prefix.length)
             if (!has(schema, 'definitions', targetType)) {
-                throw new Error(`missing definition for ${targetType} referenced in ${key}`);
+                throw new Error(
+                    `missing definition for ${targetType} referenced in ${key}`,
+                )
             }
-            formData[key] = target.map(tgt => buildFormData(tgt, schema));
+            formData[key] = target.map(tgt => buildFormData(tgt, schema))
         } else {
-            formData[key] = target;
+            formData[key] = target
         }
     }
     if (eschema === undefined) {
-        return entity;
+        return entity
     }
-    forOwn(eschema.properties, iteratee);
-    return formData;
+    forOwn(eschema.properties, iteratee)
+    return formData
 }

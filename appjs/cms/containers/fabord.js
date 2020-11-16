@@ -27,8 +27,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-const {connect} = require('react-redux');
+const {connect} = require('react-redux')
 
-const FAMonitoringBord = require('../components/fabord.js');
+const FAMonitoringBord = require('../components/fabord.js')
 
-module.exports.FAMonitoringBord = connect()(FAMonitoringBord);
+module.exports.FAMonitoringBord = connect()(FAMonitoringBord)

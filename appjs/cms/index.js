@@ -28,29 +28,35 @@
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 /* global $ */
-'uses strict';
+'uses strict'
 
 const {createElement: ce} = require('react'),
-      Immutable = require('immutable'),
-      {BrowserRouter, HashRouter}  = require('react-router-dom'),
-      {Provider} = require('react-redux');
-import ReactDOM from 'react-dom';
+    Immutable = require('immutable'),
+    {BrowserRouter, HashRouter} = require('react-router-dom'),
+    {Provider} = require('react-redux')
+import ReactDOM from 'react-dom'
 
 const routes = require('./routes'),
-      {default: {configureStore}} = require('./store');
+    {
+        default: {configureStore},
+    } = require('./store')
 
-const App = require('./containers/app');
-
+const App = require('./containers/app')
 
 $(function() {
-    const divAdminPanel = document.getElementById('admin-panel');
+    const divAdminPanel = document.getElementById('admin-panel')
     // build initial immutable state
-    const state = Immutable.fromJS(window.INITIAL_STATE || {});
+    const state = Immutable.fromJS(window.INITIAL_STATE || {})
     ReactDOM.render(
-        ce(Provider, {store: configureStore(state)},
-           ce(BrowserRouter, {},
-              ce(HashRouter, {basename: '/'},
-                 ce(App, {}, routes)))
-          ),
-        divAdminPanel);
-});
+        ce(
+            Provider,
+            {store: configureStore(state)},
+            ce(
+                BrowserRouter,
+                {},
+                ce(HashRouter, {basename: '/'}, ce(App, {}, routes)),
+            ),
+        ),
+        divAdminPanel,
+    )
+})

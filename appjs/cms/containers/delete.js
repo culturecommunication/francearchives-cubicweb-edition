@@ -27,13 +27,13 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-const {connect} = require('react-redux');
+const {connect} = require('react-redux')
 
-const DeleteForm = require('../components/delete');
+const DeleteForm = require('../components/delete')
 
-module.exports = connect(
-    function mapStateToProps(state) {
-        return {entity: state.getIn(['model', 'entity']),
-                errors: state.getIn(['app', 'errors'])};
+module.exports = connect(function mapStateToProps(state) {
+    return {
+        entity: state.getIn(['model', 'entity']),
+        errors: state.getIn(['app', 'errors']),
     }
-)(DeleteForm);
+})(DeleteForm)

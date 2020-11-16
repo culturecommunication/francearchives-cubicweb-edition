@@ -33,25 +33,62 @@ import logging
 import rq
 
 from cubicweb_francearchives.dataimport.oai import import_delta
-
 from cubicweb_frarchives_edition.rq import rqjob
 from cubicweb_frarchives_edition.tasks.compute_alignments import compute_alignments
 from cubicweb_frarchives_edition.tasks.publish import publish_findingaid
 
 
 @rqjob
-def import_oai(cnx, repo_eid, ignore_last_import=False, auto_import=False, publish=False):
+def import_oai(
+    cnx,
+    repo_eid,
+    auto_dedupe,
+    context_service,
+    ignore_last_import=False,
+    auto_import=False,
+    publish=False,
+):
     log = logging.getLogger("rq.task")
     oairepo = cnx.entity_from_eid(repo_eid)
     job = rq.get_current_job()
     taskeid = int(job.id)
-    import_delta(cnx, repo_eid, ignore_last_import, log=log, reraise=True, rqtask_eid=taskeid)
+    index_policy = {
+        "autodedupe_authorities": "{context}/{normalize}".format(
+            context="service" if context_service else "global",
+            normalize="normalize" if auto_dedupe else "strict",
+        )
+    }
+    import_delta(
+        cnx,
+        repo_eid,
+        ignore_last_import,
+        index_policy=index_policy,
+        log=log,
+        reraise=True,
+        rqtask_eid=taskeid,
+    )
     oaitask = oairepo.tasks[-1]
     wf = oaitask.cw_adapt_to("IWorkflowable")
     start = oaitask.creation_date
     stop = wf.latest_trinfo().creation_date
+    qs = oairepo.oai_params
+    # nomina
+    if qs.get("metadataPrefix") == ["nomina"]:
+        persons = cnx.execute(
+            "Any X WHERE X is Person, X creation_date >= %(start)s, X creation_date <= %(stop)s",
+            {"start": start, "stop": stop},
+        )
+        imported_persons = [eid for eid, in persons]
+        log.info("%s imported person(s)", len(imported_persons))
+        if imported_persons:
+            rqtask = cnx.entity_from_eid(taskeid)
+            rqtask.cw_set(fatask_person=imported_persons)
+        cnx.commit()
+        return
+    # ead
     rset = cnx.execute(
-        "Any X WHERE X is FindingAid, X creation_date >= %(start)s, X creation_date <= %(stop)s",
+        """Any X WHERE X is FindingAid, X modification_date >= %(start)s,
+           X modification_date <= %(stop)s""",
         {"start": start, "stop": stop},
     )
     imported_findingaids = [fa for fa, in rset]

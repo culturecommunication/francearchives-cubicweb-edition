@@ -28,134 +28,137 @@
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 const {Component, createElement: ce} = require('react'),
-      PropTypes = require('prop-types'),
-      _ = require('lodash'),
-      {findDOMNode} = require('react-dom');
+    PropTypes = require('prop-types'),
+    _ = require('lodash'),
+    {findDOMNode} = require('react-dom')
 
 const {AddEntityForm} = require('./editor'),
-      {showErrors} = require('../actions');
+    {showErrors} = require('../actions')
 
-const {default: {
-    getSchema,
-    getUiSchema,
-    createEntity,
-}} = require('../api');
-
+const {
+    default: {getSchema, getUiSchema, createEntity},
+} = require('../api')
 
 class AddFATaskForm extends AddEntityForm {
     componentWillReceiveProps(nextProps) {
         if (nextProps.taskType !== this.props.taskType) {
-            this.setState({schema: null});
+            this.setState({schema: null})
             Promise.all([
-                getSchema(this.props.etype, null, 'creation', nextProps.taskType),
+                getSchema(
+                    this.props.etype,
+                    null,
+                    'creation',
+                    nextProps.taskType,
+                ),
                 getUiSchema(this.props.etype, nextProps.taskType),
-            ]).then(([schema, uiSchema]) => this.setState({schema, uiSchema}));
+            ]).then(([schema, uiSchema]) => this.setState({schema, uiSchema}))
         }
     }
 
     onChange(formstate) {
-        super.onChange(formstate);
+        super.onChange(formstate)
         if (this.state.schema === null) {
-            return;
+            return
         }
         const {file} = formstate.formData,
             {required} = this.state.schema,
-            serviceRequired = required.includes('service');
+            serviceRequired = required.includes('service')
         if (file && file.startsWith('xml/') && !serviceRequired) {
-            const serviceCode = file.split('/')[1].split('_')[0];
-            const schema = Object.assign(
-                {},
-                this.state.schema,
-                {required: [...required, 'service']}
-            );
-            const formData = Object.assign({}, this.state.formData, {service: serviceCode});
-            this.setState({schema, formData});
+            const serviceCode = file.split('/')[1].split('_')[0]
+            const schema = Object.assign({}, this.state.schema, {
+                required: [...required, 'service'],
+            })
+            const formData = Object.assign({}, this.state.formData, {
+                service: serviceCode,
+            })
+            this.setState({schema, formData})
         } else if (file && !file.startsWith('xml/') && serviceRequired) {
-            const schema = Object.assign(
-                {},
-                this.state.schema,
-                {required: _.pull(required, 'service')}
-            );
-            this.setState({schema});
+            const schema = Object.assign({}, this.state.schema, {
+                required: _.pull(required, 'service'),
+            })
+            this.setState({schema})
         }
     }
-
 
     onSubmit(ev) {
-        this.setState({formData: ev.formData});
+        this.setState({formData: ev.formData})
         // eslint-disable-next-line react/no-find-dom-node
         const input = findDOMNode(this).querySelector('input[type=file]'),
-              files = [];
+            files = []
         if (input) {
-            files.push(['fileobj', input.files[0]]);
+            files.push(['fileobj', input.files[0]])
         }
-        return createEntity(this.props.etype, ev.formData, this.props.taskType,
-                            ...files)
-            .then(doc => {
-                if (doc.errors && doc.errors.length) {
-                    this.props.dispatch(showErrors(doc.errors));
-                } else if (doc.absoluteUrl) {
-                    document.location.replace(doc.absoluteUrl);
-                }
-            });
+        return createEntity(
+            this.props.etype,
+            ev.formData,
+            this.props.taskType,
+            ...files,
+        ).then(doc => {
+            if (doc.errors && doc.errors.length) {
+                this.props.dispatch(showErrors(doc.errors))
+            } else if (doc.absoluteUrl) {
+                document.location.replace(doc.absoluteUrl)
+            }
+        })
     }
-
 
     componentDidMount() {
         Promise.all([
             getSchema(this.props.etype, null, 'creation', this.props.taskType),
             getUiSchema(this.props.etype, this.props.taskType),
-        ]).then(([schema, uiSchema]) => this.setState({schema, uiSchema}));
+        ]).then(([schema, uiSchema]) => this.setState({schema, uiSchema}))
     }
 }
 
 class AddFATask extends Component {
-
     constructor(props) {
-        super(props);
-        this.state = {taskType: undefined};
-        this.onChange = this.onChange.bind(this);
+        super(props)
+        this.state = {taskType: undefined}
+        this.onChange = this.onChange.bind(this)
     }
 
     onChange(formState) {
         if (formState.formData.name !== this.state.taskType) {
-            this.setState({taskType: formState.formData.name});
+            this.setState({taskType: formState.formData.name})
         }
     }
 
     render() {
-        return ce('div', null,
-                  ce('h1', null, 'Ajouter une nouvelle tâche'),
-                  ce(AddFATaskForm, {dispatch: this.props.dispatch,
-                                          onChange: this.onChange,
-                                          taskType: this.state.taskType,
-                                          etype: 'rqtask'})
-                 );
+        return ce(
+            'div',
+            null,
+            ce('h1', null, 'Ajouter une nouvelle tâche'),
+            ce(AddFATaskForm, {
+                dispatch: this.props.dispatch,
+                onChange: this.onChange,
+                taskType: this.state.taskType,
+                etype: 'rqtask',
+            }),
+        )
     }
 }
 
-
 AddFATask.propTypes = {
     dispatch: PropTypes.func.isRequired,
-};
+}
 
-
-exports.AddFATask = AddFATask;
-
+exports.AddFATask = AddFATask
 
 function PublishTask({dispatch, taskeid}) {
-    return ce('div', null,
-              ce('h1', null, 'Publier les IR associés'),
-              ce(AddFATaskForm, {
-                  dispatch,
-                  formData: {
-                      title: `publication des IR associés à ${taskeid}`,
-                      name: 'publish_findingaid',
-                      importead_task_eid: taskeid,
-                  },
-                  taskType: 'publish_findingaid',
-                  etype: 'rqtask',
-              }));
+    return ce(
+        'div',
+        null,
+        ce('h1', null, 'Publier les IR associés'),
+        ce(AddFATaskForm, {
+            dispatch,
+            formData: {
+                title: `publication des IR associés à ${taskeid}`,
+                name: 'publish_findingaid',
+                importead_task_eid: taskeid,
+            },
+            taskType: 'publish_findingaid',
+            etype: 'rqtask',
+        }),
+    )
 }
-exports.PublishTask = PublishTask;
-
+exports.PublishTask = PublishTask

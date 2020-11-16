@@ -28,84 +28,101 @@
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-import React from 'react';
-import {connect} from 'react-redux';
-import PropTypes from 'prop-types';
-import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table';
+import React from 'react'
+import {connect} from 'react-redux'
+import PropTypes from 'prop-types'
+import {BootstrapTable, TableHeaderColumn} from 'react-bootstrap-table'
 
-import Api from '../api';
-
+import Api from '../api'
 
 function Spinner() {
-    return <i className="fa fa-spin fa-spinner"></i>;
+    return <i className="fa fa-spin fa-spinner"></i>
 }
-
 
 function IndexLabelFmt(cell, index) {
-    return <a href={index.authorityUrl}>{index.label}</a>;
+    return <a href={index.authorityUrl}>{index.label}</a>
 }
-
 
 function AuthorityActions(cell, authority, onNewAuthClick) {
     return (
-        <button title="créer une autre autorité pour cet index" onClick={() => onNewAuthClick(authority.eid)}>
+        <button
+            title="créer une autre autorité pour cet index"
+            onClick={() => onNewAuthClick(authority.eid)}
+        >
             <i className="fa fa-object-ungroup"></i>
         </button>
-    );
+    )
 }
-
 
 function AuthorityTable({data, onNewAuthClick}) {
     return (
-        <BootstrapTable data={data} search hover striped pagination >
-            <TableHeaderColumn dataField="eid" hidden isKey >eid</TableHeaderColumn>
-            <TableHeaderColumn width="10%" formatExtraData={onNewAuthClick} dataFormat={AuthorityActions}>Actions</TableHeaderColumn>
-            <TableHeaderColumn width="15%" dataField="type">Type</TableHeaderColumn>
-            <TableHeaderColumn width="45%" dataField="label" dataFormat={IndexLabelFmt}>Libéllé</TableHeaderColumn>
+        <BootstrapTable data={data} search hover striped pagination>
+            <TableHeaderColumn dataField="eid" hidden isKey>
+                eid
+            </TableHeaderColumn>
+            <TableHeaderColumn
+                width="10%"
+                formatExtraData={onNewAuthClick}
+                dataFormat={AuthorityActions}
+            >
+                Actions
+            </TableHeaderColumn>
+            <TableHeaderColumn width="15%" dataField="type">
+                Type
+            </TableHeaderColumn>
+            <TableHeaderColumn
+                width="45%"
+                dataField="label"
+                dataFormat={IndexLabelFmt}
+            >
+                Libéllé
+            </TableHeaderColumn>
         </BootstrapTable>
-    );
+    )
 }
 
 AuthorityTable.propTypes = {
     data: PropTypes.array.isRequired,
     onNewAuthClick: PropTypes.func.isRequired,
-};
-
+}
 
 class AuthorityForm extends React.Component {
     constructor(props) {
-        super(props);
-        this.state = {submitting: false};
-        this.onSubmit = this.onSubmit.bind(this);
-        this.onAdd = this.onAdd.bind(this);
-        this.onDelete = this.onDelete.bind(this);
+        super(props)
+        this.state = {submitting: false}
+        this.onSubmit = this.onSubmit.bind(this)
+        this.onAdd = this.onAdd.bind(this)
+        this.onDelete = this.onDelete.bind(this)
     }
 
     onAdd() {
-        this.props.onAdd(this.props.data.eid);
+        this.props.onAdd(this.props.data.eid)
     }
 
     onDelete(idx) {
-        const {data} = this.props;
-        this.props.onSubmit(data.eid, data.alignments[idx]);
-        this.setState({submitting: true});
+        const {data} = this.props
+        this.props.onSubmit(data.eid, data.alignments[idx])
+        this.setState({submitting: true})
     }
 
     onSubmit(ev) {
-        ev.preventDefault();
+        ev.preventDefault()
         const input = ev.target.elements[0],
             idx = input.dataset.alignidx,
-            {data} = this.props;
-        this.props.onSubmit(data.eid, data.alignments[idx], input.value);
-        this.setState({submitting: true});
+            {data} = this.props
+        this.props.onSubmit(data.eid, data.alignments[idx], input.value)
+        this.setState({submitting: true})
     }
 
     render() {
         const {data} = this.props,
-            {submitting} = this.state;
+            {submitting} = this.state
         return (
             <div>
-                <h2 className="inline"> Alignements pour &ldquo;{data.preflabel}&rdquo; </h2>
+                <h2 className="inline">
+                    {' '}
+                    Alignements pour &ldquo;{data.preflabel}&rdquo;{' '}
+                </h2>
                 <button className="btn" onClick={this.onAdd}>
                     <i className="fa fa-plus"></i> ajouter un alignement
                 </button>
@@ -113,18 +130,38 @@ class AuthorityForm extends React.Component {
                     {data.alignments.map((alignment, idx) => {
                         return (
                             <li key={idx}>
-                                <form className="form-inline" onSubmit={this.onSubmit}>
-                                    <input data-alignidx={idx} className="alignment-input form-control" defaultValue={alignment}/>
-                                    <button disabled={submitting} className="btn btn-danger" onClick={() => this.onDelete(idx)}>
-                                        {submitting ? <Spinner /> : <i className="fa fa-times"></i>}
+                                <form
+                                    className="form-inline"
+                                    onSubmit={this.onSubmit}
+                                >
+                                    <input
+                                        data-alignidx={idx}
+                                        className="alignment-input form-control"
+                                        defaultValue={alignment}
+                                    />
+                                    <button
+                                        disabled={submitting}
+                                        className="btn btn-danger"
+                                        onClick={() => this.onDelete(idx)}
+                                    >
+                                        {submitting ? (
+                                            <Spinner />
+                                        ) : (
+                                            <i className="fa fa-times"></i>
+                                        )}
                                     </button>
-                                    <button disabled={submitting} className="btn btn-primary" type="submit" value="valider">
+                                    <button
+                                        disabled={submitting}
+                                        className="btn btn-primary"
+                                        type="submit"
+                                        value="valider"
+                                    >
                                         {submitting ? <Spinner /> : null}
                                         valider
                                     </button>
                                 </form>
                             </li>
-                        );
+                        )
                     })}
                 </ul>
             </div>
@@ -136,12 +173,11 @@ AuthorityForm.propTypes = {
     data: PropTypes.object,
     onSubmit: PropTypes.func,
     onAdd: PropTypes.func,
-};
-
+}
 
 // we should use reactDOM.createPortal but it is only available in react@16
 function showOverlay() {
-    const div = document.createElement('div');
+    const div = document.createElement('div')
     div.innerHTML = `
     <div class="overlay">
       <div class="overlay_background"></div>
@@ -149,61 +185,62 @@ function showOverlay() {
         <i class="fa fa-spin fa-circle-o-notch"></i>
       </div>
     </div>
-    `;
-    document.body.appendChild(div.children[0]);
+    `
+    document.body.appendChild(div.children[0])
 }
-
 
 class EditAuthorityComp extends React.Component {
     constructor(props) {
-        super(props);
-        this.state = {loading: true, data: null};
-        this.onNewAuthClick = this.onNewAuthClick.bind(this);
+        super(props)
+        this.state = {loading: true, data: null}
+        this.onNewAuthClick = this.onNewAuthClick.bind(this)
     }
 
     componentDidMount() {
         const {entity} = this.props,
             eid = entity.get('eid'),
-            etype = entity.get('cw_etype');
-        Api.jsonFetch(`/fa/${etype}/${eid}/indexes`)
-            .then(data => this.setState({data, loading: false}));
+            etype = entity.get('cw_etype')
+        Api.jsonFetch(`/fa/${etype}/${eid}/indexes`).then(data =>
+            this.setState({data, loading: false}),
+        )
     }
 
     onNewAuthClick(indexEid) {
-        showOverlay();
+        showOverlay()
         Api.jsonFetch(`/fa/index/${indexEid}/authority`, {method: 'POST'})
             .then(data => document.location.replace(data.location))
             .catch(err => {
-                alert('une erreur est survenue :s');
+                alert('une erreur est survenue :s')
                 console.error(err)
-            });
+            })
     }
 
     render() {
-        const {loading, data} = this.state;
-        const title = "Édition des index";
+        const {loading, data} = this.state
+        const title = 'Édition des index'
         if (loading) {
             return (
                 <div>
                     <h1>{title}</h1>
                     <Spinner />
                 </div>
-            );
+            )
         }
         return (
             <div>
                 <h1>{title}</h1>
-                <AuthorityTable data={data}  onNewAuthClick={this.onNewAuthClick} />
+                <AuthorityTable
+                    data={data}
+                    onNewAuthClick={this.onNewAuthClick}
+                />
             </div>
         )
     }
 }
 EditAuthorityComp.propTypes = {
     entity: PropTypes.object.isRequired,
-};
+}
 
-export const EditAuthority = connect(
-    function mapStateToProps(state) {
-        return {entity: state.getIn(['model', 'entity'])};
-    },
-)(EditAuthorityComp);
+export const EditAuthority = connect(function mapStateToProps(state) {
+    return {entity: state.getIn(['model', 'entity'])}
+})(EditAuthorityComp)

@@ -29,65 +29,85 @@
  */
 
 const {Component, createElement: ce} = require('react'),
-    PropTypes = require('prop-types');
+    PropTypes = require('prop-types')
 
-
-const {spinner, icon} = require('./fa');
-
+const {spinner, icon} = require('./fa')
 
 class Node extends Component {
     constructor(props) {
-        super(props);
-        const expanded = Boolean(this.props.expanded);
-        this.state = {expanded, fetching: expanded};
-        this.toggleExpanded = this.toggleExpanded.bind(this);
+        super(props)
+        const expanded = Boolean(this.props.expanded)
+        this.state = {expanded, fetching: expanded}
+        this.toggleExpanded = this.toggleExpanded.bind(this)
     }
 
     componentDidMount() {
         if (this.props.expanded) {
-            this.fetchChildren();
+            this.fetchChildren()
         }
     }
 
     fetchChildren() {
-        const {onFetchChildren, entity} = this.props;
-        this.setState({fetching: true});
-        onFetchChildren(entity).then(() => this.setState({fetching: false}));
+        const {onFetchChildren, entity} = this.props
+        this.setState({fetching: true})
+        onFetchChildren(entity).then(() => this.setState({fetching: false}))
     }
 
     toggleExpanded() {
         const {expanded} = this.state,
-              newState = !expanded;
-        this.setState({expanded: newState});
+            newState = !expanded
+        this.setState({expanded: newState})
         if (newState) {
-            this.fetchChildren();
+            this.fetchChildren()
         }
     }
 
     render() {
         const {expanded, fetching} = this.state,
-              {renderer, entity, onFetchChildren, ancestors, allNodes} = this.props;
+            {
+                renderer,
+                entity,
+                onFetchChildren,
+                ancestors,
+                allNodes,
+            } = this.props
         if (entity.isleaf) {
-            return ce('li', {style: {paddingLeft: '20px'}}, entity.title);
+            return ce('li', {style: {paddingLeft: '20px'}}, entity.title)
         }
-        let child = null;
+        let child = null
         if (expanded) {
             if (fetching) {
-                child = ce(spinner);
+                child = ce(spinner)
             } else {
-                child = ce('ul', null, eidsToNode(
-                    entity.children, allNodes, ancestors, {onFetchChildren,
-                                                           renderer}));
+                child = ce(
+                    'ul',
+                    null,
+                    eidsToNode(entity.children, allNodes, ancestors, {
+                        onFetchChildren,
+                        renderer,
+                    }),
+                )
             }
         }
-        const titleParts = renderer(entity, expanded);
-        return ce('li', null,
-                  ce('span', null,
-                     titleParts,
-                     ce('span', {onClick: this.toggleExpanded,
-                                 className: 'tree-title pointer'},
-                        entity.title)),
-                  child);
+        const titleParts = renderer(entity, expanded)
+        return ce(
+            'li',
+            null,
+            ce(
+                'span',
+                null,
+                titleParts,
+                ce(
+                    'span',
+                    {
+                        onClick: this.toggleExpanded,
+                        className: 'tree-title pointer',
+                    },
+                    entity.title,
+                ),
+            ),
+            child,
+        )
     }
 }
 
@@ -100,81 +120,96 @@ Node.propTypes = {
     ancestors: PropTypes.array,
 }
 
-
 class Tree extends Component {
     constructor(props) {
-        super(props);
-        this.allNodes = Object.assign({}, this.props.nodes);
-        this.state = {flag: true};  // odd flag used to trigger render
-        this.childrenFetcher = this.childrenFetcher.bind(this);
-        this.renderNodeTitle = this.renderNodeTitle.bind(this);
+        super(props)
+        this.allNodes = Object.assign({}, this.props.nodes)
+        this.state = {flag: true} // odd flag used to trigger render
+        this.childrenFetcher = this.childrenFetcher.bind(this)
+        this.renderNodeTitle = this.renderNodeTitle.bind(this)
     }
 
     renderNodeTitle(entity, expanded) {
         return [
-            ce(icon, {key: 'icon-expand',
-                      name: expanded ? 'caret-down' : 'caret-right'}),
-            this.props.entity.eid === entity.eid ? null :
-                ce('button', {key: 'btn-pin',
-                              onClick: () => this.move(entity),
-                              className: 'btn btn-default btn-xs'},
-                   entity.pinning ?
-                   ce(spinner) :
-                   ce(icon, {name: 'map-pin'})),
-        ];
+            ce(icon, {
+                key: 'icon-expand',
+                name: expanded ? 'caret-down' : 'caret-right',
+            }),
+            this.props.entity.eid === entity.eid
+                ? null
+                : ce(
+                      'button',
+                      {
+                          key: 'btn-pin',
+                          onClick: () => this.move(entity),
+                          className: 'btn btn-default btn-xs',
+                      },
+                      entity.pinning
+                          ? ce(spinner)
+                          : ce(icon, {name: 'map-pin'}),
+                  ),
+        ]
     }
 
     move(target) {
-        this.allNodes[target.eid].pinning = true;
-        this.triggerUpdate();
-        return this.props.onMove(target).then(() => {
-            const {allNodes} = this,
-                  entityEid = this.props.entity.eid,
-                  targetEntity = allNodes[target.eid];
-            // 1. remove spinner
-            targetEntity.pinning = false;
-            // 2. remove entity from previous parent.children
-            for (let eid of Object.keys(allNodes)) {
-                let e = allNodes[eid];
-                if (e.children && e.children.includes(entityEid)) {
-                    e.children = e.children.filter(c => c !== entityEid);
-                    break;
+        this.allNodes[target.eid].pinning = true
+        this.triggerUpdate()
+        return this.props
+            .onMove(target)
+            .then(() => {
+                const {allNodes} = this,
+                    entityEid = this.props.entity.eid,
+                    targetEntity = allNodes[target.eid]
+                // 1. remove spinner
+                targetEntity.pinning = false
+                // 2. remove entity from previous parent.children
+                for (let eid of Object.keys(allNodes)) {
+                    let e = allNodes[eid]
+                    if (e.children && e.children.includes(entityEid)) {
+                        e.children = e.children.filter(c => c !== entityEid)
+                        break
+                    }
                 }
-            }
-            // 3. add entity to target.children
-            if (Array.isArray(targetEntity.children)) {
-                targetEntity.children.push(entityEid);
-            } else {
-                targetEntity.children = [entityEid];
-            }
-        }).then(() => this.triggerUpdate());
+                // 3. add entity to target.children
+                if (Array.isArray(targetEntity.children)) {
+                    targetEntity.children.push(entityEid)
+                } else {
+                    targetEntity.children = [entityEid]
+                }
+            })
+            .then(() => this.triggerUpdate())
     }
 
     triggerUpdate() {
-        this.setState({flag: !this.state.flag});
+        this.setState({flag: !this.state.flag})
     }
 
     childrenFetcher(node) {
-        const {allNodes} = this;
+        const {allNodes} = this
         return this.props.onFetchChildren(node).then(children => {
-            const eids = [];
+            const eids = []
             for (let c of children) {
                 if (!allNodes.hasOwnProperty(c.eid)) {
-                    allNodes[c.eid] = c;
+                    allNodes[c.eid] = c
                 }
-                eids.push(c.eid);
+                eids.push(c.eid)
             }
-            allNodes[node.eid].children = eids;
-            this.triggerUpdate();
-        });
+            allNodes[node.eid].children = eids
+            this.triggerUpdate()
+        })
     }
 
     render() {
         const {topEids, ancestors} = this.props,
-              {allNodes} = this;
-        return ce('ul', null, eidsToNode(
-            topEids, allNodes, ancestors, {onFetchChildren: this.childrenFetcher,
-                                           renderer: this.renderNodeTitle}));
+            {allNodes} = this
+        return ce(
+            'ul',
+            null,
+            eidsToNode(topEids, allNodes, ancestors, {
+                onFetchChildren: this.childrenFetcher,
+                renderer: this.renderNodeTitle,
+            }),
+        )
     }
 }
 
@@ -189,13 +224,22 @@ Tree.propTypes = {
 
 function eidsToNode(eids, allNodes, ancestors, props) {
     // TODO add ancestors param to compute `expand` props value
-    return eids.map(eid => ce(
-        Node, Object.assign({key: eid,
-                             ancestors,
-                             entity: allNodes[eid],
-                             expanded: ancestors.includes(eid),
-                             allNodes}, props)));
+    return eids.map(eid =>
+        ce(
+            Node,
+            Object.assign(
+                {
+                    key: eid,
+                    ancestors,
+                    entity: allNodes[eid],
+                    expanded: ancestors.includes(eid),
+                    allNodes,
+                },
+                props,
+            ),
+        ),
+    )
 }
 
-exports.Tree = Tree;
-exports.Node = Node;
+exports.Tree = Tree
+exports.Node = Node

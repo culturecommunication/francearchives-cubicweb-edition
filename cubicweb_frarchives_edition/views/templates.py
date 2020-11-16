@@ -56,7 +56,12 @@ class EditionMainTemplate(PniaMainTemplate):
         if not isanon:
             # req._request is pyramid request
             req.html_headers.define_var("SCRIPT_NAME", req._request.script_name)
-            req.add_js("//cdn.tinymce.com/4/tinymce.min.js", False)
+            req.add_js(
+                "https://cdn.tiny.cloud/1/{}/tinymce/5/tinymce.min.js".format(
+                    self._cw.vreg.config["tinymce-key"]
+                ),
+                False,
+            )
             for js in ("bundle-vendor.js", "bundle-cms.js", "cropper/cropper.js"):
                 req.add_js(js)
             for css in (

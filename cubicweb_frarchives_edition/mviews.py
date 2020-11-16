@@ -37,6 +37,7 @@ from cubicweb.schema import RQLExpression
 from cubicweb.server.sqlutils import SQL_PREFIX
 
 from cubicweb_francearchives import CMS_OBJECTS
+from cubicweb_francearchives import CMS_I18N_OBJECTS
 from cubicweb_francearchives.utils import setup_published_schema
 
 
@@ -51,7 +52,7 @@ class MVRQLExpression(RQLExpression):
 
 exprs = [
     MVRQLExpression(etype, 'X in_state S, S name "wfs_cmsobject_published"')
-    for etype in CMS_OBJECTS + ("FindingAid",)
+    for etype in CMS_OBJECTS + ("FindingAid", "GlossaryTerm", "FaqItem") + CMS_I18N_OBJECTS
 ]
 exprs.append(MVRQLExpression("CWUser", 'X login IN ("admin", "anon")'))
 
@@ -185,7 +186,9 @@ def setup_published_triggers(cnx, sql=None, sqlschema="published", dumpfiles=Non
     skipped_relations = ("in_state",)  # in_state is handled separately
     etypes, rtypes, rnames = get_published_tables(cnx, skipped_etypes, skipped_relations)
 
-    env = Environment(loader=PackageLoader("cubicweb_frarchives_edition", "templates"),)
+    env = Environment(
+        loader=PackageLoader("cubicweb_frarchives_edition", "templates"),
+    )
     env.filters["sqlstr"] = lambda x: "'{}'".format(x)
     template = env.get_template("published.sql")
     sqlcode = template.render(

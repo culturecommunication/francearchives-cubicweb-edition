@@ -47,10 +47,10 @@ try:
 except AssertionError:
     print("direct attempt to add frarchives_edition failed (as expected)")
 
-for etype in ("FindingAid",) + schema_cms.CMS_OBJECTS:
+for etype in ("FindingAid",) + schema_cms.CMS_OBJECTS + schema_cms.CMS_I18N_OBJECTS:
     make_workflowable(etype)
 
-for etype in ("FindingAid",) + schema_cms.CMS_OBJECTS:
+for etype in ("FindingAid",) + schema_cms.CMS_OBJECTS + schema_cms.CMS_I18N_OBJECTS:
     if etype == "Section":
         workflows.section_workflow(add_workflow, etype)
     else:
@@ -79,7 +79,7 @@ cnx.system_sql("\n".join(build_indexes(cnx, "FAComponent")))
 commit()
 
 
-for etype in ("FindingAid",) + schema_cms.CMS_OBJECTS:
+for etype in ("FindingAid",) + schema_cms.CMS_OBJECTS + schema_cms.CMS_I18N_OBJECTS:
     print(("migrating", etype))
     rset = rql(
         'Any S WHERE S is State, S state_of WF, WF workflow_of X, X name %(etype)s, S name "wfs_cmsobject_published"',

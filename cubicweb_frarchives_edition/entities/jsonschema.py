@@ -161,6 +161,8 @@ class RqTaskIJSONSchemaAdapter(ijsonschema.IJSONSchemaETypeAdapter):
             (_("group_location_authorities"), tasks.group_location_authorities),
             (_("compute_alignments_all"), tasks.compute_alignments_all),
             (_("import_eac"), tasks.import_eac),
+            (_("run_dead_links"), tasks.run_dead_links),
+            (_("run_index_kibana"), tasks.index_kibana),
         ]
     )
     __select__ = ijsonschema.IJSONSchemaETypeAdapter.__select__ & match_kwargs({"etype": "RqTask"})
@@ -228,7 +230,11 @@ class RqTaskDedupeAuthJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
     __select__ = RqTaskIJSONSchemaAdapter.__select__ & match_kwargs(
         {"schema_type": "dedupe_authorities"}
     )
-    TASK_MAP = OrderedDict([(_("dedupe_authorities"), tasks.dedupe_authorities),])
+    TASK_MAP = OrderedDict(
+        [
+            (_("dedupe_authorities"), tasks.dedupe_authorities),
+        ]
+    )
 
     def creation_schema(self, **kwargs):
         req = self._cw
@@ -255,12 +261,42 @@ class RqTaskDedupeAuthJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
         entity = super(RqTaskDedupeAuthJSONSchemaAdapter, self).create_entity(instance)
         func = self.TASK_MAP[instance["name"]]
         entity.cw_adapt_to("IRqJob").enqueue(
-            func, instance.get("strict", True), instance.get("service"),
+            func,
+            instance.get("strict", True),
+            instance.get("service"),
         )
         return entity
 
 
-class RqTaskImportEadIJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
+class ImportIndexPolicyMinix(object):
+    @property
+    def index_policy_props(self):
+        req = self._cw
+        props = {}
+        props["should_normalize"] = {
+            "type": "boolean",
+            "title": req._("Normalize indexes labels"),
+            "enum": [True, False],
+            "enumNames": [
+                req._("yes"),
+                req._("no"),
+            ],
+            "default": True,
+        }
+        props["context_service"] = {
+            "type": "boolean",
+            "title": req._("Context of import"),
+            "enum": [True, False],
+            "enumNames": [
+                req._("service"),
+                req._("all services"),
+            ],
+            "default": True,
+        }
+        return props
+
+
+class RqTaskImportEadIJSONSchemaAdapter(ImportIndexPolicyMinix, RqTaskIJSONSchemaAdapter):
     __select__ = RqTaskIJSONSchemaAdapter.__select__ & match_kwargs({"schema_type": "import_ead"})
 
     def creation_schema(self, **kwargs):
@@ -286,6 +322,8 @@ class RqTaskImportEadIJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
             "title": req._("force-delete-old-findingaids"),
             "default": True,
         }
+        props.update(self.index_policy_props)
+        schema["required"] = list(set(schema["required"]) | {"file"})
         return schema
 
     def create_entity(self, instance):
@@ -298,11 +336,15 @@ class RqTaskImportEadIJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
             filepaths = process_faimport_xml(req, fileobj, instance["service"])
         force_delete = instance.get("force-delete", False)
         auto_import = False
-        auto_dedupe = instance.get("auto-dedupe-authorities", True)
         entity = super(RqTaskImportEadIJSONSchemaAdapter, self).create_entity(instance)
         func = self.TASK_MAP[instance["name"]]
+        auto_dedupe = instance["should_normalize"]
+        context_service = instance["context_service"]
+        kwargs = {}
+        if instance["service"] == "FRAN":
+            kwargs = {"job_timeout": "18h"}
         entity.cw_adapt_to("IRqJob").enqueue(
-            func, filepaths, force_delete, auto_import, auto_dedupe,
+            func, filepaths, auto_dedupe, context_service, force_delete, auto_import, **kwargs
         )
         return entity
 
@@ -349,14 +391,19 @@ class RqTaskImportEacIJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
         entity = super(RqTaskImportEacIJSONSchemaAdapter, self).create_entity(instance)
         func = self.TASK_MAP[instance["name"]]
         entity.cw_adapt_to("IRqJob").enqueue(
-            func, filepaths,
+            func,
+            filepaths,
         )
         return entity
 
 
-class RqTaskImportOaiIJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
+class RqTaskImportOaiIJSONSchemaAdapter(ImportIndexPolicyMinix, RqTaskIJSONSchemaAdapter):
     __select__ = RqTaskIJSONSchemaAdapter.__select__ & match_kwargs({"schema_type": "import_oai"})
-    TASK_MAP = OrderedDict([(_("import_oai"), tasks.import_oai),])
+    TASK_MAP = OrderedDict(
+        [
+            (_("import_oai"), tasks.import_oai),
+        ]
+    )
 
     def creation_schema(self, **kwargs):
         req = self._cw
@@ -370,16 +417,30 @@ class RqTaskImportOaiIJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
             "type": "boolean",
             "title": req._("force-import-oai"),
         }
+        props.update(self.index_policy_props)
         schema["required"].append("oairepository")
         return schema
 
     def create_entity(self, instance):
         force_refresh = instance.get("force-refresh", True)
         auto_import = False
-        entity = super(RqTaskImportOaiIJSONSchemaAdapter, self).create_entity(instance)
+        oairepo = self._cw.entity_from_eid(instance["oairepository"])
+        meta_prefix = oairepo.oai_params.get("metadataPrefix", [""])[0]
+        name = instance["name"]
+        if meta_prefix:
+            name = "{} ({})".format(name, meta_prefix)
+        entity = self._cw.create_entity("RqTask", name=name, title=instance["title"])
         func = self.TASK_MAP[instance["name"]]
+        auto_dedupe = instance["should_normalize"]
+        context_service = instance["context_service"]
         entity.cw_adapt_to("IRqJob").enqueue(
-            func, instance["oairepository"], force_refresh, auto_import, job_timeout="24h",
+            func,
+            instance["oairepository"],
+            auto_dedupe,
+            context_service,
+            force_refresh,
+            auto_import,
+            job_timeout="24h",
         )
         return entity
 
@@ -488,7 +549,11 @@ class RqTaskComputeAlignementsJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
     __select__ = RqTaskIJSONSchemaAdapter.__select__ & match_kwargs(
         {"schema_type": "compute_alignments"}
     )
-    TASK_MAP = OrderedDict([(_("compute_alignments"), tasks.compute_alignments),])
+    TASK_MAP = OrderedDict(
+        [
+            (_("compute_alignments"), tasks.compute_alignments),
+        ]
+    )
 
     def creation_schema(self, **kwargs):
         schema = super(RqTaskComputeAlignementsJSONSchemaAdapter, self).creation_schema(**kwargs)
@@ -611,7 +676,7 @@ class RqTaskPublishFAIJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
         return entity
 
 
-class RqTaskImportCSVIJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
+class RqTaskImportCSVIJSONSchemaAdapter(ImportIndexPolicyMinix, RqTaskIJSONSchemaAdapter):
     __select__ = RqTaskIJSONSchemaAdapter.__select__ & match_kwargs({"schema_type": "import_csv"})
 
     def creation_schema(self, **kwargs):
@@ -625,7 +690,9 @@ class RqTaskImportCSVIJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
         props["force-delete"] = {
             "type": "boolean",
             "title": req._("force-delete-old-findingaids"),
+            "default": True,
         }
+        props.update(self.index_policy_props)
         schema["required"] = list(set(schema["required"]) | {"file", "title"})
         return schema
 
@@ -633,12 +700,18 @@ class RqTaskImportCSVIJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
         req = self._cw
         force_delete = instance.get("force-delete", True)
         auto_import = False
-        auto_dedupe = instance.get("auto-dedupe-authorities", True)
         entity = super(RqTaskImportCSVIJSONSchemaAdapter, self).create_entity(instance)
         func = self.TASK_MAP[instance["name"]]
         filepaths = process_csvimport_zip(req, instance["fileobj"])
+        auto_dedupe = instance["should_normalize"]
+        context_service = instance["context_service"]
         entity.cw_adapt_to("IRqJob").enqueue(
-            func, filepaths, force_delete, auto_import, auto_dedupe
+            func,
+            filepaths,
+            auto_dedupe,
+            context_service,
+            force_delete,
+            auto_import,
         )
         return entity
 
@@ -753,6 +826,60 @@ class RqTaskExportSubjectAuthoritiesIJSONSchemaAdapter(
     @property
     def authority_type(self):
         return "subject"
+
+
+class RqTaskRunDeadLinks(RqTaskIJSONSchemaAdapter):
+    __select__ = RqTaskIJSONSchemaAdapter.__select__ & match_kwargs(
+        {"schema_type": "run_dead_links"}
+    )
+    TASK_MAP = OrderedDict(
+        [
+            (_("run_dead_links"), tasks.run_dead_links),
+        ]
+    )
+
+    def create_entity(self, instance):
+        entity = super(RqTaskRunDeadLinks, self).create_entity(instance)
+        func = self.TASK_MAP[instance["name"]]
+        entity.cw_adapt_to("IRqJob").enqueue(func, job_timeout="12h")
+        return entity
+
+
+class RqTaskIndexKibana(RqTaskIJSONSchemaAdapter):
+    __select__ = RqTaskIJSONSchemaAdapter.__select__ & match_kwargs(
+        {"schema_type": "run_index_kibana"}
+    )
+    TASK_MAP = OrderedDict(
+        [
+            (_("run_index_kibana"), tasks.index_kibana),
+        ]
+    )
+
+    def creation_schema(self, **kwargs):
+        schema = super(RqTaskIndexKibana, self).creation_schema(**kwargs)
+        props = schema["properties"]
+        props["index_authorities"] = {
+            "type": "boolean",
+            "default": True,
+            "title": self._cw._("index authorities"),
+        }
+        props["index_services"] = {
+            "type": "boolean",
+            "default": False,
+            "title": self._cw._("index services"),
+        }
+        return schema
+
+    def create_entity(self, instance):
+        entity = super(RqTaskIndexKibana, self).create_entity(instance)
+        func = self.TASK_MAP[instance["name"]]
+        entity.cw_adapt_to("IRqJob").enqueue(
+            func,
+            instance["index_authorities"],
+            instance["index_services"],
+            job_timeout="10h",
+        )
+        return entity
 
 
 class TargetIJSONSchemaRelationTargetETypeAdapterMixIn(object):
@@ -1053,7 +1180,7 @@ class FrarchivesIJSONSchemaEntityAdapter(ijsonschema.IJSONSchemaEntityAdapter):
 class IndexEntityAdapter(FrarchivesIJSONSchemaEntityAdapter):
     __select__ = (
         FrarchivesIJSONSchemaEntityAdapter.__select__
-        & is_instance("ExternRef", "CommemorationItem")
+        & is_instance("BaseContent", "ExternRef", "CommemorationItem")
         & match_kwargs({"rtype": "related_authority"})
     )
 
@@ -1066,12 +1193,14 @@ class IndexEntityAdapter(FrarchivesIJSONSchemaEntityAdapter):
                 "Any X WHERE E related_authority X, E eid %(e)s", {"e": entity.eid}
             )
         }
-        req.execute(
-            "SET X related_authority A WHERE A eid IN ({}), X eid %(e)s".format(
-                ",".join(str(e) for e in values - already_linked)
-            ),
-            {"e": entity.eid},
-        )
+        to_add = values - already_linked
+        if to_add:
+            req.execute(
+                "SET X related_authority A WHERE A eid IN ({}), X eid %(e)s".format(
+                    ",".join(str(e) for e in values - already_linked)
+                ),
+                {"e": entity.eid},
+            )
         to_delete = already_linked - values
         if to_delete:
             req.execute(
@@ -1175,7 +1304,7 @@ class DownloadablableJSONSchemaAdapter(FrarchivesIJSONSchemaEntityAdapter):
 
 
 class VocabularyFieldMixIn(object):
-    """ AttributeMapper jsl_field
+    """AttributeMapper jsl_field
     react-jsonschema-from does not support oneOf Field yet"""
 
     def jsl_field(self, schema_role, **kwargs):
@@ -1321,7 +1450,9 @@ class ExternalUrlSchemaAdapter(FrarchivesIJSONSchemaEntityAdapter):
         data = super(ExternalUrlSchemaAdapter, self).serialize()
         entity = self.entity
         data.update(
-            {"source": entity.source,}
+            {
+                "source": entity.source,
+            }
         )
         igeo = entity.cw_adapt_to("IGeoDB")
         if igeo:
@@ -1336,7 +1467,9 @@ class ExternalIdSchemaAdapter(FrarchivesIJSONSchemaEntityAdapter):
         data = super(ExternalIdSchemaAdapter, self).serialize()
         entity = self.entity
         data.update(
-            {"source": entity.source,}
+            {
+                "source": entity.source,
+            }
         )
         igeo = entity.cw_adapt_to("IGeoDB")
         if igeo:
@@ -1348,6 +1481,21 @@ class ExternalIdSchemaAdapter(FrarchivesIJSONSchemaEntityAdapter):
                 }
             )
         return data
+
+
+class OAIRepositoryIJSONSchemaAdapter(
+    ImportIndexPolicyMinix, ijsonschema.IJSONSchemaRelationTargetETypeAdapter
+):
+    __select__ = ijsonschema.IJSONSchemaRelationTargetETypeAdapter.__select__ & match_kwargs(
+        {"etype": "OAIRepository"}
+    )
+
+    def creation_schema(self, **kwargs):
+        schema = super(OAIRepositoryIJSONSchemaAdapter, self).creation_schema(**kwargs)
+        props = schema["properties"]
+        for prop, defs in self.index_policy_props.items():
+            props[prop] = defs
+        return schema
 
 
 def registration_callback(vreg):

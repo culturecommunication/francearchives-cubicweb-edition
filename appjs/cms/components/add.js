@@ -29,92 +29,108 @@
  */
 
 const {createElement: ce, Component} = require('react'),
-      PropTypes = require('prop-types');
-
+    PropTypes = require('prop-types')
 
 const {CustomFieldTemplateConnected} = require('../containers/form'),
-      {spinner} = require('./fa'),
-      {CmsForm} = require('./editor');
+    {spinner} = require('./fa'),
+    {CmsForm} = require('./editor')
 
-const {default: {
-    getSchema,
-    getUiSchema,
-    relateEntity,
-    jsonSchemaFetch,
-}} = require('../api');
-
+const {
+    default: {getSchema, getUiSchema, relateEntity, jsonSchemaFetch},
+} = require('../api')
 
 function SelectContentType({onChange, options}) {
-    return ce('select', {onChange: ev => onChange(ev.target.value),
-                         defaultValue: options[0][0],
-                         className: 'form-control'},
-              options.map(([etype, label], i) => ce(
-                  'option', {key: `opt-${i}`, value: etype}, label)));
+    return ce(
+        'select',
+        {
+            onChange: ev => onChange(ev.target.value),
+            defaultValue: options[0][0],
+            className: 'form-control',
+        },
+        options.map(([etype, label], i) =>
+            ce('option', {key: `opt-${i}`, value: etype}, label),
+        ),
+    )
 }
-
 
 class Add extends Component {
     constructor(props, context) {
-        super(props, context);
-        this.state = {schema: null, uiSchema: null, etype: null, options: null};
-        this.entity = this.props.entity.toJS();
-        this.updateSelected = this.updateSelected.bind(this);
-        this.onSubmit = this.onSubmit.bind(this);
-        this.etype2href = {};
+        super(props, context)
+        this.state = {schema: null, uiSchema: null, etype: null, options: null}
+        this.entity = this.props.entity.toJS()
+        this.updateSelected = this.updateSelected.bind(this)
+        this.onSubmit = this.onSubmit.bind(this)
+        this.etype2href = {}
     }
 
     componentDidMount() {
         // fetch schema for current entity and then all targetSchema in
         // `related.children` links to build data for SelectContentType
         // component
-        const {cw_etype, eid} = this.entity;
+        const {cw_etype, eid} = this.entity
         getSchema(cw_etype, eid).then(schema => {
-            const links = schema.links.filter(l => l.rel === 'related.children').sort((a, b) => a.order - b.order),
-                  options = [];
+            const links = schema.links
+                    .filter(l => l.rel === 'related.children')
+                    .sort((a, b) => a.order - b.order),
+                options = []
             for (let link of links) {
-                this.etype2href[link.etype] = link.targetSchema.$ref;
-                options.push([link.etype, link.description]);
+                this.etype2href[link.etype] = link.targetSchema.$ref
+                options.push([link.etype, link.description])
             }
-            this.setState({options});
-            this.updateSelected(options[0][0]);
-        });
+            this.setState({options})
+            this.updateSelected(options[0][0])
+        })
     }
 
     updateSelected(etype) {
-        this.setState({schema: null, uiSchema: null, etype});
+        this.setState({schema: null, uiSchema: null, etype})
         Promise.all([
             getUiSchema(etype),
             jsonSchemaFetch(this.etype2href[etype]),
-        ]).then(([uiSchema, schema]) => this.setState({schema, uiSchema}));
+        ]).then(([uiSchema, schema]) => this.setState({schema, uiSchema}))
     }
 
     onSubmit(ev) {
-        const {cw_etype, eid} = this.entity;
-        return relateEntity(cw_etype, eid, 'children', ev.formData, this.state.etype)
-            .then(doc => {
-                if (doc.errors && doc.errors.length) {
-                    this.props.showErrors(doc.errors);
-                } else if (doc.absoluteUrl || doc.cwuri) {
-                    document.location.replace(doc.absoluteUrl || doc.cwuri);
-                }
-            });
+        const {cw_etype, eid} = this.entity
+        return relateEntity(
+            cw_etype,
+            eid,
+            'children',
+            ev.formData,
+            this.state.etype,
+        ).then(doc => {
+            if (doc.errors && doc.errors.length) {
+                this.props.showErrors(doc.errors)
+            } else if (doc.absoluteUrl || doc.cwuri) {
+                document.location.replace(doc.absoluteUrl || doc.cwuri)
+            }
+        })
     }
 
     render() {
         const {etype, schema, uiSchema, options} = this.state,
-              {errors} = this.props;
-        return ce('div', null,
-                  ce('span', null, 'Ajouter du contenu dans cette rubrique :'),
-                  options === null ? ce(spinner) : ce(SelectContentType, {
-                      options, onChange: this.updateSelected}),
-                  schema ?
-                  ce(CmsForm, {schema,
-                               uiSchema,
-                               onSubmit: this.onSubmit,
-                               serverErrors: errors,
-                               formContext: {'cw_etype': etype},
-                               FieldTemplate: CustomFieldTemplateConnected})
-                  : ce(spinner));
+            {errors} = this.props
+        return ce(
+            'div',
+            null,
+            ce('span', null, 'Ajouter du contenu dans cette rubrique :'),
+            options === null
+                ? ce(spinner)
+                : ce(SelectContentType, {
+                      options,
+                      onChange: this.updateSelected,
+                  }),
+            schema
+                ? ce(CmsForm, {
+                      schema,
+                      uiSchema,
+                      onSubmit: this.onSubmit,
+                      serverErrors: errors,
+                      formContext: {cw_etype: etype},
+                      FieldTemplate: CustomFieldTemplateConnected,
+                  })
+                : ce(spinner),
+        )
     }
 }
 
@@ -124,4 +140,4 @@ Add.propTypes = {
     showErrors: PropTypes.func.isRequired,
 }
 
-module.exports = Add;
+module.exports = Add

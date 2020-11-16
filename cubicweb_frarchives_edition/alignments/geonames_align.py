@@ -28,40 +28,44 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL-C license and that you accept its terms.
 
-from collections import OrderedDict, Counter, defaultdict
+from collections import OrderedDict, defaultdict
 from itertools import chain
 import logging
 import re
 
 from nazca.utils.normalize import lunormalize, tokenize
 
-from cubicweb_frarchives_edition import GEONAMES_RE
+from cubicweb_frarchives_edition import geonames_id_from_url
 from cubicweb_frarchives_edition.alignments import location
 from cubicweb_frarchives_edition.alignments.align import LocationRecord, LocationAligner
 from cubicweb_frarchives_edition.alignments.utils import simplify
 
 
-CONTEXT_RE = re.compile(r"([^(]+)\(([^)]+)\)")
-BLACKLISTED = (
-    "canton",
-    "volcan",
-    "tunnel",
-    "region naturelle",
-    "region historique",
-    "province",
-    "principaute",
-    "estuaire",
-    "etang",
-    "mer",
-    "diocese",
-    "paroisse",
+CONTEXT_RE = re.compile(r"([^(]+)\((.+)\)+")
+BLACKLISTED = set(
+    (
+        "canton",
+        "volcan",
+        "tunnel",
+        "region naturelle",
+        "region historique",
+        "province",
+        "principaute",
+        "estuaire",
+        "etang",
+        "mer",
+        "diocese",
+        "paroisse",
+    )
 )
-ADMINISTRATIVE = (
-    "region",
-    "departement",
-    "arrondissement",
-    "departement d outre mer",
-    "territoire d outre mer",
+ADMINISTRATIVE = set(
+    (
+        "region",
+        "departement",
+        "arrondissement",
+        "departement d outre mer",
+        "territoire d outre mer",
+    )
 )
 TOPOGRAPHIC_FCLASS = {
     "chateau": "S",
@@ -85,32 +89,32 @@ TOPOGRAPHIC_FCLASS = {
 }
 TOPOGRAPHIC_FCLASS_RE = re.compile(
     r"({})(?:\s(?:de|du|de l|de la|d|des|a|a l|a la|au|aux))?\Z".format(
-        r"|".join(list(TOPOGRAPHIC_FCLASS.keys()))
+        r"|".join(TOPOGRAPHIC_FCLASS.keys())
     ),
     re.UNICODE,
 )
-CITY_WORDS = (
-    "rue",
-    "impasse",
-    "passage",
-    "place",
-    "avenue",
-    "boulevard",
-    "cite",
-    "quai",
-    "pont",
-    "espanade",
-    "chemin",
-    "villa",
-    "ile",
-    "ruelle",
-    "allee",
-    "parc",
-    "jardin",
-    "square",
+CITY_WORDS = set(
+    (
+        "rue",
+        "impasse",
+        "passage",
+        "place",
+        "avenue",
+        "boulevard",
+        "cite",
+        "quai",
+        "pont",
+        "espanade",
+        "chemin",
+        "villa",
+        "ile",
+        "ruelle",
+        "allee",
+        "parc",
+        "jardin",
+        "square",
+    )
 )
-
-CITY_WORDS_COUNTER = Counter(CITY_WORDS)
 
 
 def _get_tokens(label):
@@ -121,9 +125,7 @@ def _get_tokens(label):
     :returns: tokens
     :rtype: list
     """
-    tokens = list(
-        token.strip() for token in chain(*[substr.split(";") for substr in label.split(",")])
-    )
+    tokens = list(token.strip() for token in re.split("[;,()]", label) if token.strip())
     return tokens
 
 
@@ -138,11 +140,7 @@ def get_blacklisted(tokens):
     # NOTE if preposition is included it is not matched
     # blacklist is more permissive than feature class check
     # 1/ regular expression is more expensive and 2/ avoid false positives
-    for token in tokens:
-        if token in BLACKLISTED:
-            return True
-    else:
-        return False
+    return bool(BLACKLISTED.intersection(tokens))
 
 
 def get_administrative(tokens):
@@ -154,11 +152,10 @@ def get_administrative(tokens):
     else empty string
     :rtype: str
     """
-    for token in tokens:
-        if token in ADMINISTRATIVE:
-            return token
-    else:
-        return ""
+    common_tokens = ADMINISTRATIVE.intersection(tokens)
+    if common_tokens:  # len(common_tokens) should be 1
+        return next(iter(common_tokens))
+    return ""
 
 
 def get_topographic(tokens):
@@ -224,7 +221,7 @@ def process_before_parentheses(part):
     """
     # do not take part after '--' into account
     # (see list of examples https://extranet.logilab.fr/ticket/65749407)
-    tokens = _get_tokens(part.split("--")[0])
+    tokens = _get_tokens(part.split("--", 1)[0])
     topographic_info, administrative_name = ("", ""), ""
     skip = False
     if len(tokens) > 1:
@@ -254,7 +251,7 @@ def process_label(label):
         # check if part before parentheses contains topographic or
         # administrative feature
         topographic_info, administrative_name, skip = process_before_parentheses(name)
-        tokens = set([simplify(token) for token in _get_tokens(context)])
+        tokens = set(simplify(token) for token in _get_tokens(context)) - CITY_WORDS
         if not any((topographic_info[0], administrative_name)):
             topographic_info, administrative_name, skip = process_tokens(name, tokens)
     return name, context, tokens, topographic_info, administrative_name, skip
@@ -266,11 +263,11 @@ def an_minutiers(service_code, faunitid, label, context=None):
         return False
     if service_code == "FRAN" and faunitid.startswith("MC/"):
         if context:
-            if any(CITY_WORDS_COUNTER & Counter(tokenize(lunormalize(context)))):
+            if CITY_WORDS.intersection(tokenize(lunormalize(context))):
                 return True
         try:
             label, info = label.split("--")
-            if any(CITY_WORDS_COUNTER & Counter(tokenize(lunormalize(info)))):
+            if CITY_WORDS.intersection(tokenize(lunormalize(info))):
                 return True
         except Exception:
             pass
@@ -344,39 +341,41 @@ def build_record(rows, geodata):
         if not context:
             simplified_name = simplify(name)
             if administrative_name:
-                if simplified_name in list(geodata.simplified_departments.values()):
+                if simplified_name in geodata.simplified_departments.values():
                     record[1][0] = simplified_name
                 records_fr.append(record)
                 continue
             if topographic_name:
                 records_topographic.append(record)
                 continue
-            if simplified_name in list(geodata.simplified_countries.values()):
+            if simplified_name in geodata.simplified_countries.values():
                 record[1][2] = simplified_name
                 records_countries.append(record)
                 continue
         else:
             for token in tokens:
-                if token in list(geodata.simplified_blacklist.values()):
+                if token in geodata.simplified_blacklist.values():
                     # https://extranet.logilab.fr/ticket/67923708
-                    record[1][0] = token
+                    if record[1][0] is None:
+                        record[1][0] = token
                     continue
                 if token in geodata.blacklist:
                     # https://extranet.logilab.fr/ticket/67923708
-                    record[1][0] = geodata.simplified_blacklist[token]
+                    if record[1][0] is None:
+                        record[1][0] = geodata.simplified_blacklist[token]
                     continue
-                if token in list(geodata.simplified_departments.values()):
+                if token in geodata.simplified_departments.values():
                     record[1][0] = token
-                if token in geodata.departments:
+                if token in geodata.departments and record[1][0] is None:
                     record[1][0] = geodata.simplified_departments[token]
-                if token in list(geodata.simplified_cities.values()):
+                if token in geodata.simplified_cities.values():
                     record[1][1] = token
-                if token in list(geodata.simplified_countries.values()):
+                if token in geodata.simplified_countries.values():
                     record[1][2] = token
         if administrative_name:
             if not record[1][0]:
                 simplified_name = simplify(name)
-                if simplified_name in list(geodata.simplified_departments.values()):
+                if simplified_name in geodata.simplified_departments.values():
                     record[1][0] = simplified_name
                 records_fr.append(record)
                 continue
@@ -394,9 +393,6 @@ def build_record(rows, geodata):
                 record[0] = record[1][1]
             records_fr.append(record)
         else:
-            # no dpt information was found between parentheses so we will try to
-            # align this record on geonames record restricted to current service
-            # dpt
             if an_minutiers(service_code, unitid, auth_label, context=context):
                 # a special rule for AN to be aligned on Paris
                 # cf. https://extranet.logilab.fr/ticket/63909184
@@ -407,6 +403,10 @@ def build_record(rows, geodata):
                 records_fr.append(record)
                 continue
             if service_dptcode:
+                # no dpt information was found between parentheses. The records_dpt
+                # set will be later aligned with the service department data.
+                # Here we juste add the service dpt label to the record for display
+                # purpose
                 record[1][0] = geodata.simplified_departments.get(service_dptcode)
                 if record[1][0]:
                     record[6] = "{} {}".format(auth_label, record[1][0])
@@ -415,7 +415,7 @@ def build_record(rows, geodata):
 
 
 def cells_from_pairs(pairs, geonamerecords, pniarecords, simplified=False):
-    for (_, pniaidx), (_, geonameidx) in pairs:
+    for (_, pniaidx), (_, geonameidx), distance in pairs:
         pniarecord = pniarecords[pniaidx]
         geonamerecord = geonamerecords[geonameidx]
         row = [
@@ -429,7 +429,7 @@ def cells_from_pairs(pairs, geonamerecords, pniarecords, simplified=False):
             geonamerecord[7],  # longitude
             geonamerecord[6],  # latitude
             "yes",  # keep
-            "",  # confidence (default value)
+            f"{1-distance:.3f}",  # confidence (default value)
         ]
         if simplified:
             # Geogname URI at index 1
@@ -495,7 +495,7 @@ class GeonameAligner(LocationAligner):
         """
         log = logging.getLogger("rq.task")
         conflicts = []
-        for (autheid, entries) in list(to_modify.items()):
+        for autheid, entries in to_modify.items():
             if len(entries) > 1:
                 # new alignment(s)
                 new = defaultdict(list)
@@ -566,7 +566,7 @@ class GeonameAligner(LocationAligner):
                 to_modify[autheid].append(((autheid, sourceeid), record, keep))
             conflicts = self.find_conflicts(to_modify, existing_alignment)
             alignments = []
-            for autheid, entries in list(to_modify.items()):
+            for autheid, entries in to_modify.items():
                 if autheid not in conflicts:
                     alignments += entries
         else:
@@ -604,7 +604,8 @@ class GeonameAligner(LocationAligner):
             len(geoname),
         )
         pairs = location.alignment_geo_data(pnia_records, geoname)
-        lines = list(cells_from_pairs(pairs, geoname, pnia_records, simplified=simplified))
+        lines_iter = []
+        lines_iter.append(cells_from_pairs(pairs, geoname, pnia_records, simplified=simplified))
         # then align location name without department mention
         # in this case we assume location refer to some place in departement
         # so geoname set is filter to match current department
@@ -617,7 +618,9 @@ class GeonameAligner(LocationAligner):
             pnia[0][3],
         )
         pairs = location.alignment_geo_data(pnia_records_dptonly, geoname)
-        lines += list(cells_from_pairs(pairs, geoname, pnia_records_dptonly, simplified=simplified))
+        lines_iter.append(
+            cells_from_pairs(pairs, geoname, pnia_records_dptonly, simplified=simplified)
+        )
         # then align to country
         geoname = location.build_countries_geoname_set(self.cnx)
         self.log.info(
@@ -626,7 +629,7 @@ class GeonameAligner(LocationAligner):
             len(geoname),
         )
         pairs = location.alignment_geo_data_countryonly(pnia_records_countryonly, geoname)
-        lines += list(
+        lines_iter.append(
             cells_from_pairs(pairs, geoname, pnia_records_countryonly, simplified=simplified)
         )
         # then align to topopgraphic feature classes
@@ -637,10 +640,10 @@ class GeonameAligner(LocationAligner):
             len(geoname),
         )
         pairs = location.alignment_geo_data_topographic(pnia_records_topographic, geoname)
-        lines += list(
+        lines_iter.append(
             cells_from_pairs(pairs, geoname, pnia_records_topographic, simplified=simplified)
         )
-        lines = set(tuple(row) for row in lines)
+        lines = set(tuple(row) for row in chain(*lines_iter))
         self.log.info("found {} lines".format(len(lines) if lines else "0"))
         return lines
 
@@ -676,7 +679,7 @@ class GeonameAligner(LocationAligner):
                 'Any X, U WHERE X is ExternalUri, X uri U, X source "geoname"'
             )
         }
-        for (autheid, geonameuri), record in list(new_alignment.items()):
+        for (autheid, geonameuri), record in new_alignment.items():
             try:
                 if not override_alignments:
                     is_in_sameas_history = self.cnx.system_sql(
@@ -691,14 +694,12 @@ class GeonameAligner(LocationAligner):
                 if geonameuri in existing_exturi:
                     ext = existing_exturi[geonameuri]
                 else:
-                    geonameid = GEONAMES_RE.search(geonameuri)
+                    geonameid = geonames_id_from_url(geonameuri)
                     if not geonameid:
                         self.log.error(
                             "invalid GeoNames Uri %s for authority %s", geonameuri, autheid
                         )
                         continue
-                    else:
-                        geonameid = geonameid.group(1)
                     # (possibly mod.) GeoNames label in CSV takes precedence
                     # sameas-label hook will create it if GeoNames label is not
                     # given
@@ -749,6 +750,7 @@ class GeonameAligner(LocationAligner):
         failed = 0
         self.log.info("will remove %s alignments", len(to_remove_alignment))
         for autheid, geonameuri in to_remove_alignment:
+            geonameid = existing_exturi[geonameuri]
             try:
                 query = """DELETE FROM same_as_relation
                 WHERE eid_from=%(autheid)s AND eid_to=%(ext)s"""
@@ -775,6 +777,39 @@ class GeonameAligner(LocationAligner):
                     ON CONFLICT (sameas_uri,autheid)
                     DO UPDATE SET action=false"""
                     self.cnx.system_sql(query, {"autheid": autheid, "geonameuri": geonameuri})
+                # remove the longitude/latitude
+                geonameid = geonames_id_from_url(geonameuri)
+                # reset longitude/latitude values related to the GeoNames alignment being removed
+                # if any other alignment to GeoNames exists, the longitude/latitude values will
+                # be updated in the subsequent step
+                # alignments to BANO are not affected; if any BANO alignment exists, its
+                # longitude/latitude values take precedence over any possible GeoNames alignment
+                if geonameid:
+                    query = """
+                    UPDATE
+                    cw_locationauthority as l SET cw_latitude=Null, cw_longitude=Null
+                    FROM(
+                        SELECT latitude, longitude FROM geonames
+                        WHERE geonameid::int=%(geonameid)s
+                    ) as geo
+                    WHERE l.cw_eid = %(autheid)s
+                    AND l.cw_latitude=geo.latitude
+                    AND l.cw_longitude=geo.longitude
+                    """
+                    self.cnx.system_sql(
+                        query,
+                        {
+                            "autheid": autheid,
+                            "geonameid": geonameid,
+                        },
+                    )
+                else:
+                    # this should not happen
+                    query = """
+                    UPDATE
+                    cw_locationauthority as l SET cw_latitude=Null, cw_longitude=Null
+                    WHERE l.cw_eid = %(autheid)s"""
+                    self.cnx.system_sql(query, {"autheid": autheid})
             except Exception:
                 self.log.error("error will trying to remove alignment")
                 failed += 1
@@ -785,6 +820,7 @@ class GeonameAligner(LocationAligner):
                 len(to_remove_alignment),
             )
         # update longitude/latitude
+        self.log.info("update localisation")
         sql = """
             UPDATE
             cw_locationauthority as l SET cw_latitude=g.latitude, cw_longitude=g.longitude

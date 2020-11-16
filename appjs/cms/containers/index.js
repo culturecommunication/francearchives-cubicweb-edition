@@ -28,342 +28,522 @@
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 /* global CONSULTATION_BASE_URL */
-const forEach = require('lodash').forEach;
+const forEach = require('lodash').forEach
+
+const range = require('lodash').range
 
 const {createElement: ce} = require('react'),
-      {Link} = require('react-router-dom'),
-      {connect} = require('react-redux');
+    {Link} = require('react-router-dom'),
+    {connect} = require('react-redux')
 
-const {default: {buildUrl}} = require('../api');
+const {TranslationsDropDown} = require('./dropdown')
 
 const {
-    showPanel,
-} = require('../actions');
+    default: {buildUrl},
+} = require('../api')
 
-const {icon} = require('../components/fa');
+const {showPanel} = require('../actions')
+
+const {icon} = require('../components/fa')
 
 const ICON_REGISTRY = {
     section_image: 'picture-o',
     news_image: 'picture-o',
     metadata: 'desktop',
-};
-
+}
 
 function action({url, label, iconName, onClick}) {
-    return ce(Link, {to: url, onClick},
-              ce('span', {className: 'action'},
-                 ce(icon, {name: iconName}),
-                 ` ${label}`));
+    return ce(
+        Link,
+        {to: url, onClick},
+        ce(
+            'span',
+            {className: 'action'},
+            ce(icon, {name: iconName}),
+            ` ${label}`,
+        ),
+    )
 }
 
 function AlertLink({forceShowPanel}) {
-    return ce('h3', null,
-              action({url: 'alert',
-                      label: "Message d'alerte",
-                      iconName: 'exclamation-circle',
-                      onClick: forceShowPanel}));
+    return ce(
+        'h3',
+        null,
+        action({
+            url: 'alert',
+            label: "Message d'alerte",
+            iconName: 'exclamation-circle',
+            onClick: forceShowPanel,
+        }),
+    )
 }
 
-exports.AlertLink = connect(
-    null, {forceShowPanel: showPanel}
-)(AlertLink);
+exports.AlertLink = connect(null, {forceShowPanel: showPanel})(AlertLink)
 
 function ConsultationLink({uuid, etype, restpath}) {
     // eslint-disable-next-line eqeqeq
     if (window.CONSULTATION_BASE_URL == null) {
-        return ce('i', null,
-                  'impossible de construire le lien ',
-                  ce('br'),
-                  'vers la consultation');
+        return ce(
+            'i',
+            null,
+            'impossible de construire le lien ',
+            ce('br'),
+            'vers la consultation',
+        )
     }
-    let baseUrl = CONSULTATION_BASE_URL, url;
+    let baseUrl = CONSULTATION_BASE_URL,
+        url
     if (baseUrl.charAt(baseUrl.length - 1) === '/') {
         baseUrl = baseUrl.substring(0, baseUrl.length - 1)
     }
     if (uuid === null) {
-        url = `${baseUrl}/${restpath}`;
+        url = `${baseUrl}/${restpath}`
     } else {
-        url = `${baseUrl}/uuid/${etype}/${uuid}`;
+        url = `${baseUrl}/uuid/${etype}/${uuid}`
     }
-    return ce('h3', null,
-              ce('a', {href: url},
-                 ce('span', {className: 'action'},
-                    ce(icon, {name: 'external-link-square'},
-                       ' Vers la consultation'))));
+    return ce(
+        'h3',
+        null,
+        ce(
+            'a',
+            {href: url},
+            ce(
+                'span',
+                {className: 'action'},
+                ce(
+                    icon,
+                    {name: 'external-link-square'},
+                    ' Vers la consultation',
+                ),
+            ),
+        ),
+    )
 }
 
-exports.ConsultationLink = connect(
-    function mapStateToProps(state) {
-        const entity = state.getIn(['model', 'entity']),
-              uuid = entity.get('uuid'),
-              restpath = entity.get('rest_path'),
-              etype = entity.get('cw_etype');
-        return {etype, uuid, restpath};
-    }
-)(ConsultationLink);
-
-
-
-
+exports.ConsultationLink = connect(function mapStateToProps(state) {
+    const entity = state.getIn(['model', 'entity']),
+        uuid = entity.get('uuid'),
+        restpath = entity.get('rest_path'),
+        etype = entity.get('cw_etype')
+    return {etype, uuid, restpath}
+})(ConsultationLink)
 
 function AddServiceLink({forceShowPanel}) {
-    return ce('h3', null,
-              action({url: 'add-service', label: 'Ajouter un service',
-                      iconName: 'phone',
-                      onClick: forceShowPanel}));
+    return ce(
+        'h3',
+        null,
+        action({
+            url: 'add-service',
+            label: 'Ajouter un service',
+            iconName: 'phone',
+            onClick: forceShowPanel,
+        }),
+    )
 }
 
-
-exports.AddServiceLink = connect(
-    null, {forceShowPanel: showPanel}
-)(AddServiceLink);
+exports.AddServiceLink = connect(null, {forceShowPanel: showPanel})(
+    AddServiceLink,
+)
 
 function AddLink({eid, forceShowPanel}) {
     // eslint-disable-next-line eqeqeq
     if (eid == null) {
-        return ce('i', null,
-                  "impossible d'ajouter du ",
-                  ce('br'),
-                  "contenu depuis cette page");
+        return ce(
+            'i',
+            null,
+            "impossible d'ajouter du ",
+            ce('br'),
+            'contenu depuis cette page',
+        )
     }
-    return ce('h3', null,
-              action({url: 'add', label: 'Ajouter',
-                      iconName: 'plus',
-                      onClick: forceShowPanel}));
+    return ce(
+        'h3',
+        null,
+        action({
+            url: 'add',
+            label: 'Ajouter',
+            iconName: 'plus',
+            onClick: forceShowPanel,
+        }),
+    )
 }
-
 
 exports.AddLink = connect(
     function mapStateToProps(state) {
-        const eid = state.getIn(['model', 'entity', 'eid']);
-        return {eid};
-    }, {forceShowPanel: showPanel}
-)(AddLink);
-
+        const eid = state.getIn(['model', 'entity', 'eid'])
+        return {eid}
+    },
+    {forceShowPanel: showPanel},
+)(AddLink)
 
 function DeleteLink({forceShowPanel}) {
-    return ce('h3', null,
-              action({url: 'delete', label: 'Supprimer',
-                      iconName: 'trash',
-                      onClick: forceShowPanel}));
+    return ce(
+        'h3',
+        null,
+        action({
+            url: 'delete',
+            label: 'Supprimer',
+            iconName: 'trash',
+            onClick: forceShowPanel,
+        }),
+    )
 }
 
-
-exports.DeleteLink = connect(
-    null, {forceShowPanel: showPanel}
-)(DeleteLink);
-
+exports.DeleteLink = connect(null, {forceShowPanel: showPanel})(DeleteLink)
 
 function TreeLink({forceShowPanel}) {
-    return ce('h3', null,
-              action({url: 'tree', label: 'Déplacer ce contenu',
-                      iconName: 'sitemap',
-                      onClick: forceShowPanel}));
+    return ce(
+        'h3',
+        null,
+        action({
+            url: 'tree',
+            label: 'Déplacer ce contenu',
+            iconName: 'sitemap',
+            onClick: forceShowPanel,
+        }),
+    )
 }
 
-
-exports.TreeLink = connect(
-    null, {forceShowPanel: showPanel}
-)(TreeLink);
-
+exports.TreeLink = connect(null, {forceShowPanel: showPanel})(TreeLink)
 
 function EditFormLink({forceShowPanel}) {
-    return ce('h3', null,
-              action({url: 'edit', label: 'Modifier',
-                      iconName: 'pencil',
-                      onClick: forceShowPanel}));
+    return ce(
+        'h3',
+        null,
+        action({
+            url: 'edit',
+            label: 'Modifier',
+            iconName: 'pencil',
+            onClick: forceShowPanel,
+        }),
+    )
 }
 
-
-exports.EditFormLink = connect(
-    null, {forceShowPanel: showPanel}
-)(EditFormLink);
+exports.EditFormLink = connect(null, {forceShowPanel: showPanel})(EditFormLink)
 
 function EditIndexLink({forceShowPanel}) {
-    return ce('h3', null,
-              action({url: 'edit-index', label: 'Gérer les index',
-                      iconName: 'tag',
-                      onClick: forceShowPanel}));
+    return ce(
+        'h3',
+        null,
+        action({
+            url: 'edit-index',
+            label: 'Gérer les index',
+            iconName: 'tag',
+            onClick: forceShowPanel,
+        }),
+    )
 }
 
-
-exports.EditIndexLink = connect(
-    null, {forceShowPanel: showPanel}
-)(EditIndexLink);
-
+exports.EditIndexLink = connect(null, {forceShowPanel: showPanel})(
+    EditIndexLink,
+)
 
 function EditServiceLink({forceShowPanel}) {
-    return ce('h3', null,
-              action({url: 'edit-service', label: 'Modifier',
-                      iconName: 'pencil',
-                      onClick: forceShowPanel}));
+    return ce(
+        'h3',
+        null,
+        action({
+            url: 'edit-service',
+            label: 'Modifier',
+            iconName: 'pencil',
+            onClick: forceShowPanel,
+        }),
+    )
 }
 
-exports.EditServiceLink = connect(
-    null, {forceShowPanel: showPanel}
-)(EditServiceLink);
-
+exports.EditServiceLink = connect(null, {forceShowPanel: showPanel})(
+    EditServiceLink,
+)
 
 function EditServiceListLink({forceShowPanel}) {
-    return ce('h3', null,
-              action({url: 'edit-service-list', label: 'Modifier',
-                      iconName: 'pencil',
-                      onClick: forceShowPanel}));
+    return ce(
+        'h3',
+        null,
+        action({
+            url: 'edit-service-list',
+            label: 'Modifier',
+            iconName: 'pencil',
+            onClick: forceShowPanel,
+        }),
+    )
 }
 
-exports.EditServiceListLink = connect(
-    null, {forceShowPanel: showPanel}
-)(EditServiceListLink);
+exports.EditServiceListLink = connect(null, {forceShowPanel: showPanel})(
+    EditServiceListLink,
+)
 
+function addRelationLinks(elements, onClickFun, form, i) {
+    let linkChildren
+    if (ICON_REGISTRY.hasOwnProperty(form.rtype)) {
+        linkChildren = [
+            ce(
+                'span',
+                {className: 'action'},
+                icon({name: ICON_REGISTRY[form.rtype]}),
+                ` ${form.title}`,
+            ),
+        ]
+    } else {
+        linkChildren = [ce('span', {className: 'action'}, `${form.title}`)]
+    }
+    const options = {pathname: '/editrelated', search: `?name=${form.rtype}`},
+        targetType = form.etarget || null,
+        isAutoritiesLink =
+            form.rtype.indexOf('index_') !== -1 ||
+            (form.etarget && form.etarget.indexOf('Authority') !== -1)
+    if (isAutoritiesLink) {
+        options.pathname = `/edit${targetType.toLowerCase()}`
+    }
+    if (form.rtype === 'cssimage') options.pathname = '/cssimage'
+    elements.push(
+        ce('hr', {key: `hr-${i}`}),
+        ce(
+            'h3',
+            {key: `h3-${i}`},
+            ce(Link, {to: options, onClick: onClickFun}, ...linkChildren),
+        ),
+    )
+}
 
+// You can personalize the order for the forms, ex:
+// rdefsForEtargets(form, [1, 0, 2, 3])
+// Just keep in mind that there is no validation
+// on the validity of the index
+function rdefsForEtargets(form, intArray) {
+    return intArray.map(j => ({
+        fetchPossibleTargets: form.fetchPossibleTargets,
+        multiple: form.multiple,
+        rtype: form.rtype,
+        title: `Ajouter des ${form.titles[j]}`,
+        etarget: form.etargets[j],
+    }))
+}
 
-function displayRelated({related, forceShowPanel}){
-    const elements = [];
-    forEach(related,
-            (l, i) => {
-                let linkChildren;
-                if (ICON_REGISTRY.hasOwnProperty(l.rtype)) {
-                    linkChildren = [
-                        ce('span', {className: 'action'},
-                           icon({name: ICON_REGISTRY[l.rtype]}),
-                           ` ${l.title}`),
-                    ];
-                } else {
-                    linkChildren = [
-                        ce('span', {className: 'action'}, `${l.title}`),
-                    ];
-                }
-                const options = {pathname: '/editrelated',
-                                 search: `?name=${l.rtype}`};
-                if (l.rtype === 'cssimage')
-                    options.pathname = '/cssimage';
-                if (l.rtype.indexOf('index_') !== -1)
-                    options.pathname = '/editrelatedindex';
-                elements.push(
-                    ce('hr', {key: `hr-${i}`}),
-                    ce('h3', {key: `h3-${i}`},
-                       ce(Link, {to: options,
-                                 onClick: forceShowPanel},
-                          ...linkChildren)));
-            });
+function displayRelated({related, forceShowPanel}) {
+    const elements = []
+    forEach(related, (l, i) => {
+        if (l.etargets) {
+            const newForms = rdefsForEtargets(l, range(l.etargets.length))
+            newForms.map((f, j) =>
+                addRelationLinks(elements, forceShowPanel, f, i + '_' + j),
+            )
+        } else if (l.rtype !== 'translation_of') {
+            addRelationLinks(elements, forceShowPanel, l, i)
+        }
+    })
     // FIXME "to" value must be unqiue
-    return ce('div', null, elements);
+    return ce('div', null, elements)
 }
 
 exports.displayRelated = connect(
     function mapStateToProps(state) {
-        return {related: state.getIn(['model', 'related']).toJS()};
+        return {related: state.getIn(['model', 'related']).toJS()}
     },
-    {forceShowPanel: showPanel}
-)(displayRelated);
-
-
+    {forceShowPanel: showPanel},
+)(displayRelated)
 
 exports.TodoLink = function TodoLink() {
-    return ce('h3', null,
-              ce('a', {href: buildUrl('non-repris')},
-                 ce('span', {className: 'action'},
-                    ce(icon, {name: 'sort'}, ' À trier'))));
-};
+    return ce(
+        'h3',
+        null,
+        ce(
+            'a',
+            {href: buildUrl('non-repris')},
+            ce(
+                'span',
+                {className: 'action'},
+                ce(icon, {name: 'sort'}, ' À trier'),
+            ),
+        ),
+    )
+}
 
 function SearchCWUsersLink({forceShowPanel}) {
-    return ce('h3', null,
-              action({url: 'cwusers', label: 'Rechercher des utilisateurs',
-                      onClick: forceShowPanel}));
+    return ce(
+        'h3',
+        null,
+        action({
+            url: 'cwusers',
+            label: 'Rechercher des utilisateurs',
+            onClick: forceShowPanel,
+        }),
+    )
 }
 
-
-exports.SearchCWUsersLink = connect(
-    null, {forceShowPanel: showPanel}
-)(SearchCWUsersLink);
-
+exports.SearchCWUsersLink = connect(null, {forceShowPanel: showPanel})(
+    SearchCWUsersLink,
+)
 
 function AddCWUserLink({forceShowPanel}) {
-    return ce('h3', null,
-              action({url: 'add-user', label: 'Ajouter un utilisateur',
-                      iconName: 'user',
-                      onClick: forceShowPanel}));
+    return ce(
+        'h3',
+        null,
+        action({
+            url: 'add-user',
+            label: 'Ajouter un utilisateur',
+            iconName: 'user',
+            onClick: forceShowPanel,
+        }),
+    )
 }
 
+exports.AddCWUserLink = connect(null, {forceShowPanel: showPanel})(
+    AddCWUserLink,
+)
 
-exports.AddCWUserLink = connect(
-    null, {forceShowPanel: showPanel}
-)(AddCWUserLink);
+function AddGlossaryTermLink({forceShowPanel}) {
+    return ce(
+        'h3',
+        null,
+        action({
+            url: 'add-glossaryterm',
+            label: 'Ajouter un terme de glossaire',
+            iconName: 'book',
+            onClick: forceShowPanel,
+        }),
+    )
+}
 
+exports.AddGlossaryTermLink = connect(null, {forceShowPanel: showPanel})(
+    AddGlossaryTermLink,
+)
+
+exports.AddEntityTranslation = connect(
+    function mapStateToProps(state) {
+        return {
+            entity: state.getIn(['model', 'entity']),
+            translations: state.getIn(['model', 'related']).toJS(),
+        }
+    },
+    {forceShowPanel: showPanel},
+)(AddEntityTranslation)
+
+function AddFaqLink({forceShowPanel}) {
+    return ce(
+        'h3',
+        null,
+        action({
+            url: 'add-faq',
+            label: 'Ajouter une FAQ',
+            iconName: 'question',
+            onClick: forceShowPanel,
+        }),
+    )
+}
+
+exports.AddFaqLink = connect(null, {forceShowPanel: showPanel})(
+    AddFaqLink,
+)
+
+
+function AddEntityTranslation({translations, forceShowPanel}) {
+    const options = translations.translation_of.languages,
+        pathes = translations.translation_of.pathes
+    return ce(TranslationsDropDown, {
+        label: 'Traduire',
+        url: '/translate',
+        argumentName: 'language',
+        options: options,
+        pathes: pathes,
+        onLinkClick: forceShowPanel,
+    })
+}
 
 function SearchFaTasksLink({forceShowPanel}) {
-    return ce('h3', null,
-              action({url: 'fa-tasks', label: 'Rechercher des tâches',
-                      onClick: forceShowPanel}));
+    return ce(
+        'h3',
+        null,
+        action({
+            url: 'fa-tasks',
+            label: 'Rechercher des tâches',
+            onClick: forceShowPanel,
+        }),
+    )
 }
 
-
-exports.SearchFaTasksLink = connect(
-    null, {forceShowPanel: showPanel}
-)(SearchFaTasksLink);
-
+exports.SearchFaTasksLink = connect(null, {forceShowPanel: showPanel})(
+    SearchFaTasksLink,
+)
 
 function FAMonitoringBordLink({forceShowPanel}) {
-    return ce('h3', null,
-              action({url: 'fa-bord', label: 'Tableau de suivi des IRs',
-                      iconName: 'table',
-                      onClick: forceShowPanel}));
+    return ce(
+        'h3',
+        null,
+        action({
+            url: 'fa-bord',
+            label: 'Tableau de suivi des IRs',
+            iconName: 'table',
+            onClick: forceShowPanel,
+        }),
+    )
 }
 
-
-exports.FAMonitoringBordLink = connect(
-    null, {forceShowPanel: showPanel}
-)(FAMonitoringBordLink);
-
+exports.FAMonitoringBordLink = connect(null, {forceShowPanel: showPanel})(
+    FAMonitoringBordLink,
+)
 
 function EditHomePageMetataLink({forceShowPanel}) {
-    return ce('h3', null,
-              action({url: 'homepage-metadata',
-                      label: 'Éditer les metadonnées',
-                      iconName: 'desktop',
-                      onClick: forceShowPanel}));
+    return ce(
+        'h3',
+        null,
+        action({
+            url: 'homepage-metadata',
+            label: 'Éditer les metadonnées',
+            iconName: 'desktop',
+            onClick: forceShowPanel,
+        }),
+    )
 }
 
-exports.EditHomePageMetataLink = connect(
-    null, {forceShowPanel: showPanel}
-)(EditHomePageMetataLink);
-
+exports.EditHomePageMetataLink = connect(null, {forceShowPanel: showPanel})(
+    EditHomePageMetataLink,
+)
 
 function PublishTaskLink({forceShowPanel}) {
-    return ce('h3', null,
-              action({url: 'publish-task',
-                      label: 'Publier les IR',
-                      iconName: 'send',
-                      onClick: forceShowPanel}));
+    return ce(
+        'h3',
+        null,
+        action({
+            url: 'publish-task',
+            label: 'Publier les IR',
+            iconName: 'send',
+            onClick: forceShowPanel,
+        }),
+    )
 }
 
-exports.PublishTaskLink = connect(
-    null, {forceShowPanel: showPanel}
-)(PublishTaskLink);
-
+exports.PublishTaskLink = connect(null, {forceShowPanel: showPanel})(
+    PublishTaskLink,
+)
 
 function SameAsLink({forceShowPanel}) {
-    return ce('h3', null,
-              action({url: 'sameas',
-                      label: 'Éditer les liens `same as`',
-                      iconName: 'link',
-                      onClick: forceShowPanel}));
+    return ce(
+        'h3',
+        null,
+        action({
+            url: 'sameas',
+            label: 'Éditer les liens `same as`',
+            iconName: 'link',
+            onClick: forceShowPanel,
+        }),
+    )
 }
 
-exports.SameAsLink = connect(
-    null, {forceShowPanel: showPanel}
-)(SameAsLink);
-
+exports.SameAsLink = connect(null, {forceShowPanel: showPanel})(SameAsLink)
 
 function GroupAuthLink({forceShowPanel}) {
-    return ce('h3', null,
-              action({url: 'group-auth',
-                      label: 'Grouper des autorités',
-                      iconName: 'object-group',
-                      onClick: forceShowPanel}));
+    return ce(
+        'h3',
+        null,
+        action({
+            url: 'group-auth',
+            label: 'Grouper des autorités',
+            iconName: 'object-group',
+            onClick: forceShowPanel,
+        }),
+    )
 }
 
-exports.GroupAuthLink = connect(
-    null, {forceShowPanel: showPanel}
-)(GroupAuthLink);
-
+exports.GroupAuthLink = connect(null, {forceShowPanel: showPanel})(
+    GroupAuthLink,
+)

@@ -41,6 +41,7 @@ from cubicweb_elasticsearch.entities import ESTransactionQueue
 from cubicweb_elasticsearch.hooks import IndexEsOperation
 
 from cubicweb_francearchives.schema.cms import CMS_OBJECTS
+from cubicweb_francearchives import ES_CMS_I18N_OBJECTS
 
 from cubicweb_frarchives_edition.hooks import custom_on_fire_transition
 
@@ -59,7 +60,10 @@ class EsDocumentHook(hook.Hook):
 
     def __call__(self):
         IndexEsOperation.get_instance(self._cw).add_data(
-            {"op_type": "index", "entity": self.entity.entity[0],}
+            {
+                "op_type": "index",
+                "entity": self.entity.entity[0],
+            }
         )
 
 
@@ -107,7 +111,8 @@ class UpdateStateInESHook(hook.Hook):
 
     __regid__ = "frarchives_edition.update-state-in-es"
     __select__ = hook.Hook.__select__ & custom_on_fire_transition(
-        CMS_OBJECTS + ("FindingAid",), {"wft_cmsobject_publish", "wft_cmsobject_unpublish"}
+        CMS_OBJECTS + ES_CMS_I18N_OBJECTS + ("FindingAid",),
+        {"wft_cmsobject_publish", "wft_cmsobject_unpublish"},
     )
     events = ("after_add_entity",)
     category = "es"
@@ -118,10 +123,16 @@ class UpdateStateInESHook(hook.Hook):
         op = IndexEsOperation.get_instance(self._cw)
         if trname == "wft_cmsobject_unpublish":
             op.add_data(
-                {"op_type": "sync-delete", "entity": target,}
+                {
+                    "op_type": "sync-delete",
+                    "entity": target,
+                }
             )
         op.add_data(
-            {"op_type": "index", "entity": target,}
+            {
+                "op_type": "index",
+                "entity": target,
+            }
         )
 
 

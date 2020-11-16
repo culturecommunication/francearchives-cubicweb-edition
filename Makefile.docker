@@ -1,0 +1,17 @@
+REGISTRY?=r.ext.logilab.fr/francearchives_demo/francearchives_demo
+VERSION?=$(shell hg log -r . -T "{sub(':.*', '', '{latesttag}')}{sub('^-0-.*', '', '-{latesttagdistance}-hg{shortest(node, 7)}')}\n")
+IMAGE?=$(REGISTRY):$(VERSION)
+
+all: build
+
+build:
+	docker build --pull -t $(IMAGE) . --build-arg GITLAB_TOKEN=$(GITLAB_TOKEN) --build-arg SHA=$(SHA)
+
+build-nocache:
+	docker build --pull -t $(IMAGE) . --build-arg GITLAB_TOKEN=$(GITLAB_TOKEN) --build-arg SHA=$(SHA) --no-cache
+
+push:
+	docker push $(IMAGE)
+	docker tag $(IMAGE) $(REGISTRY):latest
+	docker push $(REGISTRY):latest
+

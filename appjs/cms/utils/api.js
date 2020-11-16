@@ -27,35 +27,39 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-const CALL_FETCH = 'CALL_FETCH';
+const CALL_FETCH = 'CALL_FETCH'
 
 function returnTrue() {
-    return true;
+    return true
 }
 
-function fetchActionCreator({rat='',
-                             sat='',
-                             fat='',
-                             uat='',
-                             payload=undefined,
-                             fetchopts={},
-                             shouldMakeRequest=returnTrue,
-                             endpoint=''}) {
+function fetchActionCreator({
+    rat = '',
+    sat = '',
+    fat = '',
+    uat = '',
+    payload = undefined,
+    fetchopts = {},
+    shouldMakeRequest = returnTrue,
+    endpoint = '',
+}) {
     return {
         [CALL_FETCH]: {
-            types: {requestActionType: rat,
-                    successActionType: sat,
-                    failureActionType: fat,
-                    unNecessaryActionType: uat},
+            types: {
+                requestActionType: rat,
+                successActionType: sat,
+                failureActionType: fat,
+                unNecessaryActionType: uat,
+            },
             endpoint,
             fetchopts,
             shouldMakeRequest,
         },
         payload,
-    };
+    }
 }
 
-
 module.exports = {
-    CALL_FETCH, fetchActionCreator,
-};
+    CALL_FETCH,
+    fetchActionCreator,
+}

@@ -31,6 +31,6 @@ module.exports = {
     env: {
         mocha: true,
         es6: true,
-        commonjs: true
-    }
-};
+        commonjs: true,
+    },
+}

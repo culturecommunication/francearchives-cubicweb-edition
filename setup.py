@@ -74,7 +74,7 @@ install_requires = ["{0} {1}".format(d, v and v or "").strip() for d, v in requi
 
 class sdist(orig_sdist):
     def run(self):
-        if not os.environ.get("FRARCHIVES_NO_BUILD_DATA_FILES", False) and exists("/usr/bin/npm"):
+        if not os.environ.get("FRARCHIVES_NO_BUILD_DATA_FILES", False):
             self.spawn(["npm", "install"])
             os.environ["NODE_ENV"] = "production"
             self.spawn(["npm", "run", "build"])

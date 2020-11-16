@@ -41,10 +41,10 @@ from uuid import uuid4
 from cubicweb import Binary
 from cubicweb_frarchives_edition import CANDIDATE_SEP
 
+from cubicweb_frarchives_edition import update_suggest_es
 from cubicweb_frarchives_edition.rq import update_progress, rqjob
 from cubicweb_frarchives_edition.alignments.group_locations import (
     compute_location_authorities_to_group as compute_candidates,
-    update_suggest_es,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -52,9 +52,7 @@ NOW = datetime.now()
 
 
 def location_authorities_to_group(cnx, log=None):
-    """Compute location authorities candidates to group based on they geonameid
-
-    """
+    """Compute location authorities candidates to group based on they geonameid"""
     if log is None:
         log = LOGGER
     job = rq.get_current_job()
@@ -76,7 +74,7 @@ def write_and_save_csv(cnx, candidates, rqtask):
     b = Binary()
     writer = csv.writer(b, delimiter="\t")
     for label_to, other_labels in list(candidates.items()):
-        writer.writerow([label_to.candidate_info] + [l.candidate_info for l in other_labels])
+        writer.writerow([label_to.candidate_info] + [ol.candidate_info for ol in other_labels])
     uuid = str(uuid4().hex)
     filename = "location_authorities_to_group_{}{:02d}{:02d}_{}.csv".format(
         NOW.year, NOW.day, NOW.month, uuid
@@ -86,7 +84,12 @@ def write_and_save_csv(cnx, candidates, rqtask):
 
 def add_file_to_rtqsk(cnx, rqtask, data, filename, uuid):
     cwfile = cnx.create_entity(
-        "File", data=data, data_format="text/csv", data_name=filename, title=filename, uuid=uuid,
+        "File",
+        data=data,
+        data_format="text/csv",
+        data_name=filename,
+        title=filename,
+        uuid=uuid,
     )
     if rqtask is not None:
         rqtask.cw_set(output_file=cwfile.eid)
@@ -108,7 +111,7 @@ def write_and_save_candidates(cnx, candidates, rqtask):
     fp = io.TextIOWrapper(b, encoding="utf-8", newline="")
     writer = csv.writer(fp, delimiter="\t")
     for label_to, other_labels in list(candidates.items()):
-        writer.writerow([label_to.candidate_info] + [l.candidate_info for l in other_labels])
+        writer.writerow([label_to.candidate_info] + [ol.candidate_info for ol in other_labels])
     fp.detach()
     uuid = str(uuid4().hex)
     filename = "location_authorities_to_group_{}{:02d}{:02d}_{}.csv".format(
@@ -119,9 +122,9 @@ def write_and_save_candidates(cnx, candidates, rqtask):
 
 def get_locationautorithy(cnx, column):
     """each column may contain :
-       - authority's label and url separated by '###' (CANDIDATE_SEP)
-       - the authority's url
-       - authority's eid
+    - authority's label and url separated by '###' (CANDIDATE_SEP)
+    - the authority's url
+    - authority's eid
 
     """
     if CANDIDATE_SEP in column:
@@ -149,7 +152,9 @@ def group_location_authorities_candidates(cnx, csvpath, log=None):
     rqtask = cnx.entity_from_eid(int(job.id))
     failed = []
     current_progress = update_progress(job, 0.0)
-    with cnx.allow_all_hooks_but("reindex-suggest-es",):
+    with cnx.allow_all_hooks_but(
+        "reindex-suggest-es",
+    ):
         with open(csvpath, "r") as f:
             reader = list(csv.reader(f, delimiter="\t"))
             progress_step = 1.0 / (len(reader) + 1)
@@ -219,9 +224,7 @@ def write_and_save_failed_candidates(cnx, failed, rqtask):
 
 @rqjob
 def compute_location_authorities_to_group(cnx):
-    """Compute location authorities candidates to group based on they geonameid
-
-    """
+    """Compute location authorities candidates to group based on they geonameid"""
     log = logging.getLogger("rq.task")
     log.info("start the task")
     location_authorities_to_group(cnx, log=log)
@@ -229,9 +232,7 @@ def compute_location_authorities_to_group(cnx):
 
 @rqjob
 def group_location_authorities(cnx, csvpath):
-    """Group location authorities candidates to group based on they geonameid
-
-    """
+    """Group location authorities candidates to group based on they geonameid"""
     log = logging.getLogger("rq.task")
     log.info("start the task")
     group_location_authorities_candidates(cnx, csvpath, log)

@@ -89,8 +89,7 @@ class AuthorityExporter:
         """
         filename = write_csv(rows, headers=headers, delimiter="\t")
         arcname = "{service}-{date}.csv".format(
-            service=service.code,
-            date=datetime.datetime.now().strftime("%Y%m%d")
+            service=service.code, date=datetime.datetime.now().strftime("%Y%m%d")
         ).lower()
         arcname = os.path.join(source if source else "nonaligned", arcname)
         return filename, arcname

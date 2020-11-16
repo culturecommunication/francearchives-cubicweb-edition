@@ -27,19 +27,22 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-const {connect} = require('react-redux');
+const {connect} = require('react-redux')
 
-const {CustomFieldTemplate} = require('../components/form');
+const {CustomFieldTemplate} = require('../components/form')
 
-
-const CustomFieldTemplateConnected = connect(
-    function mapStateToProps(state, props) {
-        const errors = state.getIn(['app', 'errors']);
-        const fieldName = props.id.replace(/root_?/, '');
-        return {serverErrors: errors
-                .filter(e => e.getIn(['source', 'pointer']) === fieldName)
-                .map(e => e.get('details')).toJS()};
+const CustomFieldTemplateConnected = connect(function mapStateToProps(
+    state,
+    props,
+) {
+    const errors = state.getIn(['app', 'errors'])
+    const fieldName = props.id.replace(/root_?/, '')
+    return {
+        serverErrors: errors
+            .filter(e => e.getIn(['source', 'pointer']) === fieldName)
+            .map(e => e.get('details'))
+            .toJS(),
     }
-)(CustomFieldTemplate);
+})(CustomFieldTemplate)
 
-exports.CustomFieldTemplateConnected = CustomFieldTemplateConnected;
+exports.CustomFieldTemplateConnected = CustomFieldTemplateConnected

@@ -28,29 +28,31 @@
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-const {createElement: ce} = require('react');
-
+const {createElement: ce} = require('react')
 
 function icon(props) {
-    let className = `fa fa-${props.name}`;
+    let className = `fa fa-${props.name}`
     if (props.className !== undefined) {
-        className =  props.className + ' ' + className;
+        className = props.className + ' ' + className
     }
-    return ce('i', Object.assign({}, props, {className}));
+    return ce('i', Object.assign({}, props, {className}))
 }
 
 function spinner({name}) {
-    name = name || 'spinner';
-    return ce('i', {className: `fa fa-spin fa-${name}`});
+    name = name || 'spinner'
+    return ce('i', {className: `fa fa-spin fa-${name}`})
 }
 
 function button({name, onClick, title}) {
-    return ce('button', {title,
-                         onClick,
-                         className: 'btn btn-default'},
-              ce(icon, {name}));
+    return ce(
+        'button',
+        {title, onClick, className: 'btn btn-default'},
+        ce(icon, {name}),
+    )
 }
 
 module.exports = {
-    button, icon, spinner,
-};
+    button,
+    icon,
+    spinner,
+}

@@ -74,6 +74,7 @@ class RelateChildrenLink(EntityLink):
     __select__ = EntityLink.__select__ & has_add_target_permissions()
     target_type = None
     order = 10
+    rtype = "children"
 
     def description_object(self, request, resource):
         _ = self._cw._
@@ -82,16 +83,16 @@ class RelateChildrenLink(EntityLink):
             "etype": self.target_type,
             "method": "POST",
             "href": request.resource_path(
-                resource, "relationships", "children", query={"target_type": self.target_type}
+                resource, "relationships", self.rtype, query={"target_type": self.target_type}
             ),
             "targetSchema": {
                 "$ref": request.route_path(
                     "cubicweb-jsonschema",
-                    traverse=(resource.__parent__.etype, "relationships", "children", "schema"),
+                    traverse=(resource.__parent__.etype, "relationships", self.rtype, "schema"),
                     _query={"target_type": self.target_type, "role": "creation"},
                 ),
             },
-            "rel": "related.children",
+            "rel": "related.{}".format(self.rtype),
             "title": "New Child",
             "order": self.order,
         }
@@ -111,6 +112,20 @@ class RelateChildrenSectionLink(RelateChildrenLink):
     order = 20
 
 
+class RelateSectionTranslationLink(RelateChildrenLink):
+    __regid__ = "entity.relate.translation.sectiontranslation"
+    __select__ = RelateChildrenLink.__select__ & is_instance("Section")
+    rtype = "translation_of"
+    target_type = "SectionTranslation"
+
+
+class RelateBaseContentTranslationLink(RelateChildrenLink):
+    __regid__ = "entity.relate.translation.basecontent"
+    __select__ = RelateChildrenLink.__select__ & is_instance("BaseContent")
+    rtype = "translation_of"
+    target_type = "BaseContentTranslation"
+
+
 class RelateChildrenCommemorationitemLink(RelateChildrenLink):
     __regid__ = "entity.relate.children.commemorationitem"
     __select__ = RelateChildrenLink.__select__ & in_commemocollection()
@@ -121,6 +136,13 @@ class RelateChildrenCommemoCollectionLink(RelateChildrenLink):
     __regid__ = "entity.relate.children.commemocollection"
     __select__ = RelateChildrenLink.__select__ & is_instance("Section")
     target_type = "CommemoCollection"
+
+
+class RelateCommemorationitemTranslationLink(RelateChildrenLink):
+    __regid__ = "entity.relate.translation.commemorationitem"
+    __select__ = RelateChildrenLink.__select__ & is_instance("CommemorationItem")
+    rtype = "translation_of"
+    target_type = "CommemorationItemTranslation"
 
 
 class RelateChildrenCircularLink(RelateChildrenLink):

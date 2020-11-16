@@ -27,13 +27,11 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-const {connect} = require('react-redux');
+const {connect} = require('react-redux')
 
-const {AddFATask, PublishTask} = require('../components/fatask.js');
+const {AddFATask, PublishTask} = require('../components/fatask.js')
 
-exports.AddFATask = connect()(AddFATask);
-exports.PublishTask = connect(
-    function mapStateToProps(state) {
-        return {taskeid: state.getIn(['model', 'entity', 'eid'])};
-    }
-)(PublishTask);
+exports.AddFATask = connect()(AddFATask)
+exports.PublishTask = connect(function mapStateToProps(state) {
+    return {taskeid: state.getIn(['model', 'entity', 'eid'])}
+})(PublishTask)

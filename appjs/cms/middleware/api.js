@@ -29,60 +29,66 @@
  */
 /* global fetch */
 
-const {default: {buildUrl}} = require('../api');
+const {
+    default: {buildUrl},
+} = require('../api')
 
-const {CALL_FETCH} = require('../utils/api');
+const {CALL_FETCH} = require('../utils/api')
 
-const HTTP_RE = /https?/;
-
+const HTTP_RE = /https?/
 
 function callApi(url, fetchopts) {
     if (!HTTP_RE.test(url)) {
-        url = buildUrl(url);
+        url = buildUrl(url)
     }
-    const opts = Object.assign({
-        credentials: 'same-origin',
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
+    const opts = Object.assign(
+        {
+            credentials: 'same-origin',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
         },
-    }, fetchopts);
-    return fetch(url, opts)
-        .then(
-            response => response.json().then(json => ({json, response})));
+        fetchopts,
+    )
+    return fetch(url, opts).then(response =>
+        response.json().then(json => ({json, response})),
+    )
 }
 
-
 const middleware = store => next => action => {
-    const callApiDetails = action[CALL_FETCH];
+    const callApiDetails = action[CALL_FETCH]
     if (callApiDetails === undefined) {
-        return next(action);
+        return next(action)
     }
     const {endpoint, types, fetchopts, shouldMakeRequest} = callApiDetails,
-          {requestActionType,
-           successActionType,
-           failureActionType,
-           notNecessaryActionType} = types,
-          {payload} = action;
-    next({type: requestActionType, payload});
+        {
+            requestActionType,
+            successActionType,
+            failureActionType,
+            notNecessaryActionType,
+        } = types,
+        {payload} = action
+    next({type: requestActionType, payload})
     if (!shouldMakeRequest(store.getState())) {
-        return next({type: notNecessaryActionType, payload});
+        return next({type: notNecessaryActionType, payload})
     }
     return callApi(endpoint, fetchopts).then(
-        response => next({
-            payload,
-            type: successActionType,
-            response,
-        }),
-        error => next({
-            type: failureActionType,
-            error: error.message,
-            payload,
-        })
-    );
-};
-
+        response =>
+            next({
+                payload,
+                type: successActionType,
+                response,
+            }),
+        error =>
+            next({
+                type: failureActionType,
+                error: error.message,
+                payload,
+            }),
+    )
+}
 
 module.exports = {
     middleware,
-};
+}

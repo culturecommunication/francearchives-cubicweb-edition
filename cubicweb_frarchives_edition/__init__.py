@@ -33,11 +33,16 @@
 Edition components for FranceArchives
 """
 import os
+import os.path as osp
+
 import re
+import urllib.parse
 
 from logilab.common.decorators import monkeypatch
 
 from cubicweb import NoResultError
+
+from cubicweb_varnish.varnishadm import varnish_cli_connect_from_config
 
 from cubicweb.server.hook import DataOperationMixIn, LateOperation
 from cubicweb.server.sources import storages
@@ -47,6 +52,14 @@ GEONAMES_RE = re.compile(r"geonames\.org/(\d+)(?:/.+?\.html)?")
 CANDIDATE_SEP = "###"
 
 ALIGN_IMPORT_DIR = "/tmp/csv"
+
+
+def geonames_id_from_url(geonameuri):
+    geonameid = GEONAMES_RE.search(geonameuri)
+    if not geonameid:
+        return None
+    else:
+        return geonameid.group(1)
 
 
 class IncompatibleFile(Exception):
@@ -69,9 +82,88 @@ def postcommit_event(self):
 
 
 @monkeypatch(storages.DeleteFileOp)  # noqa
-def postcommit_event(self):
+def postcommit_event(self):  # noqa
     for filepath in self.get_data():
         FinalDeleteFileOperation.get_instance(self.cnx).add_data(("deleted", filepath))
+
+
+class UnpublishFilesOp(DataOperationMixIn, LateOperation):
+    """after a parent entity has been unpublished the fpath of related files
+    must be removed from the published directory if the path
+    is not referenced by any other published entity
+    """
+
+    def postcommit_event(self):
+        sys_source = self.cnx.repo.system_source
+        removed = []
+        for parent, cwfile_eid, filepath, published_filepath in self.get_data():
+            if self.cnx.deleted_in_transaction(cwfile_eid):
+                continue
+            if published_filepath in removed:
+                continue
+            # collect all other CWFiles referencing the same filepath (e.g cw_data attribute)
+            sql_query = """
+            SELECT f.cw_eid FROM cw_file f
+            JOIN cw_file f1 ON f.cw_data=f1.cw_data
+            WHERE f1.cw_eid =%(eid)s;
+            """
+            cu = sys_source.doexec(self.cnx, sql_query, {"eid": cwfile_eid})
+            cwfiles_eids = [str(f[0]) for f in cu.fetchall()]
+            eschema = self.cnx.vreg.schema.eschema("File")
+            assert len([e for e in eschema.subjrels if not e.meta and not e.final]) == 0
+            # skip 'service_image' relation as irrelevent
+            # process 'image_file' relation bellow
+            file_objrels = [
+                e.type
+                for e in eschema.objrels
+                if not e.meta and e.type not in ("image_file", "output_file")
+            ]
+            published_parents_queries = [
+                """
+                (
+                   DISTINCT Any X{i} WHERE X{i} {rel} F,
+                   NOT X{i} identity X, X eid %(x)s,
+                   X{i} in_state S{i}, S{i} name "%(st)s",
+                   F eid IN (%(f)s)
+                )
+                """.format(
+                    i=i, rel=rel
+                )
+                for i, rel in enumerate(file_objrels)
+            ]
+            # process 'image_file' relation
+            image_eschema = self.cnx.vreg.schema.eschema("Image")
+            # Service entity is not IWorkflowable, skip 'service_image' relation
+            image_objrels = [
+                e.type
+                for e in image_eschema.objrels
+                if not e.meta and e.type not in ("service_image")
+            ]
+            published_parents_queries.extend(
+                [
+                    """
+                (
+                    DISTINCT Any C{i} WHERE
+                    I{i} image_file F, C{i} {rel} I{i},
+                    NOT C{i} identity X, X eid %(x)s,
+                    C{i} in_state CS{i}, CS name "%(st)s",
+                    F eid IN (%(f)s)
+                )""".format(
+                        i=i, rel=rel
+                    )
+                    for i, rel in enumerate(image_objrels)
+                ]
+            )
+            published_parents_query = "DISTINCT Any X WITH X BEING ({q})".format(
+                q=" UNION ".join(published_parents_queries)
+            )
+            published_parents = self.cnx.execute(
+                published_parents_query
+                % {"x": parent.eid, "f": ", ".join(cwfiles_eids), "st": "wfs_cmsobject_published"}
+            )
+            if not published_parents:
+                os.remove(published_filepath)
+                removed.append(published_filepath)
 
 
 class FinalDeleteFileOperation(DataOperationMixIn, LateOperation):
@@ -80,12 +172,22 @@ class FinalDeleteFileOperation(DataOperationMixIn, LateOperation):
         for data in self.get_data():
             fpaths[data[0]].add(data[1])
         deleted = fpaths["deleted"].difference(fpaths["added"])
+        pub_appfiles_dir = self.cnx.vreg.config.get("published-appfiles-dir")
+        # thoses CWFiles have been deleted. Try to remove the fs stored files
         for filepath in deleted:
-            assert isinstance(filepath, str)  # bytes on py2, unicode on py3
+            assert isinstance(filepath, str)
             try:
                 os.unlink(filepath)
             except Exception as ex:
                 self.error("can't remove %s: %s" % (filepath, ex))
+            # try to remove the published file even if the previous deletion fails
+            if pub_appfiles_dir:
+                pub_fpath = osp.join(pub_appfiles_dir, osp.basename(filepath))
+                if osp.exists(pub_fpath):
+                    try:
+                        os.unlink(pub_fpath)
+                    except Exception as ex:
+                        self.error("can't remove published %s: %s" % (filepath, ex))
 
 
 def get_samesas_history(cnx, complete=False):
@@ -183,3 +285,36 @@ def load_leaflet_json(cnx):
         except NoResultError:
             cache = cnx.create_entity("Caches", name=cache_name, instance_type=instance_type)
         cache.cw_set(values=json_data[instance_type])
+
+
+class ForbiddenPublishedTransition(Exception):
+    """Asked Transaction can not be fired"""
+
+    def __init__(self, cnx, msg):
+        super(ForbiddenPublishedTransition, self).__init__({cnx._("Impossible to publish"): msg})
+
+
+class VarnishPurgeMixin(object):
+    def purge_varnish(self, urls):
+        config = self._cw.vreg.config
+        if not config.get("varnishcli-hosts"):
+            return
+        purge_cmd = "ban req.url ~"
+        cnxs = varnish_cli_connect_from_config(config)
+        for url in urls:
+            for varnish_cli in cnxs:
+                varnish_cli.execute(purge_cmd, "^%s" % urllib.parse.urlparse(url).path)
+        for varnish_cli in cnxs:
+            varnish_cli.close()
+
+
+def update_suggest_es(cnx, entities):
+    if cnx.vreg.config.mode == "test":
+        return
+    service = cnx.vreg["services"].select("reindex-suggest", cnx)
+    try:
+        service.index_authorities(entities)
+    except Exception:
+        import traceback
+
+        traceback.print_exc()

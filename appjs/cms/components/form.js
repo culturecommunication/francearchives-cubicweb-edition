@@ -28,21 +28,25 @@
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-const {createElement: ce} = require('react');
-
-
+const {createElement: ce} = require('react')
 
 function ErrorListField({errors = []}) {
     if (errors.length === 0) {
-        return null;
+        return null
     }
-    return ce('div', null,
-              ce('p', null),
-              ce('ul', {className: "error-detail bs-callout bs-callout-info"},
-                 errors.map((e, i) => ce(
-                     'li', {className: 'text-danger', key: i}, e))));
+    return ce(
+        'div',
+        null,
+        ce('p', null),
+        ce(
+            'ul',
+            {className: 'error-detail bs-callout bs-callout-info'},
+            errors.map((e, i) =>
+                ce('li', {className: 'text-danger', key: i}, e),
+            ),
+        ),
+    )
 }
-
 
 function CustomFieldTemplate(props) {
     const {
@@ -57,16 +61,25 @@ function CustomFieldTemplate(props) {
         children,
         displayLabel,
         serverErrors,
-    } = props;
+    } = props
     if (hidden) {
-        return children;
+        return children
     }
-    const errors = ce(ErrorListField, {errors: rawErrors.concat(serverErrors)});
-    return ce('div', {className: classNames + (serverErrors.length ? ' has-error' : '')},
-              displayLabel ? ce('label',  {className: 'control-label', htmlFor: id}, `${label} ${required ? "*" : ''}`) : null,
-              displayLabel && description ? description : null,
-              children,
-              errors,
-              help);
+    const errors = ce(ErrorListField, {errors: rawErrors.concat(serverErrors)})
+    return ce(
+        'div',
+        {className: classNames + (serverErrors.length ? ' has-error' : '')},
+        displayLabel
+            ? ce(
+                  'label',
+                  {className: 'control-label', htmlFor: id},
+                  `${label} ${required ? '*' : ''}`,
+              )
+            : null,
+        displayLabel && description ? description : null,
+        children,
+        errors,
+        help,
+    )
 }
-exports.CustomFieldTemplate = CustomFieldTemplate;
+exports.CustomFieldTemplate = CustomFieldTemplate

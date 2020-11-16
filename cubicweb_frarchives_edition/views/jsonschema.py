@@ -31,10 +31,9 @@
 """cubicweb-frarchives_edition JSON schema configuration (incl. uicfg)."""
 
 from cubicweb_francearchives.schema.cms import CMS_OBJECTS
+from cubicweb_francearchives import CMS_I18N_OBJECTS
 from cubicweb_jsonschema.views import jsonschema_section
 
-
-jsonschema_section.tag_subject_of(("FAFileImport", "imported_findingaid", "*"), "hidden")
 
 jsonschema_section.tag_object_of(("*", "imported_findingaid", "FindingAid"), "hidden")
 jsonschema_section.tag_subject_of(("FindingAid", "findingaid_support", "*"), "inlined")
@@ -77,26 +76,33 @@ jsonschema_section.tag_object_of(("*", "output_file", "*"), "hidden")
 
 jsonschema_section.tag_subject_of(("Service", "service_social_network", "*"), "inlined")
 
-for subj in CMS_OBJECTS + (
-    "Metadata",
-    "Link",
-    "File",
-    "CommemoDate",
-    "Image",
-    "CssImage",
-    "Category",
-    "Circular",
-    "OfficialText",
-    "Service",
-    "SocialNetwork",
-    "Map",
+for subj in (
+    CMS_OBJECTS
+    + CMS_I18N_OBJECTS
+    + (
+        "Metadata",
+        "Link",
+        "File",
+        "CommemoDate",
+        "Image",
+        "CssImage",
+        "Category",
+        "Circular",
+        "OfficialText",
+        "Service",
+        "SocialNetwork",
+        "Map",
+    )
 ):
     jsonschema_section.tag_subject_of((subj, "uuid", "*"), "hidden")
 
+for subj in CMS_I18N_OBJECTS:
+    jsonschema_section.tag_subject_of((subj, "translation_of", "*"), "hidden")
 
 jsonschema_section.tag_subject_of(("BaseContent", "description", "*"), "hidden")
 jsonschema_section.tag_subject_of(("BaseContent", "keywords", "*"), "hidden")
 jsonschema_section.tag_subject_of(("BaseContent", "basecontent_service", "*"), "inlined")
+jsonschema_section.tag_object_of(("*", "children", "*"), "hidden")
 
 jsonschema_section.tag_subject_of(("CommemorationItem", "collection_top", "*"), "hidden")
 
@@ -117,3 +123,9 @@ jsonschema_section.tag_subject_of(("Card", "wikiid", "*"), "hidden")
 jsonschema_section.tag_subject_of(("RqTask", "output_descr", "*"), "hidden")
 jsonschema_section.tag_subject_of(("Circular", "json_values", "*"), "hidden")
 jsonschema_section.tag_subject_of(("AuthorityRecord", "maintainer", "Service"), "hidden")
+
+for attr in ("birthyear", "deathyear"):
+    jsonschema_section.tag_subject_of(("AgentAuthority", attr, "*"), "hidden")
+
+for attr in ("sort_letter", "anchor"):
+    jsonschema_section.tag_subject_of(("GlossaryTerm", attr, "*"), "hidden")

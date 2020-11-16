@@ -84,3 +84,28 @@ class CircularDataOperation(hook.DataOperationMixIn, hook.SingleLastOperation):
             entity = cnx.entity_from_eid(eid)
             with cnx.allow_all_hooks_but("circular-csv"):
                 entity.cw_set(json_values=entity.values_as_json)
+
+
+class CircularUpdateIndexSuggest(hook.Hook):
+    __regid__ = "francearchives.circular-index-suggest"
+    __select__ = hook.Hook.__select__ & hook.match_rtype(
+        "business_field",
+        "historical_context",
+        "document_type",
+        "action",
+    )
+    events = ("after_add_relation", "after_delete_relation")
+
+    def __call__(self):
+        CircularUpdateIndexSuggestOperation.get_instance(self._cw).add_data(self.eidto)
+
+
+class CircularUpdateIndexSuggestOperation(hook.DataOperationMixIn, hook.Operation):
+    def postcommit_event(self):
+        for eidto in self.get_data():
+            subject_authorities = self.cnx.execute(
+                "DISTINCT Any X WHERE X same_as C, C eid %(eid)s", {"eid": eidto}
+            ).entities()
+            self.cnx.vreg["services"].select("reindex-suggest", self.cnx).index_authorities(
+                subject_authorities
+            )

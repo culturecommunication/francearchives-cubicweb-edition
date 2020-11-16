@@ -27,10 +27,8 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-const {connect} = require('react-redux');
+const {connect} = require('react-redux')
 const FaImport = require('../components/faimport'),
-      {showPanel} = require('../actions');
+    {showPanel} = require('../actions')
 
-module.exports.FaImport = connect(
-    null, {forceShowPanel: showPanel}
-)(FaImport);
+module.exports.FaImport = connect(null, {forceShowPanel: showPanel})(FaImport)

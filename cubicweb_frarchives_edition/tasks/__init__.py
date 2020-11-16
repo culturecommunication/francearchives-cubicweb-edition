@@ -43,3 +43,5 @@ from .group_authorities import compute_location_authorities_to_group  # noqa
 from .group_authorities import group_location_authorities  # noqa
 from .import_authorities import import_authorities  # noqa
 from .delete_findingaids import delete_findingaids  # noqa
+from .run_dead_links import run_dead_links  # noqa
+from .index_kibana import index_kibana  # noqa

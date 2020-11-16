@@ -104,7 +104,7 @@ def check_zipfiles(zipf, service):
 
 
 def process_faimport_zip(cnx, fileobj):
-    """ the zip file may contain :
+    """the zip file may contain :
     <code_service directory>
     |__<code_service>_XXX.xml
     |__<code_service>_XXX.xml
@@ -190,7 +190,7 @@ def check_csv_zipfiles(zf):
 
 
 def process_csvimport_zip(cnx, fileobj):
-    """ the zip file may contain :
+    """the zip file may contain :
     <directory>
     |__data1.csv
     |__....csv

@@ -27,33 +27,31 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-'use strict';
+'use strict'
 
 const actionTypes = {
     SHOW_PANEL: 'SHOW_PANEL',
     TOGGLE_PANEL: 'TOGGLE_PANEL',
     SHOW_ERRORS: 'SHOW_ERRORS',
-};
-
+}
 
 function showErrors(data) {
     return {
         type: actionTypes.SHOW_ERRORS,
         payload: data,
-    };
+    }
 }
-
 
 function showPanel() {
     return {
         type: actionTypes.SHOW_PANEL,
-    };
+    }
 }
 
 function togglePanel() {
     return {
         type: actionTypes.TOGGLE_PANEL,
-    };
+    }
 }
 
 module.exports = {
@@ -61,4 +59,4 @@ module.exports = {
     showPanel,
     actionTypes,
     showErrors,
-};
+}

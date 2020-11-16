@@ -27,20 +27,78 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-const {createElement: ce} = require('react');
+const {Component, createElement: ce} = require('react'),
+    PropTypes = require('prop-types')
 
-const {icon} = require('./fa');
+const {icon} = require('./fa')
 
-
-exports.AlertError = function AlertError({errors, onClose}) {
+function AlertError({errors, onClose}) {
     if (errors && errors.length) {
-        return ce('div', {className: 'alert alert-danger'},
-                  ce(icon, {name: 'times', className: 'fa-scale pointer',
-                            onClick: onClose}),
-                  ce('ul', {className: 'list-unstyled'},
-                     ...errors.map(err => ce('li', {}, err.details)))
-                );
+        return ce(
+            'div',
+            {className: 'alert alert-danger'},
+            ce(icon, {
+                name: 'times',
+                className: 'fa-scale pointer',
+                onClick: onClose,
+            }),
+            ce(
+                'ul',
+                {className: 'list-unstyled'},
+                ...errors.map(err => ce('li', {}, err.details)),
+            ),
+        )
     } else {
-        return ce('div', null);
+        return ce('div', null)
     }
-};
+}
+
+class Alert extends Component {
+    constructor(props, ctx) {
+        super(props, ctx)
+        this.state = {show: true}
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps !== this.props) {
+            this.setState({show: true})
+        }
+    }
+
+    render() {
+        const {message} = this.props
+        if (!this.state.show || !message) {
+            return null
+        }
+        return ce(
+            'div',
+            null,
+            ce(
+                'div',
+                {
+                    key: 0,
+                    className: `alert alert-${message.type} alert-dismissible`,
+                },
+                ce('strong', {}, message.text),
+                ce(
+                    'button',
+                    {
+                        type: 'button',
+                        onClick: () => this.setState({show: false}),
+                        className: 'close',
+                    },
+                    ce('span', {}, 'x'),
+                ),
+            ),
+        )
+    }
+}
+
+Alert.propTypes = {
+    message: PropTypes.object.isRequired,
+}
+
+module.exports = {
+    Alert,
+    AlertError,
+}

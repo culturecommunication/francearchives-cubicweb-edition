@@ -31,7 +31,6 @@
 from inspect import isclass
 from copy import copy
 
-import urllib.parse
 from elasticsearch import helpers as es_helpers
 
 from logilab.common.decorators import cachedproperty
@@ -42,10 +41,12 @@ from cubicweb.server import Service
 
 from cubicweb_elasticsearch.es import get_connection
 
-from cubicweb_varnish.varnishadm import varnish_cli_connect_from_config
+from cubicweb_francearchives import CMS_I18N_OBJECTS
 
 from cubicweb_francearchives.entities import sync as fa_sync
 from cubicweb_francearchives.dataimport import es_bulk_index
+
+from cubicweb_frarchives_edition import VarnishPurgeMixin
 
 
 def set_selectable_if_published(adapter):
@@ -55,7 +56,7 @@ def set_selectable_if_published(adapter):
     )
 
 
-class SyncService(Service):
+class SyncService(VarnishPurgeMixin, Service):
     __regid__ = "sync"  # XXX
 
     @cachedproperty
@@ -73,12 +74,48 @@ class SyncService(Service):
         }
 
     @cachedproperty
+    def kibana_ir_es_params(self):
+        """kibana index for published FindingAids and FAComponents"""
+        return {
+            "elasticsearch-locations": self._cw.vreg.config["elasticsearch-locations"],
+            "index-name": self._cw.vreg.config["kibana-ir-index-name"],
+        }
+
+    @cachedproperty
+    def kibana_services_es_params(self):
+        """kibana index for published FindingAids and FAComponents"""
+        return {
+            "elasticsearch-locations": self._cw.vreg.config["elasticsearch-locations"],
+            "index-name": self._cw.vreg.config["kibana-services-index-name"],
+        }
+
+    @cachedproperty
     def cms_index_name(self):
         return self.cms_es_params["index-name"] + "_all"
 
     @cachedproperty
     def public_index_name(self):
         return self.public_es_params["index-name"] + "_all"
+
+    @cachedproperty
+    def kibana_ir_index_name(self):
+        if self._cw.vreg.config["enable-kibana-indexes"]:
+            return self.kibana_ir_es_params["index-name"]
+
+    @cachedproperty
+    def kibana_services_index_name(self):
+        if self._cw.vreg.config["enable-kibana-indexes"]:
+            return self.kibana_services_es_params["index-name"]
+
+    @staticmethod
+    def published_entity(entity):
+        # if entity is FAComponent, rely on its parent's state
+        if entity.cw_etype == "FAComponent":
+            entity = entity.finding_aid[0]
+        wf = entity.cw_adapt_to("IWorkflowable")
+        if wf is None:
+            return True
+        return wf.state == "wfs_cmsobject_published"
 
     def sync(self, sync_operations):
         urls_to_purge = []
@@ -99,37 +136,37 @@ class SyncService(Service):
                 traceback.print_exc()
         self.purge_varnish(urls_to_purge)
 
-    def purge_varnish(self, urls):
-        config = self._cw.vreg.config
-        if not config.get("varnishcli-hosts"):
-            return
-        purge_cmd = "ban req.url ~"
-        cnxs = varnish_cli_connect_from_config(config)
-        for url in urls:
-            for varnish_cli in cnxs:
-                varnish_cli.execute(purge_cmd, "^%s" % urllib.parse.urlparse(url).path)
-        for varnish_cli in cnxs:
-            varnish_cli.close()
-
     def es_sync_index(self, entity):
         if not self.cms_es_params.get("elasticsearch-locations"):
             self.error('no "elasticsearch-locations" config found')
             return
         es = get_connection(self.cms_es_params)
         if entity.cw_etype == "FindingAid":
-            es_helpers.reindex(
-                es,
-                source_index=self.cms_index_name,
-                target_index=self.public_index_name,
-                query={"query": {"match": {"fa_stable_id": entity.stable_id}}},
-            )
+            for index_name in self.public_index_name, self.kibana_ir_index_name:
+                if index_name:
+                    es_helpers.reindex(
+                        es,
+                        source_index=self.cms_index_name,
+                        target_index=index_name,
+                        query={"query": {"match": {"fa_stable_id": entity.stable_id}}},
+                    )
         else:
-            es_helpers.reindex(
-                es,
-                source_index=self.cms_index_name,
-                target_index=self.public_index_name,
-                query={"query": {"match": {"eid": entity.eid}}},
-            )
+            if entity.cw_etype in CMS_I18N_OBJECTS:
+                self.sync_translatables(es, entity)
+            else:
+                es_helpers.reindex(
+                    es,
+                    source_index=self.cms_index_name,
+                    target_index=self.public_index_name,
+                    query={"query": {"match": {"eid": entity.eid}}},
+                )
+                if entity.cw_etype == "Service" and self.kibana_services_index_name:
+                    es_helpers.reindex(
+                        es,
+                        source_index=self.cms_index_name,
+                        target_index=self.kibana_services_index_name,
+                        query={"query": {"match": {"eid": entity.eid}}},
+                    )
 
     def fs_sync_index(self, entity):
         ifilesync = entity.cw_adapt_to("IFileSync")
@@ -152,6 +189,20 @@ class SyncService(Service):
                 "_id": doc["_id"],
             }
 
+    def sync_translatables(self, es, entity):
+        if self.published_entity(entity.original_entity):
+            adaptor = entity.original_entity.cw_adapt_to("IFullTextIndexSerializable")
+            docs = [
+                {
+                    "_op_type": "index",
+                    "_index": self.public_index_name,
+                    "_type": "_doc",
+                    "_id": adaptor.es_id,
+                    "_source": adaptor.serialize(published=True),
+                }
+            ]
+            es_bulk_index(es, docs, raise_on_error=False)
+
     def es_sync_delete(self, entity):
         if not self.cms_es_params.get("elasticsearch-locations"):
             self.error('no "elasticsearch-locations" config found')
@@ -159,12 +210,23 @@ class SyncService(Service):
         es = get_connection(self.cms_es_params)
         serializable = entity.cw_adapt_to("IFullTextIndexSerializable")
         if entity.cw_etype == "FindingAid":
-            es_docs = self._delete_fa_documents(es, self.public_index_name, entity.stable_id)
-            es_bulk_index(es, es_docs, raise_on_error=False)
+            for index_name in self.public_index_name, self.kibana_ir_index_name:
+                if index_name:
+                    es_docs = self._delete_fa_documents(es, index_name, entity.stable_id)
+                    es_bulk_index(es, es_docs, raise_on_error=False)
         else:
-            es.delete(
-                self.public_index_name, doc_type=serializable.es_doc_type, id=serializable.es_id
-            )
+            if entity.cw_etype in CMS_I18N_OBJECTS:
+                self.sync_translatables(es, entity)
+            else:
+                es.delete(
+                    self.public_index_name, doc_type=serializable.es_doc_type, id=serializable.es_id
+                )
+                if entity.cw_etype == "Service" and self.kibana_services_es_params:
+                    es.delete(
+                        self.kibana_services_index_name,
+                        doc_type=serializable.es_doc_type,
+                        id=serializable.es_id,
+                    )
 
     def fs_sync_delete(self, entity):
         ifilesync = entity.cw_adapt_to("IFileSync")

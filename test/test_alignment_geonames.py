@@ -1043,7 +1043,9 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
         with patch("random.randint", lambda a, b: (a + b) // 2):
             minlsh = Minlsh()
             sentences = (refset[0][0], targetset[0][0])
-            minlsh.train((simplify(s, remove_stopwords=True) for s in sentences),)
+            minlsh.train(
+                (simplify(s, remove_stopwords=True) for s in sentences),
+            )
             self.assertEqual(set([]), minlsh.predict(0.1))
             self.assertEqual(set([]), minlsh.predict(0.4))
 
@@ -1059,8 +1061,48 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
         with patch("random.randint", lambda a, b: (a + b) // 2):
             minlsh = Minlsh()
             sentences = (refset[0][0], targetset[0][0])
-            minlsh.train((simplify(s, remove_stopwords=True) for s in sentences),)
+            minlsh.train(
+                (simplify(s, remove_stopwords=True) for s in sentences),
+            )
             self.assertEqual(set([(0, 1)]), minlsh.predict(0.4))
+
+    def test_suppression_remove_localization(self):
+        """
+        The alignment has been launched automatically.
+
+        Trying: delete the existing alignment
+        Expecting : localisation info is delete on the corresponding Location
+        """
+        with self.admin_access.cnx() as cnx:
+            geoname_uri = "http://www.geonames.org/2972328"
+            cnx.system_sql(
+                """UPDATE geonames SET latitude=43.12,longitude=5.93
+                WHERE geonameid=2972328"""
+            )
+            cnx.commit()
+            toulon = cnx.create_entity(
+                "ExternalUri", label="Toulon (Var, France)", uri=geoname_uri, extid="2972328"
+            )
+            loc = cnx.create_entity("LocationAuthority", label="Toulon", same_as=toulon)
+            fa = cnx.find("FindingAid", name="FRAD_XXX").one()
+            geogname = cnx.create_entity("Geogname", label="Toulon", index=fa, authority=loc)
+            cnx.commit()
+            loc = cnx.find("LocationAuthority", eid=loc.eid).one()
+            self.assertTrue(loc.same_as)
+            self.assertEqual(43.12, loc.latitude)
+            self.assertEqual(5.93, loc.longitude)
+            # remove the alignement
+            # delete the existing same_as
+            aligner = geonames_align.GeonameAligner(cnx)
+            key = (loc.eid, geoname_uri)
+            record = self.build_record(geogname, loc, geoname_uri, "n")
+            to_remove_alignment = {key: record}
+            aligner.process_alignments({}, to_remove_alignment, override_alignments=True)
+            loc = cnx.find("LocationAuthority", eid=loc.eid).one()
+            self.assertFalse(loc.same_as)
+            self.assertFalse(loc.same_as)
+            self.assertFalse(loc.latitude)
+            self.assertFalse(loc.longitude)
 
     def setup_process_alignments(self, cnx, geoname_uri):
         paris = cnx.create_entity(
@@ -1097,7 +1139,10 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
             geoname_uri = "http://www.geonames.org/2988507"
             fa, loc, geogname = self.setup_process_alignments(cnx, geoname_uri)
             self.assertEqual(
-                [(geoname_uri, loc.eid, True),], get_samesas_history(cnx, complete=True)
+                [
+                    (geoname_uri, loc.eid, True),
+                ],
+                get_samesas_history(cnx, complete=True),
             )
             record = self.build_record(geogname, loc, geoname_uri, "n")
             key = (loc.eid, geoname_uri)
@@ -1115,7 +1160,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
             )
             cnx.commit()
             record = self.build_record(geogname, locationauthority, geoname_uri, "y")
-            key = (locationauthority.label, geoname_uri)
+            key = (locationauthority.eid, geoname_uri)
             new_alignment = {key: record}
             record = self.build_record(geogname, locationauthority, geoname_uri, "n")
             to_remove_alignment = {key: record}
@@ -1138,7 +1183,10 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
             fa, loc, geogname = self.setup_process_alignments(cnx, geoname_uri)
             cnx.commit()
             self.assertEqual(
-                [(geoname_uri, loc.eid, True),], get_samesas_history(cnx, complete=True)
+                [
+                    (geoname_uri, loc.eid, True),
+                ],
+                get_samesas_history(cnx, complete=True),
             )
             record = self.build_record(geogname, loc, geoname_uri, "n")
             key = (loc.eid, geoname_uri)
@@ -1168,7 +1216,10 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
             loc.cw_set(same_as=None)
             cnx.commit()
             self.assertEqual(
-                [(geoname_uri, loc.eid, False),], get_samesas_history(cnx, complete=True)
+                [
+                    (geoname_uri, loc.eid, False),
+                ],
+                get_samesas_history(cnx, complete=True),
             )
             loc = cnx.find("LocationAuthority", eid=loc.eid).one()
             self.assertFalse(loc.same_as)
@@ -1197,7 +1248,10 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
             loc.cw_set(same_as=None)
             cnx.commit()
             self.assertEqual(
-                [(geoname_uri, loc.eid, False),], get_samesas_history(cnx, complete=True)
+                [
+                    (geoname_uri, loc.eid, False),
+                ],
+                get_samesas_history(cnx, complete=True),
             )
             loc = cnx.find("LocationAuthority", eid=loc.eid).one()
             self.assertFalse(loc.same_as)
@@ -1226,7 +1280,9 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
             self.assertEqual(locationauthority.longitude, 0.0)
 
             self.assertEqual(
-                [(geoname_uri, locationauthority.eid, True),],
+                [
+                    (geoname_uri, locationauthority.eid, True),
+                ],
                 get_samesas_history(cnx, complete=True),
             )
             record = self.build_record(geogname, locationauthority, geoname_uri, "y")
@@ -1252,7 +1308,9 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
             self.assertEqual(locationauthority.longitude, 0.0)
 
             self.assertEqual(
-                [(geoname_uri, locationauthority.eid, True),],
+                [
+                    (geoname_uri, locationauthority.eid, True),
+                ],
                 get_samesas_history(cnx, complete=True),
             )
             record = self.build_record(geogname, locationauthority, geoname_uri, "y")

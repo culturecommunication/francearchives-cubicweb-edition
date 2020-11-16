@@ -28,15 +28,10 @@
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 
+const {connect} = require('react-redux')
 
-const {connect} = require('react-redux');
+const OnHomePageIcon = require('../components/on-homepage')
 
-
-const OnHomePageIcon = require('../components/on-homepage');
-
-
-module.exports = connect(
-    function mapStateToProps(state) {
-        return {entity: state.getIn(['model', 'entity'])};
-    }
-)(OnHomePageIcon);
+module.exports = connect(function mapStateToProps(state) {
+    return {entity: state.getIn(['model', 'entity'])}
+})(OnHomePageIcon)

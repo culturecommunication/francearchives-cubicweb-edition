@@ -28,60 +28,71 @@
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-const React  = require('react');
-const {Component} = require('react');
-const PropTypes = require('prop-types');
+const React = require('react')
+const {Component} = require('react')
+const PropTypes = require('prop-types')
 
 const {spinner: Spinner} = require('./fa'),
-      BootstrapTable = require('react-bootstrap-table-next').default;
+    BootstrapTable = require('react-bootstrap-table-next').default
 
-const {default: ToolkitProvider, Search, CSVExport} = require('react-bootstrap-table2-toolkit');
-const {default: paginationFactory, PaginationProvider,
-       PaginationTotalStandalone} = require('react-bootstrap-table2-paginator');
+const {
+    default: ToolkitProvider,
+    Search,
+    CSVExport,
+} = require('react-bootstrap-table2-toolkit')
+const {
+    default: paginationFactory,
+    PaginationProvider,
+    PaginationTotalStandalone,
+} = require('react-bootstrap-table2-paginator')
 
-const filterFactory = require('react-bootstrap-table2-filter').default;
-const {selectFilter} = require('react-bootstrap-table2-filter');
+const filterFactory = require('react-bootstrap-table2-filter').default
+const {selectFilter} = require('react-bootstrap-table2-filter')
 
-const Moment = require('moment');
-Moment.locale('fr');
+const Moment = require('moment')
+Moment.locale('fr')
 
-const {default: {
-    jsonFetch,
-}} = require('../api');
+const {
+    default: {jsonFetch},
+} = require('../api')
 
-const {default: Select} = require('react-select');
+const {default: Select} = require('react-select')
 
 function linkFormatter(cell) {
     return (
         <a href={cell[1]} _target="blank">
             {cell[0]}
         </a>
-    );
+    )
 }
 
 function dateTimeFormatter(date) {
-    const mdate = Moment(date);
+    const mdate = Moment(date)
     if (mdate && mdate._isValid) {
-        return Moment(mdate).format('DD/MM/YYYY à hh:mm'); // '14/10/2019 à 07:01'
+        return Moment(mdate).format('DD/MM/YYYY à hh:mm') // '14/10/2019 à 07:01'
     }
-    return date;
+    return date
 }
 
 function csvDateTimeFormatter(cell) {
-    return dateTimeFormatter(cell);
+    return dateTimeFormatter(cell)
 }
 
-function SelectService({onChange, options, selectedOption}) {
+function SelectService({onChange, options}) {
     return (
         <div>
             <div className="field-title">Sélectionnez un service :</div>
-            <Select options={options}
-                value={selectedOption}
+            <Select
+                options={options}
+                isMulti={false}
+                isClearable={true}
+                isSearchable={true}
                 placeholder="Sélectionnez un service"
+                noOptionsMessage={() => 'aucun serivce trouvé'}
                 onChange={ev => onChange(ev)}
-             />
-            </div>
-    );
+            />
+        </div>
+    )
 }
 SelectService.propTypes = {
     onChange: PropTypes.func.isRequired,
@@ -89,117 +100,131 @@ SelectService.propTypes = {
         PropTypes.shape({
             value: PropTypes.string.isRequired,
             label: PropTypes.string.isRequired,
-        })
-    ).isRequired,
-    selectedOption: PropTypes.shape({
-            value: PropTypes.string.isRequired,
-            label: PropTypes.string.isRequired,
         }),
+    ).isRequired,
 }
-
 
 class FAMonitoringBord extends Component {
     constructor(props, ctx) {
-        super(props, ctx);
-        this.state = {data: null, selectedService: null, options: null};
-        this.updateSelectedService = this.updateSelectedService.bind(this);
-        this.displayBoostrapTable = this.displayBoostrapTable.bind(this);
+        super(props, ctx)
+        this.state = {data: null, selectedService: null, options: null}
+        this.updateSelectedService = this.updateSelectedService.bind(this)
+        this.displayBoostrapTable = this.displayBoostrapTable.bind(this)
     }
 
     componentDidMount() {
         jsonFetch('/faservices').then(services => {
-            const options = services.map(
-                s => ({value: s.code, label: s.name}));
-            this.setState({options});
-        });
+            const options = services.map(s => ({value: s.code, label: s.name}))
+            this.setState({options})
+        })
     }
 
     updateSelectedService(option) {
-        this.setState({data: null, selectedService: option});
+        this.setState({data: null, selectedService: option})
         if (option !== null) {
-            jsonFetch('/faforservice?service=' + option.value)
-                .then((data) => this.setState({data}));
-       }
+            jsonFetch('/faforservice?service=' + option.value).then(data =>
+                this.setState({data}),
+            )
+        }
     }
 
     displayBoostrapTable() {
-        const {selectedService, data} = this.state;
+        const {selectedService, data} = this.state
         // pagination
         const customTotal = (from, to, size) => (
-            <span className="react-bootstrap-table-pagination-total">
-                Résultats { from } à { to } sur { size }
-            </span>
-           ),
-           paginationOptions = {
-            paginationSize: 10,
-            pageStartIndex: 1,
-            // alwaysShowAllBtns: true, // Always show next and previous button
-            // withFirstAndLast: false, // Hide the going to First and Last page button
-            // hideSizePerPage: true, // Hide the sizePerPage dropdown always
-            // hidePageListOnlyOnePage: true, // Hide the pagination list when only one page
-            paginationTotalRenderer: customTotal,
-            showTotal: true,
-            sizePerPageList: [{
-                text: '10', value: 10,
-            }, {
-                text: '20', value: 20,
-            }, {
-                text: '30', value: 30,
-            },  {
-                text: '40', value: 40,
-            },{
-                text: 'Tout', value: data.length,
-            }], // A numeric array is also available. the purpose of above example is custom the text
-        };
+                <span className="react-bootstrap-table-pagination-total">
+                    Résultats {from} à {to} sur {size}
+                </span>
+            ),
+            paginationOptions = {
+                paginationSize: 10,
+                pageStartIndex: 1,
+                // alwaysShowAllBtns: true, // Always show next and previous button
+                // withFirstAndLast: false, // Hide the going to First and Last page button
+                // hideSizePerPage: true, // Hide the sizePerPage dropdown always
+                // hidePageListOnlyOnePage: true, // Hide the pagination list when only one page
+                paginationTotalRenderer: customTotal,
+                showTotal: true,
+                sizePerPageList: [
+                    {
+                        text: '10',
+                        value: 10,
+                    },
+                    {
+                        text: '20',
+                        value: 20,
+                    },
+                    {
+                        text: '30',
+                        value: 30,
+                    },
+                    {
+                        text: '40',
+                        value: 40,
+                    },
+                    {
+                        text: 'Tout',
+                        value: data.length,
+                    },
+                ], // A numeric array is also available. the purpose of above example is custom the text
+            }
         const standaloneTotal = (from, to, size) => (
             <div className="field-title">
-                {size < 2 ? `${size} instrument de recherche trouvé` : `${size} instruments de recherche trouvés`}
+                {size < 2
+                    ? `${size} instrument de recherche trouvé`
+                    : `${size} instruments de recherche trouvés`}
             </div>
-           );
+        )
         // search
-        const {SearchBar} = Search;
+        const {SearchBar} = Search
         const statusSelectOptions = {
-            "brouillon": "brouillon",
-            "publié": "publié",
-        };
+            brouillon: 'brouillon',
+            publié: 'publié',
+        }
         const importSelectOptions = {
-            "ZIP": "ZIP",
-            "OAI": "OAI",
-        };
+            ZIP: 'ZIP',
+            OAI: 'OAI',
+        }
         // sort
-        const defaultSorted = [{
-            dataField: 'creation_date',
-            order: 'desc',
-        }];
-        const {ExportCSVButton} = CSVExport;
+        const defaultSorted = [
+            {
+                dataField: 'creation_date',
+                order: 'desc',
+            },
+        ]
+        const {ExportCSVButton} = CSVExport
         const columns = [
             {
-                dataField: "eid",
-                text: "",
+                dataField: 'eid',
+                text: '',
                 hidden: true,
                 searchable: false,
                 csvExport: false,
             },
             {
-                dataField: "url",
-                text: "EADID",
+                dataField: 'url',
+                text: 'EADID',
                 formatter: linkFormatter,
-                csvFormatter: (cell) => `${cell[0]}`,
+                csvFormatter: cell => `${cell[0]}`,
                 sort: true,
-            },{
-                dataField: "stable_id",
-                text: "StableId",
+            },
+            {
+                dataField: 'stable_id',
+                text: 'StableId',
                 sort: true,
-            },{
-                dataField: "name",
-                text: "Titre",
+            },
+            {
+                dataField: 'name',
+                text: 'Titre',
                 sort: true,
-            }, {
-                dataField: "filename",
-                text: "Nom du fichier",
-               sort: true,
-            },{
-                dataField: "import",
+            },
+            {
+                dataField: 'filename',
+                text: 'Nom du fichier',
+                sort: true,
+            },
+            {
+                dataField: 'import',
                 text: "Type d'import",
                 sort: true,
                 formatter: cell => importSelectOptions[cell],
@@ -207,93 +232,101 @@ class FAMonitoringBord extends Component {
                     options: importSelectOptions,
                     defaultValue: 0,
                 }),
-            },{
-                dataField: "status",
-                text: "Statut",
+            },
+            {
+                dataField: 'status',
+                text: 'Statut',
                 sort: true,
                 formatter: cell => statusSelectOptions[cell],
                 filter: selectFilter({
                     options: statusSelectOptions,
                     defaultValue: 0,
                 }),
-            },{dataField: "creation_date",
-                text: "Date de création",
+            },
+            {
+                dataField: 'creation_date',
+                text: 'Date de création',
                 formatter: dateTimeFormatter,
                 csvFormatter: csvDateTimeFormatter,
                 sort: true,
-              },
-            {
-                dataField: "url",
-                csvText: "URL",
-                hidden: true,
-                csvFormatter: (cell) => `${cell[1]}`,
             },
+            {
+                dataField: 'url',
+                csvText: 'URL',
+                hidden: true,
+                csvFormatter: cell => `${cell[1]}`,
+            },
+        ]
+        const csvFilename =
+            selectedService.value + '_' + Moment().format('YYYYMMDD') + '.csv'
 
-        ];
-        const csvFilename = selectedService.value +"_"+ Moment().format('YYYYMMDD')+".csv";
-
-        return <PaginationProvider
-            pagination={paginationFactory(paginationOptions)}
-               >
-            { pageprops => (<div>
-                <PaginationTotalStandalone { ...pageprops.paginationProps } paginationTotalRenderer={standaloneTotal}  />
-                 <ToolkitProvider
-                     keyField="tabord"
-                     data={ data }
-                     columns={ columns }
-                     defaultSorted={ defaultSorted }
-                     search
-                     exportCSV={ {
-                         onlyExportFiltered: true,
-                         fileName: csvFilename,
-                         exportAll: false} }
-                     >
-                     {
-                     tkprops => (
-                         <div>
-                             <SearchBar { ...tkprops.searchProps }
-                                 placeholder="rechercher dans les IRs"
-                              />
-                             <hr/>
-                             <ExportCSVButton { ...tkprops.csvProps }>Export CSV</ExportCSVButton>
-                             <hr/>
-                             <BootstrapTable
-                                 { ...tkprops.baseProps }  defaultSorted={ defaultSorted }
-                                 { ...pageprops.paginationTableProps }
-                                 filter={ filterFactory() }
-                             />
-                         </div>
-                         )
-                     }
-                 </ToolkitProvider>
-                </div> )}
-        </PaginationProvider>
-     }
+        return (
+            <PaginationProvider
+                pagination={paginationFactory(paginationOptions)}
+            >
+                {pageprops => (
+                    <div>
+                        <PaginationTotalStandalone
+                            {...pageprops.paginationProps}
+                            paginationTotalRenderer={standaloneTotal}
+                        />
+                        <ToolkitProvider
+                            keyField="tabord"
+                            data={data}
+                            columns={columns}
+                            defaultSorted={defaultSorted}
+                            search
+                            exportCSV={{
+                                onlyExportFiltered: true,
+                                fileName: csvFilename,
+                                exportAll: false,
+                            }}
+                        >
+                            {tkprops => (
+                                <div>
+                                    <SearchBar
+                                        {...tkprops.searchProps}
+                                        placeholder="rechercher dans les IRs"
+                                    />
+                                    <hr />
+                                    <ExportCSVButton {...tkprops.csvProps}>
+                                        Export CSV
+                                    </ExportCSVButton>
+                                    <hr />
+                                    <BootstrapTable
+                                        {...tkprops.baseProps}
+                                        defaultSorted={defaultSorted}
+                                        {...pageprops.paginationTableProps}
+                                        filter={filterFactory()}
+                                    />
+                                </div>
+                            )}
+                        </ToolkitProvider>
+                    </div>
+                )}
+            </PaginationProvider>
+        )
+    }
 
     render() {
-        const {selectedService, options, data} = this.state;
-        let services;
+        const {selectedService, options, data} = this.state
+        let services
         if (options !== null) {
             services = (
                 <SelectService
-                    options={options} onChange={this.updateSelectedService}
-                    selectedOption={selectedService}
+                    options={options}
+                    onChange={this.updateSelectedService}
                 />
             )
         } else {
-            services = <Spinner/>;
+            services = <Spinner />
         }
-        let table = null;
+        let table = null
         if (selectedService !== null) {
             if (data === null) {
-                table = <Spinner/>
-                    }
-            else {
-                table = (
-                    <div>
-                        {this.displayBoostrapTable()}
-                    </div>
-                )
+                table = <Spinner />
+            } else {
+                table = <div>{this.displayBoostrapTable()}</div>
             }
         }
         return (
@@ -302,8 +335,8 @@ class FAMonitoringBord extends Component {
                 <div>{services}</div>
                 {table}
             </div>
-        );
+        )
     }
 }
 
-module.exports = FAMonitoringBord;
+module.exports = FAMonitoringBord

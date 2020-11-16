@@ -39,7 +39,14 @@ class EditionIndexView(PniaIndexView):
 
     def initial_state(self):
         rset = self._cw.find("Section", name="non-repris")
-        return {"model": {"entity": {"cw_etype": "Section", "eid": rset[0][0] if rset else None,}}}
+        return {
+            "model": {
+                "entity": {
+                    "cw_etype": "Section",
+                    "eid": rset[0][0] if rset else None,
+                }
+            }
+        }
 
     def call(self):
         self.w('<link rel="cms-js" url="fa-import">')
@@ -52,6 +59,8 @@ class EditionIndexView(PniaIndexView):
         eschema = self._cw.vreg.schema["CWUser"]
         if eschema.has_perm(self._cw, "add"):
             self.w('<link rel="cms-js" url="add-user">')
+            self.w('<link rel="cms-js" url="add-glossaryterm">')
+            self.w('<link rel="cms-js" url="add-faq">')
         rset = self._cw.execute('Any X WHERE X is Metadata, X uuid "metadata-homepage"')
         if rset:
             self.w('<link rel="cms-js" url="homepage-metadata">')

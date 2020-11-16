@@ -51,7 +51,11 @@ def part_of_setup_published_schema(rtables, sqlschema="published"):
         for col in ("eid_from", "eid_to"):
             sql_parts.append(
                 "create index {rtable}_{col}_idx on "
-                "{schema}.{rtable}({col});".format(schema=sqlschema, rtable=rtable, col=col,)
+                "{schema}.{rtable}({col});".format(
+                    schema=sqlschema,
+                    rtable=rtable,
+                    col=col,
+                )
             )
     sql("\n".join(sql_parts))
 

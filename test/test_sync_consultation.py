@@ -112,6 +112,70 @@ class SyncServiceTC(HashMixIn, EsSerializableMixIn, FrACubicConfigMixIn, CubicWe
             delete.call_args_list[0], self.published_index_name + "_all", id=bc.eid
         )
 
+    @patch("elasticsearch.Elasticsearch.delete")
+    @patch("elasticsearch.helpers.reindex")
+    @patch("elasticsearch.helpers.bulk")
+    @patch("elasticsearch.client.indices.IndicesClient.create")
+    @patch("elasticsearch.client.indices.IndicesClient.exists")
+    @patch("elasticsearch.client.Elasticsearch.index")
+    def test_publish_and_unpublish_sectiontranslation(
+        self, index, exists, create, bulk, reindex, delete
+    ):
+        with self.admin_access.cnx() as cnx:
+            section = cnx.create_entity("Section", title="titre", content="contenu")
+            cnx.commit()
+            wf = section.cw_adapt_to("IWorkflowable")
+            self.assertEqual(wf.state, "wfs_cmsobject_draft")
+            wf.fire_transition("wft_cmsobject_publish")
+            self.assertFalse(reindex.called)
+            cnx.commit()
+            en = cnx.create_entity(
+                "SectionTranslation",
+                language="en",
+                title="title",
+                translation_of=section,
+            )
+            cnx.commit()
+            wf = en.cw_adapt_to("IWorkflowable")
+            self.assertEqual(wf.state, "wfs_cmsobject_draft")
+            wf.fire_transition("wft_cmsobject_publish")
+            self.assertTrue(reindex.called)
+            cnx.commit()
+        actions = list(bulk.call_args_list[0][0][1])
+        self.assertEqual(len(actions), 1)
+        action = actions[0]
+        for got, expected in (
+            (action["_id"], section.eid),
+            (action["_op_type"], "index"),
+            (action["_index"], self.published_index_name + "_all"),
+            (action["_source"]["title_en"], en.title),
+        ):
+            self.assertEqual(expected, got)
+        bulk.reset_mock()
+        self.assertCalledWith(
+            reindex.call_args_list[0],
+            source_index=self.index_name + "_all",
+            target_index=self.published_index_name + "_all",
+            query={"query": {"match": {"eid": section.eid}}},
+        )
+        with self.admin_access.cnx() as cnx:
+            en = cnx.entity_from_eid(en.eid)
+            wf = en.cw_adapt_to("IWorkflowable")
+            wf.fire_transition("wft_cmsobject_unpublish")
+            self.assertFalse(delete.called)
+            cnx.commit()
+        self.assertEqual(len(bulk.call_args_list), 1)
+        actions = list(bulk.call_args_list[0][0][1])
+        self.assertEqual(len(actions), 1)
+        action = actions[0]
+        for got, expected in (
+            (action["_id"], section.eid),
+            (action["_op_type"], "index"),
+            (action["_index"], self.published_index_name + "_all"),
+        ):
+            self.assertEqual(expected, got)
+        self.assertNotIn("title_en", action["_source"])
+
     @patch("elasticsearch.helpers.scan", return_value=[{"_type": "FindingAid", "_id": 0}])
     @patch("elasticsearch.helpers.reindex")
     @patch("elasticsearch.helpers.bulk")
@@ -136,32 +200,42 @@ class SyncServiceTC(HashMixIn, EsSerializableMixIn, FrACubicConfigMixIn, CubicWe
             wf.fire_transition("wft_cmsobject_publish")
             self.assertFalse(reindex.called)
             cnx.commit()
-        self.assertEqual(len(reindex.call_args_list), 1)
-        self.assertCalledWith(
-            reindex.call_args_list[0],
-            source_index=self.index_name + "_all",
-            target_index=self.published_index_name + "_all",
-            query={"query": {"match": {"fa_stable_id": fa.stable_id}}},
-        )
+        self.assertEqual(len(reindex.call_args_list), 2)
+        calls = {}
+        for call in reindex.call_args_list:
+            calledargs, calledkwargs = call
+            calls[calledkwargs["target_index"]] = call
+        published_index_name = self.published_index_name + "_all"
+        for index_name in (self.kibana_ir_index_name, published_index_name):
+            self.assertCalledWith(
+                calls[index_name],
+                source_index=self.index_name + "_all",
+                target_index=index_name,
+                query={"query": {"match": {"fa_stable_id": fa.stable_id}}},
+            )
         with self.admin_access.cnx() as cnx:
             fa = cnx.entity_from_eid(fa.eid)
             wf = fa.cw_adapt_to("IWorkflowable")
             wf.fire_transition("wft_cmsobject_unpublish")
             bulk.reset_mock()
             cnx.commit()
-        self.assertEqual(len(bulk.call_args_list), 1)
-        actions = list(bulk.call_args_list[0][0][1])
-        self.assertEqual(
-            [
+        self.assertEqual(len(bulk.call_args_list), 2)
+        actions = {}
+        for action in (
+            list(bulk.call_args_list[0][0][1])[0],
+            list(bulk.call_args_list[1][0][1])[0],
+        ):
+            actions[action["_index"]] = action
+        for index_name in (self.kibana_ir_index_name, published_index_name):
+            self.assertEqual(
+                actions[index_name],
                 {
                     "_id": 0,
-                    "_index": self.published_index_name + "_all",
+                    "_index": index_name,
                     "_op_type": "delete",
                     "_type": "_doc",
-                }
-            ],
-            actions,
-        )
+                },
+            )
 
     @patch("elasticsearch.helpers.reindex")
     @patch("elasticsearch.helpers.bulk")
@@ -170,9 +244,9 @@ class SyncServiceTC(HashMixIn, EsSerializableMixIn, FrACubicConfigMixIn, CubicWe
     @patch("elasticsearch.client.Elasticsearch.index")
     def test_reindex_modified_entity(self, index, exists, create, bulk, reindex):
         """ensure index is called with {'refresh': 'true'}.  If this is not done,
-           elsasticsearch.scan method retrieves the old index values which
-           causes the wrong values to be copied while synchronizing different
-           indexes.
+        elsasticsearch.scan method retrieves the old index values which
+        causes the wrong values to be copied while synchronizing different
+        indexes.
         """
         with self.admin_access.cnx() as cnx:
             news = cnx.create_entity("NewsContent", title="news", order=0, start_date="2016-01-01")
@@ -698,6 +772,21 @@ class SyncServiceTC(HashMixIn, EsSerializableMixIn, FrACubicConfigMixIn, CubicWe
                 self.config["published-appfiles-dir"], osp.basename(fobj1_path)
             )
         self.assertCalledWith(remove.call_args_list[0], published_path)
+
+    @patch("elasticsearch.Elasticsearch.delete")
+    @patch("elasticsearch.helpers.reindex")
+    @patch("elasticsearch.client.indices.IndicesClient.exists")
+    @patch("elasticsearch.client.Elasticsearch.index")
+    def test_on_delete_service(self, index, exists, reindex, delete):
+        with self.admin_access.cnx() as cnx:
+            service = cnx.create_entity(
+                "Service", code="FRAD092", short_name="AD 92", level="level-D", category="foo"
+            )
+            cnx.commit()
+            service.cw_delete()
+            self.assertFalse(delete.called)
+            cnx.commit()
+            self.assertEqual(3, len(delete.call_args_list))
 
 
 if __name__ == "__main__":

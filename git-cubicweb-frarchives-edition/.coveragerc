@@ -1,0 +1,18 @@
+[run]
+source = cubes.frarchives_edition
+branch = true
+
+[report]
+omit =
+  .tox
+  test/*
+  schema.py
+  workflows.py
+  setup.py
+  __pkginfo__.py
+  migration/*.py
+ignore_errors = true
+exclude_lines =
+  __regid__
+  __select__
+  raise NotImplementedError

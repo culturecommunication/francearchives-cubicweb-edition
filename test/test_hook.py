@@ -33,6 +33,7 @@ from datetime import datetime
 import os.path as osp
 from copy import deepcopy
 import mock
+
 import urllib.request
 import urllib.parse
 import urllib.error
@@ -41,158 +42,14 @@ from cubicweb import Binary, Unauthorized, ValidationError
 from cubicweb.devtools.testlib import CubicWebTC
 from cubicweb.devtools import PostgresApptestConfiguration
 
+from cubicweb_francearchives import GLOSSARY_CACHE
+from cubicweb_francearchives.utils import reveal_glossary
+
 from cubicweb_francearchives.testutils import HashMixIn, PostgresTextMixin
 from cubicweb_frarchives_edition import get_samesas_history
 
 from utils import FrACubicConfigMixIn
 from pgfixtures import setup_module, teardown_module  # noqa
-
-
-class ReferencedFileTC(PostgresTextMixin, HashMixIn, FrACubicConfigMixIn, CubicWebTC):
-    configcls = PostgresApptestConfiguration
-
-    def _create_data(self, cnx):
-        fobj = cnx.create_entity(
-            "File",
-            data=Binary(b"some-file-data"),
-            data_name="file.pdf",
-            data_format="application/pdf",
-        )
-        bc1 = cnx.create_entity(
-            "BaseContent",
-            title="bc",
-            content="""\
-<p>
-<h1>bc</h1>
-<a href="%s">file.pdf</a>
-</p>"""
-            % fobj.cw_adapt_to("IDownloadable").download_url(),
-        )
-        bc2 = cnx.create_entity(
-            "BaseContent",
-            title="bc",
-            content="""\
-            <a href="%s">file.pdf</a>
-            """
-            % fobj.cw_adapt_to("IDownloadable").download_url(),
-        )
-        cnx.commit()
-        return fobj, bc1, bc2
-
-    def test_referenced_files(self):
-        """
-        Trying: create two BaseContents referencing the same File
-        Expecting: File references the both BaseContent
-        """
-        with self.admin_access.cnx() as cnx:
-            fobj, bc1, bc2 = self._create_data(cnx)
-            fpath = cnx.execute("Any fspath(D) WHERE X data D, X is File")[0][0].getvalue()
-            self.assertCountEqual(
-                [f.eid for f in fobj.reverse_referenced_files], [bc1.eid, bc2.eid]
-            )
-            self.assertTrue(osp.exists(fpath))
-
-    def test_delete_one_referenced_file(self):
-        """
-        Trying: create two BaseContents referencing the same File and then
-                remove one of the reference
-        Expecting: File references only one BaseContent
-        """
-        with self.admin_access.cnx() as cnx:
-            fobj, bc1, bc2 = self._create_data(cnx)
-            fpath = cnx.execute("Any fspath(D) WHERE X data D, X is File")[0][0].getvalue()
-            bc2.cw_set(content="remove file")
-            cnx.commit()
-            fobj = cnx.find("File", eid=fobj.eid).one()
-            self.assertCountEqual([f.eid for f in fobj.reverse_referenced_files], [bc1.eid])
-            self.assertTrue(osp.exists(fpath))
-
-    def test_delete_all_referenced_files(self):
-        """
-        Trying: create two BaseContents referencing the same File and then
-                remove both references
-        Expecting: file no longer exists
-        """
-        with self.admin_access.cnx() as cnx:
-            fobj, bc1, bc2 = self._create_data(cnx)
-            fpath = cnx.execute("Any fspath(D) WHERE X data D, X is File")[0][0].getvalue()
-            bc1.cw_set(content="remove file")
-            bc2.cw_set(content="remove file")
-            cnx.commit()
-            self.assertFalse(cnx.find("File", eid=fobj.eid))
-            self.assertFalse(osp.exists(fpath))
-
-    def test_delete_one_entity_with_referenced_file(self):
-        """
-        Trying: create two BaseContents referencing the same File and then
-                remove one of BaseContent
-        Expecting: file references only one BaseContent
-        """
-        with self.admin_access.cnx() as cnx:
-            fobj, bc1, bc2 = self._create_data(cnx)
-            fpath = cnx.execute("Any fspath(D) WHERE X data D, X is File")[0][0].getvalue()
-            bc2.cw_delete()
-            cnx.commit()
-            fobj = cnx.find("File", eid=fobj.eid).one()
-            self.assertCountEqual([f.eid for f in fobj.reverse_referenced_files], [bc1.eid])
-            self.assertTrue(osp.exists(fpath))
-
-    def test_delete_all_entities_with_referenced_files(self):
-        """
-        Trying: create two BaseContents referencing the same File and then
-                remove both references
-        Expecting: file no longer exists
-        """
-        with self.admin_access.cnx() as cnx:
-            fobj, bc1, bc2 = self._create_data(cnx)
-            fpath = cnx.execute("Any fspath(D) WHERE X data D, X is File")[0][0].getvalue()
-            bc1.cw_delete()
-            bc2.cw_delete()
-            cnx.commit()
-            self.assertFalse(cnx.find("File", eid=fobj.eid))
-            self.assertFalse(osp.exists(fpath))
-
-    def test_publish_entity_with_referenced_files(self):
-        """
-        Trying: create a BaseContent referencing a file then publish and depublish it
-        Expecting : only one file is created
-        """
-        with self.admin_access.cnx() as cnx:
-            fobj = cnx.create_entity(
-                "File",
-                data=Binary(b"some-file-data"),
-                data_name="file.pdf",
-                data_format="application/pdf",
-            )
-            bc = cnx.create_entity(
-                "BaseContent",
-                title="bc",
-                content="""\
-                <p>
-<h1>bc</h1>
-                <a href="%s">file.pdf</a>
-                </p>"""
-                % fobj.cw_adapt_to("IDownloadable").download_url(),
-            )
-            cnx.commit()
-            files = cnx.execute("Any X WHERE X is File")
-            self.assertEqual(1, len(files))
-            self.assertEqual(fobj.eid, files.one().eid)
-            bc = cnx.entity_from_eid(bc.eid)
-            wf = bc.cw_adapt_to("IWorkflowable")
-            wf.fire_transition("wft_cmsobject_publish")
-            cnx.commit()
-            files = cnx.execute("Any X WHERE X is File")
-            self.assertEqual(1, len(files))
-            self.assertEqual(fobj.eid, files.one().eid)
-        with self.admin_access.cnx() as cnx:
-            bc = cnx.entity_from_eid(bc.eid)
-            wf = bc.cw_adapt_to("IWorkflowable")
-            wf.fire_transition("wft_cmsobject_unpublish")
-            cnx.commit()
-            files = cnx.execute("Any X WHERE X is File")
-            self.assertEqual(1, len(files))
-            self.assertEqual(fobj.eid, files.one().eid)
 
 
 class DeleteHookTests(FrACubicConfigMixIn, CubicWebTC):
@@ -362,7 +219,7 @@ class FileHookTests(PostgresTextMixin, HashMixIn, FrACubicConfigMixIn, CubicWebT
 
     def test_update_image_file(self):
         """simulate InlinedRelationMapper behavior: drop and recreate inlined
-           Image.image_file File object"""
+        Image.image_file File object"""
         with self.admin_access.cnx() as cnx:
             fobj = cnx.create_entity("File", data=Binary(b"data"), data_name="data")
             image = cnx.create_entity("Image", caption="image-caption", image_file=fobj)
@@ -630,7 +487,10 @@ class ExternalUriHookTC(FrACubicConfigMixIn, CubicWebTC):
                 label="Moscou (Russie)",
                 uri="http://www.geonames.org/524901",
             )
-            loc = cnx.create_entity("LocationAuthority", label="Moscou (Russie)",)
+            loc = cnx.create_entity(
+                "LocationAuthority",
+                label="Moscou (Russie)",
+            )
             cnx.commit()
             self.assertEqual((None, None), (loc.latitude, loc.longitude))
             loc.cw_set(same_as=moscou)
@@ -686,8 +546,7 @@ class ExternalUriHookTC(FrACubicConfigMixIn, CubicWebTC):
             cnx.commit()
 
     def test_add_source_to_geonames_exturi(self):
-        """Add 'geoname' source if not exists
-        """
+        """Add 'geoname' source if not exists"""
         with self.admin_access.cnx() as cnx:
             dunkerque = cnx.create_entity(
                 "ExternalUri",
@@ -699,8 +558,7 @@ class ExternalUriHookTC(FrACubicConfigMixIn, CubicWebTC):
             self.assertEqual("3020686", dunkerque.extid)
 
     def test_no_source_exturi(self):
-        """Do not add source on ExternalUri
-        """
+        """Do not add source on ExternalUri"""
         with self.admin_access.cnx() as cnx:
             dunkerque = cnx.create_entity(
                 "ExternalUri",
@@ -711,8 +569,7 @@ class ExternalUriHookTC(FrACubicConfigMixIn, CubicWebTC):
             self.assertIsNone(dunkerque.source)
 
     def test_update_source_to_geonames_exturi(self):
-        """Update 'geoname' source if not exists
-        """
+        """Update 'geoname' source if not exists"""
         with self.admin_access.cnx() as cnx:
             dunkerque = cnx.create_entity(
                 "ExternalUri",
@@ -725,9 +582,7 @@ class ExternalUriHookTC(FrACubicConfigMixIn, CubicWebTC):
             self.assertEqual("3020686", dunkerque.extid)
 
     def test_compute_geonames_label(self):
-        """A empty ExternalUri label is replaced by one computed in the hook
-
-        """
+        """A empty ExternalUri label is replaced by one computed in the hook"""
         with self.admin_access.cnx() as cnx:
             cnx.lang = "fr"
             spt = cnx.create_entity(
@@ -865,6 +720,83 @@ class ExternalUriHookTC(FrACubicConfigMixIn, CubicWebTC):
                 self.assertEqual(return_value["label"], url.label)
 
 
+class BaseContentHookTC(FrACubicConfigMixIn, CubicWebTC):
+    """Tests for BaseContent hooks."""
+
+    configcls = PostgresApptestConfiguration
+
+    def test_basecontent_summary(self):
+        with self.admin_access.repo_cnx() as cnx:
+            content = """
+            <h1>titre 0</h1><p>text</p>
+            <h1>titre <em>1</em></h1><p>text</p>
+              <h2>titre 1.1</h2><p>text</p>
+              <h2>titre 1.2</h2><p>text</p>
+                <h3>titre 1.2.1</h3><p>text</p>
+                  <h4>titre 1.2.1.1</h4><p>text</p>
+                  <h4>titre 1.2.1.2</h4><p>text<h5>titre 1.2.1.2.1</h5></p>
+              <h2>titre 1.3</h3><p>text</p>
+            <h1>titre 2</h1><p>text</p>
+              <h2>titre 2.1</h2><p>text</p>
+                 <h3>titre 2.1.1</h3><p>text</p>
+                 <h3>titre 2.1.2</h3><p>text</p>
+              <h2>titre 2.2</h2><p>text</p>
+            <h1>titre 3</h1><p>text</p>
+            <h3>titre 3.1.1</h3><p>text</p>
+            """
+            article = cnx.create_entity("BaseContent", title="article", content=content)
+            cnx.commit()
+            article = cnx.find("BaseContent", eid=article.eid).one()
+            # self.assertFalse(article.summary)
+            # self.assertEqual(content, article.content)
+            article.cw_set(summary_policy="summary_headers_6")
+            cnx.commit()
+            # self.assertEqual(expected_content, article.content)
+            article = cnx.find("BaseContent", eid=article.eid).one()
+            expected_summary = """<ul class="toc"><li><a href="#h1_faa036576b46d00ef12b4b3bb7ce60057778f7c40">titre 0</a></li><li><a href="#h1_3c6a6e826c9eab5c5664dfe165b12f2a74c9f01c1">titre 1</a><ul><li><a href="#h2_5caf4b8a5d2840462f1b2507d51a7f93ebf6273c2">titre 1.1</a></li><li><a href="#h2_32e0af574db150b0fb054c449cbb6cd4093c76373">titre 1.2</a><ul><li><a href="#h3_ffbe23d3d38eebf40f7bb405af19726c36127cbf4">titre 1.2.1</a><ul><li><a href="#h4_35616c6badde6e8f36762dd7ec986c564ae68f5b5">titre 1.2.1.1</a></li><li><a href="#h4_36f499b3464ed60c129eb60a975e5b0362a689b16">titre 1.2.1.2</a><ul><li><a href="#h5_33b11befcefad75ca9602e0fc6c12d9a47d44f4c7">titre 1.2.1.2.1</a></li></ul></li></ul></li></ul></li><li><a href="#h2_6f5a4d5c9b4878a89628406b85331d565d2d9a008">titre 1.3</a></li></ul></li><li><a href="#h1_4b57f04302a12c751ef9f2722f31fc18062d349f9">titre 2</a><ul><li><a href="#h2_3f5d8ca99f611ac96293ca83d3c98292165e2faf10">titre 2.1</a><ul><li><a href="#h3_814fc158ecc6b9c7514920470acffa2cadcdc27911">titre 2.1.1</a></li><li><a href="#h3_be6845c32e1c0bd3f6a778e34d146c58f52daa0012">titre 2.1.2</a></li></ul></li><li><a href="#h2_a0671650e27ddd018be1ed959ba41cc0c1352aab13">titre 2.2</a></li></ul></li><li><a href="#h1_56b8eda9341ffec3ab23b2d2c4335fe668f6fc0714">titre 3</a><ul><li><ul><li><a href="#h3_b5323ccf25ee5acd553180a7e0b72d09d5a7acc715">titre 3.1.1</a></li></ul></li></ul></li></ul>"""  # noqa
+            self.assertEqual(expected_summary, article.summary)
+            article.cw_set(summary_policy="summary_headers_2")
+            cnx.commit()
+            article = cnx.find("BaseContent", eid=article.eid).one()
+            expected_summary = """<ul class="toc"><li><a href="#h1_faa036576b46d00ef12b4b3bb7ce60057778f7c40">titre 0</a></li><li><a href="#h1_3c6a6e826c9eab5c5664dfe165b12f2a74c9f01c1">titre 1</a><ul><li><a href="#h2_5caf4b8a5d2840462f1b2507d51a7f93ebf6273c2">titre 1.1</a></li><li><a href="#h2_32e0af574db150b0fb054c449cbb6cd4093c76373">titre 1.2</a></li><li><a href="#h2_6f5a4d5c9b4878a89628406b85331d565d2d9a008">titre 1.3</a></li></ul></li><li><a href="#h1_4b57f04302a12c751ef9f2722f31fc18062d349f9">titre 2</a><ul><li><a href="#h2_3f5d8ca99f611ac96293ca83d3c98292165e2faf10">titre 2.1</a></li><li><a href="#h2_a0671650e27ddd018be1ed959ba41cc0c1352aab13">titre 2.2</a></li></ul></li><li><a href="#h1_56b8eda9341ffec3ab23b2d2c4335fe668f6fc0714">titre 3</a></li></ul>"""  # noqa
+            self.assertEqual(expected_summary, article.summary)
+
+    def test_all_basecontenttranslation_summary(self):
+        """
+        Trying: generate a toc for a BaseContent
+        Expecting: all BaseContent translations have the toc generated
+        """
+        with self.admin_access.repo_cnx() as cnx:
+            content = """
+            <h1>titre 1 {lang}</h1><p>{lang}</p>
+              <h2>titre 2 {lang}</h2><p>{lang}</p>"""
+            article = cnx.create_entity(
+                "BaseContent", title="article", content=content.format(lang="fr")
+            )
+            article.cw_set(summary_policy="summary_headers_2")
+            cnx.commit()
+            expected_summary = """<ul class="toc"><li><a href="#h1_12868415d909aeff2cc18c45fa0e45aa4da4719d0">titre 1 fr</a><ul><li><a href="#h2_c3a140c54e2db560dd43637fa9bcc9d74aacba9c1">titre 2 fr</a></li></ul></li></ul>"""  # noqa
+            article = cnx.find("BaseContent", eid=article.eid).one()
+            self.assertEqual(expected_summary, article.summary)
+            # create translations
+            for lang in ("en", "de", "es"):
+                cnx.create_entity(
+                    "BaseContentTranslation",
+                    title="{} article".format(lang),
+                    language=lang,
+                    content=content.format(lang=lang),
+                    translation_of=article,
+                )
+            cnx.commit()
+            for tr in cnx.find("BaseContentTranslation").entities():
+                self.assertIn(">titre 1 {lang}</a>".format(lang=tr.language), tr.summary)
+                self.assertIn(">titre 2 {lang}</a>".format(lang=tr.language), tr.summary)
+            article.cw_set(summary_policy="no_summary")
+            cnx.commit()
+            for tr in cnx.find("BaseContentTranslation").entities():
+                self.assertFalse(tr.summary)
+
+
 class LeafletMapCacheHookTC(FrACubicConfigMixIn, CubicWebTC):
     """Tests for LeafletMapCache hooks."""
 
@@ -989,6 +921,73 @@ class LeafletMapCacheHookTC(FrACubicConfigMixIn, CubicWebTC):
             )
             geomap_json = cnx.execute('Any V WHERE X is Caches, X name "geomap", X values V')[0][0]
             self.assertFalse(geomap_json)
+
+
+class GlossaryHooksTC(FrACubicConfigMixIn, CubicWebTC):
+    def setUp(self):
+        GLOSSARY_CACHE[:] = []
+        super(GlossaryHooksTC, self).setUp()
+        with self.admin_access.repo_cnx() as cnx:
+            cnx.create_entity(
+                "GlossaryTerm",
+                term="Dr Who",
+                short_description="doctor Who?",
+                description="doctor Who?",
+            )
+            cnx.commit()
+
+    def test_glossary_cache(self):
+        with self.new_access("anon").repo_cnx() as cnx:
+            term = cnx.find("GlossaryTerm", term="Dr Who").one()
+            cached = dict(GLOSSARY_CACHE)["dr who"]
+            expected = """<a data-content="doctor Who?" rel="popover" class="glossary-term" data-placement="auto" href="http://testing.fr/cubicweb/glossaire#{eid}" target="_blank">{{term}}
+<i class="fa fa-question"></i>
+</a>""".format(  # noqa
+                eid=term.eid
+            )
+            self.assertEqual(cached, expected)
+            text = "Who is the best dr Who ever?"
+            expected = cached.format(term="dr Who")
+            expected = """Who is the best {} ever?""".format(expected)
+            got = reveal_glossary(cnx, text)
+            self.assertEqual(got, expected)
+
+    def test_update_glossary_cache(self):
+        with self.admin_access.repo_cnx() as cnx:
+            term = cnx.find("GlossaryTerm", term="Dr Who").one()
+            term.cw_set(short_description="Who?")
+            cnx.commit()
+        with self.new_access("anon").repo_cnx() as cnx:
+            term = cnx.find("GlossaryTerm", term="Dr Who").one()
+            cached = dict(GLOSSARY_CACHE)["dr who"]
+            expected = """<a data-content="Who?" rel="popover" class="glossary-term" data-placement="auto" href="http://testing.fr/cubicweb/glossaire#{eid}" target="_blank">{{term}}
+<i class="fa fa-question"></i>
+</a>""".format(  # noqa
+                eid=term.eid
+            )
+            self.assertEqual(cached, expected)
+            text = "Who is the best dr Who ever?"
+            expected = cached.format(term="dr Who")
+            expected = """Who is the best {} ever?""".format(expected)
+            got = reveal_glossary(cnx, text)
+            self.assertEqual(got, expected)
+
+    def test_delete_glossary_cache(self):
+        with self.admin_access.repo_cnx() as cnx:
+            term = cnx.find("GlossaryTerm", term="Dr Who").one()
+            term.cw_delete()
+            cnx.commit()
+        with self.new_access("anon").repo_cnx() as cnx:
+            self.assertEqual(GLOSSARY_CACHE, [])
+            text = "Who is the best dr Who ever?"
+            got = reveal_glossary(cnx, text)
+            self.assertEqual(got, text)
+
+    def test_update_glossary_description(self):
+        with self.admin_access.repo_cnx() as cnx:
+            term = cnx.find("GlossaryTerm", term="Dr Who").one()
+            with self.assertRaises(ValidationError):
+                term.cw_set(description="")
 
 
 if __name__ == "__main__":

@@ -457,7 +457,9 @@ class LocationAligner(object):
         finally:
             os.unlink(csvpath)
         self.process_alignments(
-            new_alignment, to_remove_alignment, override_alignments=override_alignments,
+            new_alignment,
+            to_remove_alignment,
+            override_alignments=override_alignments,
         )
 
     def process_alignments(self, new_alignment, to_remove_alignment, override_alignments=False):

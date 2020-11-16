@@ -34,10 +34,11 @@ from cubicweb.devtools.testlib import CubicWebTC
 from cubicweb.devtools import PostgresApptestConfiguration
 from cubicweb.utils import json_dumps
 
-from cubicweb_francearchives.dataimport import ead, sqlutil
-from cubicweb_francearchives.dataimport.stores import create_massive_store
+from cubicweb_francearchives.testutils import EADImportMixin
 
 from cubicweb_frarchives_edition.tasks.dedupe_authorities import dedupe
+
+from cubicweb_francearchives.dataimport import load_services_map, service_infos_from_service_code
 
 from utils import FrACubicConfigMixIn, create_findingaid
 from pgfixtures import setup_module, teardown_module  # noqa
@@ -211,18 +212,18 @@ class AutoDedupeTC(FrACubicConfigMixIn, CubicWebTC):
             index_entries = fa3.reverse_entity[0].doc["index_entries"]
             self.assertTrue(
                 all(i.get("authority") == auth3.eid for i in index_entries),
-                "something wrong with index_entries `{}`".format(index_entries, auth3.eid),
+                "something wrong with index_entries `{}`".format(index_entries),
             )
 
 
-class ReapplyAuthorityOperationsTC(FrACubicConfigMixIn, CubicWebTC):
+class ReapplyAuthorityOperationsTC(FrACubicConfigMixIn, EADImportMixin, CubicWebTC):
     configcls = PostgresApptestConfiguration
 
     readerconfig = {
         "esonly": False,
         "index-name": "dummy",
         "appid": "data",
-        "nodrop": True,
+        "nodrop": False,
         "reimport": True,
         "force_delete": True,
     }
@@ -231,26 +232,9 @@ class ReapplyAuthorityOperationsTC(FrACubicConfigMixIn, CubicWebTC):
         super(ReapplyAuthorityOperationsTC, self).setUp()
         with self.admin_access.cnx() as cnx:
             self.service = cnx.create_entity("Service", code="FRAD095", category="foo")
+            services_map = load_services_map(cnx)
+            self.service_infos = service_infos_from_service_code(self.service.code, services_map)
             cnx.commit()
-
-    def import_filepath(self, cnx, filepath, service_infos=None, **custom_settings):
-        if self.readerconfig["nodrop"]:
-            fk_tables = sqlutil.ead_foreign_key_tables(cnx.vreg.schema)
-            with sqlutil.sudocnx(cnx, interactive=False) as su_cnx:
-                sqlutil.disable_triggers(su_cnx, fk_tables)
-        store = create_massive_store(cnx, nodrop=self.readerconfig["nodrop"])
-        settings = self.readerconfig.copy()
-        settings["appfiles-dir"] = self.datapath()
-        settings.update(custom_settings)
-        self.reader = ead.Reader(settings, store)
-        es_doc = self.reader.import_filepath(filepath, service_infos)
-        store.flush()
-        store.finish()
-        store.commit()
-        if self.readerconfig["nodrop"]:
-            with sqlutil.sudocnx(cnx, interactive=False) as su_cnx:
-                sqlutil.enable_triggers(su_cnx, fk_tables)
-        return es_doc
 
     def test_auto_dedupe_without_service(self):
         """No service is set thus no service related authorities will be loaded
@@ -271,18 +255,14 @@ class ReapplyAuthorityOperationsTC(FrACubicConfigMixIn, CubicWebTC):
         authorities during the import
 
         """
-        service_infos = {"code": self.service.code, "eid": self.service.eid}
         with self.admin_access.cnx() as cnx:
             self.import_filepath(
-                cnx, self.datapath("reapply_auth_op.xml"), service_infos=service_infos,
+                cnx, self.datapath("FRAD095_00162.xml"), service_infos=self.service_infos
             )
             self.assertEqual(len(cnx.find("LocationAuthority")), 2)
         with self.admin_access.cnx() as cnx:
             self.import_filepath(
-                cnx,
-                self.datapath("reapply_auth_op.xml"),
-                service_infos=service_infos,
-                autodedupe_authorities="service/strict",
+                cnx, self.datapath("FRAD095_00162.xml"), autodedupe_authorities="service/strict"
             )
             self.assertEqual(len(cnx.find("LocationAuthority")), 2)
 
@@ -319,10 +299,9 @@ class ReapplyAuthorityOperationsTC(FrACubicConfigMixIn, CubicWebTC):
         authorities during the import
 
         """
-        service_infos = {"code": self.service.code, "eid": self.service.eid}
         with self.admin_access.cnx() as cnx:
             self.import_filepath(
-                cnx, self.datapath("reapply_auth_op.xml"), service_infos=service_infos
+                cnx, self.datapath("FRAD095_00162.xml"), service_infos=self.service_infos
             )
             self.assertEqual(len(cnx.find("LocationAuthority")), 2)
             self.assertCountEqual(
@@ -338,8 +317,8 @@ class ReapplyAuthorityOperationsTC(FrACubicConfigMixIn, CubicWebTC):
         with self.admin_access.cnx() as cnx:
             self.import_filepath(
                 cnx,
-                self.datapath("reapply_auth_op.xml"),
-                service_infos=service_infos,
+                self.datapath("FRAD095_00162.xml"),
+                service_infos=self.service_infos,
                 autodedupe_authorities="service/strict",
             )
             self.assertEqual(len(cnx.find("LocationAuthority")), 2)

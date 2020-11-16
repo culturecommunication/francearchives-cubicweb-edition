@@ -55,7 +55,7 @@ from cubicweb_frarchives_edition.alignments.wikidata import WikidataDatabase
 
 def type_sameas_uri(cnx, eidto, eidfrom):
     """if none of subject or object is an ExternalUri or ExternalId
-       return None
+    return None
     """
     obj = cnx.entity_from_eid(eidto)
     subj = cnx.entity_from_eid(eidfrom)
@@ -124,7 +124,9 @@ class RegisterSameAsHistoryOp(hook.DataOperationMixIn, hook.Operation):
         for eidfrom, eidto, action in self.get_data():
             exturi, auth = type_sameas_uri(cnx, eidto, eidfrom)
             if exturi:
-                records.append((exturi.samesas_history_id, auth.eid, action),)
+                records.append(
+                    (exturi.samesas_history_id, auth.eid, action),
+                )
         if records:
             update_samesas_history(cnx, records)
 
@@ -242,7 +244,7 @@ class RegisterSameAsLocalisationOp(hook.DataOperationMixIn, hook.Operation):
 
 class UpdateExternalUriSourceHook(hook.Hook):
     """1/ Set a source on ExternalUri uri
-       2/ Set an extid on ExternalUri extid """
+    2/ Set an extid on ExternalUri extid"""
 
     __regid__ = "facms.frarchives_edition.exturi.add.source"
     __select__ = hook.Hook.__select__ & is_instance("ExternalUri")
@@ -343,8 +345,8 @@ class IndexLeafletMap(hook.Hook):
     )
 
     def __call__(self):
-        leaflet_op = LocationAuthorityLeafletMapOp.get_instance(self._cw)
         if self._cw.entity_from_eid(self.eidto).cw_adapt_to("ILeaflet"):
+            leaflet_op = LocationAuthorityLeafletMapOp.get_instance(self._cw)
             leaflet_op.add_data(((self.eidto, self.event == "after_add_relation")))
 
 
@@ -407,3 +409,26 @@ class GeonamesLabelCreationOperation(hook.DataOperationMixIn, hook.Operation):
             entity = cnx.entity_from_eid(eid)
             with cnx.allow_all_hooks_but("sameas-label"):
                 entity.cw_set(label=label)
+
+
+class ESRelatedAuthorityHook(hook.Hook):
+    __regid__ = "facms.es-related-authority"
+    __select__ = hook.Hook.__select__ & hook.match_rtype("related_authority")
+    events = ("after_add_relation", "after_delete_relation")
+
+    def __call__(self):
+        ESRelatedAuthorityOperation.get_instance(self._cw).add_data(self.eidto)
+
+
+class ESRelatedAuthorityOperation(hook.DataOperationMixIn, hook.Operation):
+    def postcommit_event(self):
+        # es index authorities
+        cnx = self.cnx
+        authorities = [str(eid) for eid in self.get_data() if not cnx.deleted_in_transaction(eid)]
+        if authorities:
+            authorities = cnx.execute(
+                "DISTINCT Any X WHERE X eid IN  (%(eids)s)" % {"eids": ", ".join(authorities)}
+            ).entities()
+            self.cnx.vreg["services"].select("reindex-suggest", self.cnx).index_authorities(
+                authorities
+            )

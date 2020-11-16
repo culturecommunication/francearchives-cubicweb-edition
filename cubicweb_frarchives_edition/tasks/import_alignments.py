@@ -77,6 +77,7 @@ def update_alignments(cnx, log, cw_file, aligner_cls, override_alignments=False)
     # read-in CSV file and import alignment(s)
     aligner.process_csvpath(cw_file, override_alignments=override_alignments)
     # update Leaflet
+    log.info("update IR map")
     load_leaflet_json(cnx)
 
 

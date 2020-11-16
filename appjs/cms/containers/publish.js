@@ -28,15 +28,10 @@
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 
+const {connect} = require('react-redux')
 
-const {connect} = require('react-redux');
+const PublishBtn = require('../components/publish')
 
-
-const PublishBtn = require('../components/publish');
-
-
-module.exports = connect(
-    function mapStateToProps(state) {
-        return {entity: state.getIn(['model', 'entity'])};
-    }
-)(PublishBtn);
+module.exports = connect(function mapStateToProps(state) {
+    return {entity: state.getIn(['model', 'entity'])}
+})(PublishBtn)

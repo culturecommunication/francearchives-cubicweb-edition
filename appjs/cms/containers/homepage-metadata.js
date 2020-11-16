@@ -28,10 +28,10 @@
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 /* global HOME_METADATA */
-const {createElement: ce} = require('react');
+const {createElement: ce} = require('react')
 
-const Editor = require('./editor');
+const Editor = require('./editor')
 
 exports.HomePageMetadata = function HomePageMetadata() {
-    return ce(Editor, {entity: HOME_METADATA});
-};
+    return ce(Editor, {entity: HOME_METADATA})
+}

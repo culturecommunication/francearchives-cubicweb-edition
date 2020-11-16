@@ -29,67 +29,78 @@
  */
 /* globals $ */
 
-const {Component, createElement: ce} = require('react'),
-      PropTypes = require('prop-types'),
-      Select = require('react-select'),
-      {connect} = require('react-redux'),
-      _  = require('lodash'),
-      Immutable = require('immutable'),
-      {BootstrapTable: BT, TableHeaderColumn: THC} = require('react-bootstrap-table');
+const React = require('react'),
+    {Component, createElement: ce} = require('react'),
+    PropTypes = require('prop-types'),
+    {default: Async} = require('react-select/async'),
+    {connect} = require('react-redux'),
+    _ = require('lodash'),
+    Immutable = require('immutable'),
+    {
+        BootstrapTable: BT,
+        TableHeaderColumn: THC,
+    } = require('react-bootstrap-table')
 
-const {default: {
-    jsonFetch,
-    getSchema,
-    createEntity,
-    getUiSchema,
-    updateEntity,
-    getEntity,
-    getRelated,
-    addRelation,
-    deleteRelation,
-    getAvailableTargets,
-}} = require('../api');
-const {buildFormData} = require('../utils');
+const {
+    default: {
+        jsonFetch,
+        getSchema,
+        createEntity,
+        getUiSchema,
+        updateEntity,
+        getEntity,
+        getRelated,
+        getRelatedSchema,
+        getRelatedUiSchema,
+        relateEntity,
+        addRelation,
+        deleteRelation,
+        getAvailableTargets,
+    },
+} = require('../api')
+const {buildFormData} = require('../utils')
 const {spinner, icon, button} = require('../components/fa'),
-      {showErrors} = require('../actions'),
-      {CmsForm} = require('../components/editor'),
-      DeleteForm = require('../components/delete'),
-      {EntityRelatedEditor} = require('../components/relatededitor');
+    {showErrors} = require('../actions'),
+    {CmsForm} = require('../components/editor'),
+    DeleteForm = require('../components/delete'),
+    EntityRelatedEditor = require('../components/relatededitor')
 
-const {CustomFieldTemplateConnected} = require('./form');
-
+const {CustomFieldTemplateConnected} = require('./form')
 
 class SelectAnnex extends Component {
     constructor(props) {
-        super(props);
-        this.state = {annex: null, loading: true, bodyType: null};
-        this.validate = this.validate.bind(this);
-        this.deleteAnnex = this.deleteAnnex.bind(this);
+        super(props)
+        this.state = {annex: null, loading: true, bodyType: null}
+        this.validate = this.validate.bind(this)
+        this.deleteAnnex = this.deleteAnnex.bind(this)
     }
 
     UNSAFE_componentWillReceiveProps(nextProps) {
         if (this.props.service.eid === nextProps.service.eid) {
-            return;
+            return
         }
-        this.fetchData(nextProps.service);
+        this.fetchData(nextProps.service)
     }
 
     fetchData(service) {
-        this.setState({loading: true, annex: null, bodyType: null});
-        getRelated('service', service.eid, 'annex_of')
-            .then(services => {
-                if (this.unmounted) {
-                    // do not call setState on an unmounted Component
-                    return;
-                }
-                if (services.length) {
-                    this.setState({annex: {label: services[0].dc_title,
-                                           value: services[0].eid}});
-                } else {
-                    this.setState({title: null});
-                }
-                this.setState({loading: false});
-            })
+        this.setState({loading: true, annex: null, bodyType: null})
+        getRelated('service', service.eid, 'annex_of').then(services => {
+            if (this.unmounted) {
+                // do not call setState on an unmounted Component
+                return
+            }
+            if (services.length) {
+                this.setState({
+                    annex: {
+                        label: services[0].dc_title,
+                        value: services[0].eid,
+                    },
+                })
+            } else {
+                this.setState({title: null})
+            }
+            this.setState({loading: false})
+        })
     }
 
     componentDidMount() {
@@ -97,434 +108,702 @@ class SelectAnnex extends Component {
     }
 
     componentWillUnmount() {
-        this.unmounted = true;
+        this.unmounted = true
     }
 
     validate() {
-        this.setState({bodyType: null});
+        this.setState({bodyType: null})
         const {service} = this.props,
-              {annex} = this.state;
+            {annex} = this.state
         if (annex) {
-            return addRelation('service', service.eid, 'annex_of',
-                               [annex]);
+            return addRelation('service', service.eid, 'annex_of', [annex])
         } else {
-            return deleteRelation('service', service.eid, 'annex_of');
+            return deleteRelation('service', service.eid, 'annex_of')
         }
     }
 
     deleteAnnex() {
-        this.setState({bodyType: null, annex: null});
-        const {service} = this.props;
-        return deleteRelation('service', service.eid, 'annex_of');
+        this.setState({bodyType: null, annex: null})
+        const {service} = this.props
+        return deleteRelation('service', service.eid, 'annex_of')
     }
 
     render() {
         const {loading, annex, bodyType} = this.state,
-              {service} = this.props;
-        let body;
+            {service} = this.props
+        let body
 
         function loadOptions(input) {
             if (input.length < 3) {
-                return Promise.resolve({complete: false});
+                return []
             }
-            return getAvailableTargets('service', 'annex_of', service.eid, input)
-                .then(d => ({
-                    complete: true,
-                    options: d.map(e => ({label: e.title, value: e.eid})),
-                }))
+            return getAvailableTargets(
+                'service',
+                'annex_of',
+                service.eid,
+                input,
+            ).then(d => d.map(e => ({label: e.title, value: e.eid})))
         }
 
         if (loading) {
-            body = ce(spinner);
+            body = ce(spinner)
         } else if (bodyType === 'select') {
-            body = ce('div', null,
-                      ce(Select.Async, {
-                          loadOptions: _.throttle(loadOptions, 300),
-                          value: annex,
-                          onChange: value => this.setState({annex: value}),
-                      }),
-                      ce('button', {className: 'btn-default btn',
-                                    onClick: () => this.setState({bodyType: null})},
-                         'annuler'),
-                      ce('button', {className: 'btn-primary btn',
-                                    onClick: this.validate}, 'valider'));
+            body = ce(
+                'div',
+                null,
+                ce(Async, {
+                    loadOptions: _.throttle(loadOptions, 300),
+                    value: annex,
+                    onBlurResetsInput: false,
+                    placeholder: 'Rechercher',
+                    noOptionsMessage: () => null,
+                    onChange: value => this.setState({annex: value}),
+                }),
+                ce(
+                    'button',
+                    {
+                        className: 'btn-default btn',
+                        onClick: () => this.setState({bodyType: null}),
+                    },
+                    'annuler',
+                ),
+                ce(
+                    'button',
+                    {className: 'btn-primary btn', onClick: this.validate},
+                    'valider',
+                ),
+            )
         } else if (bodyType === 'delete') {
-            body = ce('div', null,
-                      'voulez supprimer ce lien annexe ? ',
-                      ce('button', {className: 'btn-default btn',
-                                   onClick: () => this.setState({bodyType: null})},
-                         'annuler'),
-                      ce('button', {className: 'btn-primary btn',
-                                    onClick: this.deleteAnnex},
-                         'valider'));
+            body = ce(
+                'div',
+                null,
+                'voulez supprimer ce lien annexe ? ',
+                ce(
+                    'button',
+                    {
+                        className: 'btn-default btn',
+                        onClick: () => this.setState({bodyType: null}),
+                    },
+                    'annuler',
+                ),
+                ce(
+                    'button',
+                    {className: 'btn-primary btn', onClick: this.deleteAnnex},
+                    'valider',
+                ),
+            )
         } else if (bodyType === null && annex !== null) {
-            body = ce('span', null,
-                      annex.label, ' ',
-                      ce('button', {className: 'btn btn-link',
-                                    onClick: () => this.setState({bodyType: 'select'})},
-                         'modifier'),
-                      ce('button', {className: 'btn btn-link',
-                                    onClick: () => this.setState({bodyType: 'delete'})},
-                         'supprimer le lien'));
+            body = ce(
+                'span',
+                null,
+                annex.label,
+                ' ',
+                ce(
+                    'button',
+                    {
+                        className: 'btn btn-link',
+                        onClick: () => this.setState({bodyType: 'select'}),
+                    },
+                    'modifier',
+                ),
+                ce(
+                    'button',
+                    {
+                        className: 'btn btn-link',
+                        onClick: () => this.setState({bodyType: 'delete'}),
+                    },
+                    'supprimer le lien',
+                ),
+            )
         } else {
-            body = ce('div', null,
-                      ce('i', null, 'pas de service relié'),
-                      ' ',
-                      ce('button', {className: 'btn btn-link',
-                                 onClick: () => this.setState({bodyType: 'select'})},
-                      'modifier'));
+            body = ce(
+                'div',
+                null,
+                ce('i', null, 'pas de service relié'),
+                ' ',
+                ce(
+                    'button',
+                    {
+                        className: 'btn btn-link',
+                        onClick: () => this.setState({bodyType: 'select'}),
+                    },
+                    'modifier',
+                ),
+            )
         }
-        return ce('div', null,
-                  ce('h2', null,
-                     `Le service "${service.dc_title}" est une annexe de :`),
-                  body);
+        return ce(
+            'div',
+            null,
+            ce(
+                'h2',
+                null,
+                `Le service "${service.dc_title}" est une annexe de :`,
+            ),
+            body,
+        )
     }
 }
 SelectAnnex.propTypes = {
     service: PropTypes.object.isRequired,
-};
-
-
+}
 
 class AddService extends Component {
     constructor(props) {
-        super(props);
-        this.state = {schema: null, uiSchema: null, formData:null};
-        this.onSubmit = this.onSubmit.bind(this);
+        super(props)
+        this.state = {schema: null, uiSchema: null, formData: null}
+        this.onSubmit = this.onSubmit.bind(this)
     }
 
     onSubmit(ev) {
-        this.setState({formData: ev.formData});
-        return createEntity('service', ev.formData)
-            .then(doc => {
-                if (doc.errors && doc.errors.length) {
-                    this.props.dispatch(showErrors(doc.errors));
-                    return;
-                } else if (doc.absoluteUrl) {
-                    document.location.replace(doc.absoluteUrl);
-                }
-            });
+        this.setState({formData: ev.formData})
+        return createEntity('service', ev.formData).then(doc => {
+            if (doc.errors && doc.errors.length) {
+                this.props.dispatch(showErrors(doc.errors))
+                return
+            } else if (doc.absoluteUrl) {
+                document.location.replace(doc.absoluteUrl)
+            }
+        })
     }
 
     componentDidMount() {
         Promise.all([
             getSchema('service', null, 'creation'),
             getUiSchema('service'),
-        ]).then(([schema, uiSchema]) => this.setState({schema, uiSchema}));
+        ]).then(([schema, uiSchema]) => this.setState({schema, uiSchema}))
     }
 
     render() {
-        const {schema, uiSchema, formData} = this.state;
-        let body;
+        const {schema, uiSchema, formData} = this.state
+        let body
         if (schema === null) {
-            body = ce(spinner);
+            body = ce(spinner)
         } else {
-            body = ce(CmsForm, {schema,
-                                uiSchema,
-                                formData,
-                                FieldTemplate: CustomFieldTemplateConnected,
-                                onSubmit: this.onSubmit});
+            body = ce(CmsForm, {
+                schema,
+                uiSchema,
+                formData,
+                FieldTemplate: CustomFieldTemplateConnected,
+                onSubmit: this.onSubmit,
+            })
         }
-        return ce('div', null,
-                  ce('h1', null, 'Ajouter un nouveau service'),
-                  body);
+        return ce(
+            'div',
+            null,
+            ce('h1', null, 'Ajouter un nouveau service'),
+            body,
+        )
     }
 }
 
 AddService.propTypes = {
     dispatch: PropTypes.func.isRequired,
-};
+}
 
-exports.AddService = connect()(AddService);
-
-
-
-
+exports.AddService = connect()(AddService)
 
 class ServiceEditor extends Component {
     constructor(props) {
-        super(props);
-        this.state = {formData: null, schema: null,
-                      uiSchema: null, loadingEditor: true};
-        this.onEditSubmit = this.onEditSubmit.bind(this);
+        super(props)
+        this.state = {
+            formData: null,
+            schema: null,
+            uiSchema: null,
+            loadingEditor: true,
+        }
+        this.onEditSubmit = this.onEditSubmit.bind(this)
     }
 
     UNSAFE_componentWillReceiveProps(nextProps) {
         if (nextProps.entity.eid === this.props.entity.eid) {
-            return;
+            return
         }
-        this.fetchData(nextProps.entity.eid);
+        this.fetchData(nextProps.entity.eid)
     }
 
     fetchData(eid) {
-        this.setState({loadingEditor: true, eid});
+        this.setState({loadingEditor: true, eid})
         const promises = [
             getEntity('service', eid),
             getSchema('service', eid, 'edition'),
-        ];
+        ]
         if (this.state.uiSchema) {
-            promises.push(Promise.resolve(this.state.uiSchema));
+            promises.push(Promise.resolve(this.state.uiSchema))
         } else {
-            promises.push(getUiSchema('service'));
+            promises.push(getUiSchema('service'))
         }
-        Promise.all(promises).then(
-            ([entity, schema, uiSchema]) => this.setState(
-                {uiSchema, formData: entity, schema, loadingEditor: false}));
+        Promise.all(promises).then(([entity, schema, uiSchema]) =>
+            this.setState({
+                uiSchema,
+                formData: entity,
+                schema,
+                loadingEditor: false,
+            }),
+        )
     }
 
     componentDidMount() {
-        this.fetchData(this.props.entity.eid);
+        this.fetchData(this.props.entity.eid)
     }
 
     onEditSubmit(ev) {
-        const {eid} = this.props.entity;
-        this.setState({formData: ev.formData});
-        return updateEntity('service', eid, ev.formData)
-            .then(doc => {
-                if (doc.errors && doc.errors.length) {
-                    this.props.dispatch(showErrors(doc.errors));
-                    return;
-                }
-                document.location.reload();
-            });
+        const {eid} = this.props.entity
+        this.setState({formData: ev.formData})
+        return updateEntity('service', eid, ev.formData).then(doc => {
+            if (doc.errors && doc.errors.length) {
+                this.props.dispatch(showErrors(doc.errors))
+                return
+            }
+            document.location.reload()
+        })
     }
 
     render() {
-        const {loadingEditor, schema, uiSchema, formData} = this.state;
-        let form;
+        const {loadingEditor, schema, uiSchema, formData} = this.state
+        let form
         if (loadingEditor) {
-            form = ce(spinner);
+            form = ce(spinner)
         } else {
-            form = ce(CmsForm, {schema,
-                                uiSchema,
-                                formData: buildFormData(formData, schema),
-                                FieldTemplate: CustomFieldTemplateConnected,
-                                onSubmit: this.onEditSubmit});
+            form = ce(CmsForm, {
+                schema,
+                uiSchema,
+                formData: buildFormData(formData, schema),
+                FieldTemplate: CustomFieldTemplateConnected,
+                onSubmit: this.onEditSubmit,
+            })
         }
-        return ce('div', null,
-                  ce('h1', null, "Édition de l'annuaire de service"),
-                  form);
+        return ce(
+            'div',
+            null,
+            ce('h1', null, "Édition de l'annuaire de service"),
+            form,
+        )
     }
 }
 
 ServiceEditor.propTypes = {
     dispatch: PropTypes.func.isRequired,
     entity: PropTypes.object.isRequired,
-};
+}
 
-
-exports.ServiceEditor = connect()(ServiceEditor);
-
+exports.ServiceEditor = connect()(ServiceEditor)
 
 function getJsonUrl() {
-    const pathname = document.location.pathname;
+    const pathname = document.location.pathname
     const isdpt = pathname.includes('departements'),
-          segments = pathname.split('/'),
-          url = isdpt ? '/annuaire/departements' + document.location.search :
-              '/annuaire/' + segments[segments.length - 1];
-    return url;
+        segments = pathname.split('/'),
+        url = isdpt
+            ? '/annuaire/departements' + document.location.search
+            : '/annuaire/' + segments[segments.length - 1]
+    return url
 }
 
 class OAIPublishButton extends Component {
     constructor(props) {
-        super(props);
-        this.createTask = this.createTask.bind(this);
-        this.state = {loading: false};
+        super(props)
+        this.createTask = this.createTask.bind(this)
+        this.state = {loading: false}
     }
 
     createTask() {
-        const {eid} = this.props.entity;
-        this.setState({loading: true});
+        // onSubmit event, updating the OAIRepository is called later
+        const {
+            eid,
+            name,
+            context_service,
+            should_normalize,
+        } = this.props.entityData
+        let taskName = `import-oai for OAIRepository #${eid}`
+        if (name !== undefined) {
+            taskName += `(${name})`
+        }
+        this.setState({loading: true})
         return createEntity(
             'RqTask',
             {
-                name: 'import_oai',
-                title: `import-oai for OAIRepository #${eid}`,
+                name: `import_oai`,
+                title: taskName,
                 oairepository: eid,
+                should_normalize: should_normalize,
+                context_service: context_service,
             },
-            'import_oai'
+            'import_oai',
         ).then(doc => {
             if (doc.errors && doc.errors.length) {
-                this.props.dispatch(showErrors(doc.errors));
-                return;
+                this.props.dispatch(showErrors(doc.errors))
+                return
             } else if (doc.absoluteUrl) {
-                document.location.replace(doc.absoluteUrl);
+                document.location.replace(doc.absoluteUrl)
             }
-        });
+        })
     }
 
     render() {
-        let iconComp;
+        let iconComp
         if (this.state.loading) {
-            iconComp = ce(spinner);
+            iconComp = ce(spinner)
         } else {
-            iconComp = ce(icon, {name: 'play'});
+            iconComp = ce(icon, {name: 'play'})
         }
-        return ce('button', {
-            className: 'btn btn-default pull-right',
-            title: 'moissonner cet entrepôt',
-            onClick: this.createTask,
-        }, iconComp, ' moissonner');
+        return ce(
+            'button',
+            {
+                className: 'btn btn-default pull-right',
+                title: 'moissonner cet entrepôt',
+                onClick: this.createTask,
+            },
+            iconComp,
+            ' moissonner',
+        )
     }
 }
 
 OAIPublishButton.propTypes = {
     dispatch: PropTypes.func.isRequired,
-    entity: PropTypes.shape({
+    entityData: PropTypes.shape({
         eid: PropTypes.integer,
+        name: PropTypes.string,
+        should_normalize: PropTypes.bool,
+        context_service: PropTypes.bool,
     }).isRequired,
-};
-
-
-class OAIRelatedEditor extends EntityRelatedEditor {
-    entityFormOtherButtons(entity) {
-        const components = super.entityFormOtherButtons(entity);
-        return [
-            ce(OAIPublishButton, {entity, dispatch: this.props.dispatch}),
-            ...components,
-        ];
-    }
 }
 
+const OAIRepositoryEditForm = ({
+    schema,
+    uiSchema,
+    entity,
+    formRedirects,
+    dispatch,
+}) => {
+    const [formData, setFormData] = React.useState(
+        buildFormData(entity, schema),
+    )
+    const entityData = {...formData, eid: entity.eid}
+
+    function handleChange({formData}) {
+        setFormData(buildFormData(formData, schema))
+    }
+
+    function handleSubmit(formData) {
+        return updateEntity(entity.cw_etype, entity.eid, formData).then(
+            formRedirects.onSubmit,
+        )
+    }
+
+    return (
+        <div className="panel panel-default">
+            <div className="panel panel-heading">
+                <div className="panel-title">{entity.dc_title}</div>
+            </div>
+            <div className="panel-body">
+                <CmsForm
+                    schema={schema}
+                    uiSchema={uiSchema}
+                    formData={formData}
+                    onCancel={formRedirects.onCancel}
+                    formContext={{cw_etype: entity.cw_etype, eid: entity.eid}}
+                    FieldTemplate={CustomFieldTemplateConnected}
+                    onChange={handleChange}
+                    onSubmit={({formData}) => handleSubmit(formData)}
+                >
+                    <div className="btn-group">
+                        <button
+                            className="btn btn-default"
+                            type="button"
+                            onClick={() => document.location.reload()}
+                        >
+                            annuler
+                        </button>
+                        <button className="btn btn-primary" type="submit">
+                            enregistrer
+                        </button>
+                    </div>
+                    <OAIPublishButton
+                        entityData={entityData}
+                        dispatch={dispatch}
+                    />
+                    <EntityRelatedEditor.DeleteButton entity={entity} />
+                </CmsForm>
+            </div>
+        </div>
+    )
+}
+OAIRepositoryEditForm.propTypes = {
+    entity: PropTypes.object.isRequired,
+    schema: PropTypes.object.isRequired,
+    uiSchema: PropTypes.object.isRequired,
+    formRedirects: PropTypes.object.isRequired,
+    dispatch: PropTypes.func.isRequired,
+}
+
+const OAIRelatedEditor = ({dispatch, entity, formRedirects}) => {
+    const [displayCreationForm, setDisplayCreationForm] = React.useState(false)
+    const [loading, setLoading] = React.useState(true)
+    const [schema, setSchema] = React.useState(null)
+    const [uiSchema, setUiSchema] = React.useState(null)
+    const [related, setRelated] = React.useState(null)
+    React.useEffect(() => {
+        setLoading(true)
+        setDisplayCreationForm(false)
+        Promise.all([
+            getRelatedSchema(
+                entity.cw_etype,
+                'service',
+                'creation',
+                'OAIRepository',
+            ),
+            getRelatedUiSchema(entity.cw_etype, 'service', 'OAIRepository'),
+            getRelated(entity.cw_etype, entity.eid, 'service', {
+                sort: 'url',
+                targetType: 'OAIRepository',
+            }),
+        ]).then(([schema, uiSchema, related]) => {
+            setSchema(schema)
+            setUiSchema(uiSchema)
+            setRelated(related)
+            setDisplayCreationForm(related.length === 0)
+            setLoading(false)
+        })
+    }, [entity])
+
+    function handleSubmitCreate(formData) {
+        const {eid, cw_etype} = entity
+        return relateEntity(
+            cw_etype,
+            eid,
+            'service',
+            formData,
+            'OAIRepository',
+        ).then(formRedirects.onSubmit)
+    }
+
+    function renderCreationForm() {
+        let body = ce(CmsForm, {
+            schema,
+            uiSchema,
+            onCancel: formRedirects.onCancel,
+            formData: {},
+            FieldTemplate: CustomFieldTemplateConnected,
+            onSubmit: ({formData}) => handleSubmitCreate(formData),
+        })
+        return ce(
+            'div',
+            {className: 'panel panel-default'},
+            ce('div', {className: 'panel-body'}, body),
+        )
+    }
+
+    // prevent rendering when data have not been loaded yet.
+    if (typeof schema === 'undefined' || loading) {
+        return ce(spinner)
+    }
+    let creationForm = displayCreationForm ? renderCreationForm() : null
+    return (
+        <div>
+            <EntityRelatedEditor.Header
+                entityTitle={entity.dc_title}
+                title="entrepôt OAI"
+                onAddClick={() => setDisplayCreationForm(true)}
+            />
+            <div className="related-entities">
+                {related.map(e => (
+                    <OAIRepositoryEditForm
+                        key={e.eid}
+                        entity={e}
+                        schema={schema}
+                        uiSchema={uiSchema}
+                        formRedirects={formRedirects}
+                        dispatch={dispatch}
+                    />
+                ))}
+            </div>
+            {creationForm}
+        </div>
+    )
+}
+
+OAIRelatedEditor.propTypes = {
+    entity: PropTypes.object,
+    dispatch: PropTypes.func.isRequired,
+    formRedirects: PropTypes.shape({
+        onCancel: PropTypes.func,
+        onSubmit: PropTypes.func,
+    }).isRequired,
+}
 
 class ServiceListEditor extends Component {
     constructor(props, ctx) {
-        super(props, ctx);
-        this.state = {data: null, selectedService: null};
-        this.updateData = this.updateData.bind(this);
-        this.handleClick = this.handleClick.bind(this);
+        super(props, ctx)
+        this.state = {data: null, selectedService: null}
+        this.updateData = this.updateData.bind(this)
+        this.handleClick = this.handleClick.bind(this)
     }
 
     componentDidMount() {
-        jsonFetch(getJsonUrl()).then(data => this.setState({data: data.data}));
-        this.bindClickMap();
+        jsonFetch(getJsonUrl()).then(data => this.setState({data: data.data}))
+        this.bindClickMap()
     }
 
     bindClickMap() {
-        this._map = $('#dpt-vmap');
+        this._map = $('#dpt-vmap')
         if (this._map) {
-            this._map.on('click', 'path', this.updateData);
+            this._map.on('click', 'path', this.updateData)
         }
     }
 
     updateData() {
-        this.setState({data: null});
-        jsonFetch(getJsonUrl())
-            .then(data => this.setState({data: data.data}));
+        this.setState({data: null})
+        jsonFetch(getJsonUrl()).then(data => this.setState({data: data.data}))
     }
 
     unbindClickMap() {
         if (this._map) {
-            this._map.off('click', 'path', this.updateData);
-            this._map = null;
+            this._map.off('click', 'path', this.updateData)
+            this._map = null
         }
     }
 
     componentWillUnmount() {
-        this.unbindClickMap();
+        this.unbindClickMap()
     }
 
     handleClick() {
-        this.setState({selectedService: null, formType: null});
+        this.setState({selectedService: null, formType: null})
     }
 
     render() {
-        const {
-            data,
-            selectedService,
-            formType,
-        } = this.state;
-        const body = data === null ? ce(spinner) :
-                  ce(BT, {data, striped:true,
-                          hover:true,
+        const {data, selectedService, formType} = this.state
+        const body =
+            data === null
+                ? ce(spinner)
+                : ce(
+                      BT,
+                      {
+                          data,
+                          striped: true,
+                          hover: true,
                           search: true,
                           pagination: true,
-                         },
-                     ce(THC, {dataField:"eid", isKey:true, hidden: true}, 'eid'),
-                     ce(THC, {
-                         dataFormat: (cell, service) => ce(
-                             'div', null,
-                             ce(button, {
-                                 title: 'éditer le service',
-                                 onClick: () => this.setState(
-                                     {selectedService: service,
-                                      formType: 'edit'}),
-                                 name: 'edit'}),
-                             ce(button, {
-                                 title: 'changer le logo du service',
-                                 onClick: () => this.setState(
-                                     {selectedService: service,
-                                      formType: 'image'}),
-                                 name: 'image'}),
-                             ce(button, {
-                                 title: 'éditer/ajouter un entrepôt OAI',
-                                 onClick: () => this.setState(
-                                     {selectedService: service,
-                                      formType: 'oai'}),
-                                 name: 'database'}),
-                             ce(button, {
-                                 title: 'définir ce service comme une annexe',
-                                 onClick: () => this.setState(
-                                     {selectedService: service,
-                                      formType: 'annex'}),
-                                 name: 'link'}),
-                             ce(button, {
-                                 title: 'supprimer ce service',
-                                 onClick: () => this.setState(
-                                     {selectedService: service, formType: 'delete'}),
-                                 name: 'trash'})),
-                         }, 'outils'),
-                     ce(THC, {dataField: "dc_title", dataSort:true}, 'Nom'),
-                     ce(THC, {dataField: "address"}, 'Addresse'),
-                     ce(THC, {dataField: "city"}, 'Ville'));
-        let form = null;
+                      },
+                      ce(
+                          THC,
+                          {dataField: 'eid', isKey: true, hidden: true},
+                          'eid',
+                      ),
+                      ce(
+                          THC,
+                          {
+                              dataFormat: (cell, service) =>
+                                  ce(
+                                      'div',
+                                      null,
+                                      ce(button, {
+                                          title: 'éditer le service',
+                                          onClick: () =>
+                                              this.setState({
+                                                  selectedService: service,
+                                                  formType: 'edit',
+                                              }),
+                                          name: 'edit',
+                                      }),
+                                      ce(button, {
+                                          title: 'changer le logo du service',
+                                          onClick: () =>
+                                              this.setState({
+                                                  selectedService: service,
+                                                  formType: 'image',
+                                              }),
+                                          name: 'image',
+                                      }),
+                                      ce(button, {
+                                          title:
+                                              'éditer/ajouter un entrepôt OAI',
+                                          onClick: () =>
+                                              this.setState({
+                                                  selectedService: service,
+                                                  formType: 'oai',
+                                              }),
+                                          name: 'database',
+                                      }),
+                                      ce(button, {
+                                          title:
+                                              'définir ce service comme une annexe',
+                                          onClick: () =>
+                                              this.setState({
+                                                  selectedService: service,
+                                                  formType: 'annex',
+                                              }),
+                                          name: 'link',
+                                      }),
+                                      ce(button, {
+                                          title: 'supprimer ce service',
+                                          onClick: () =>
+                                              this.setState({
+                                                  selectedService: service,
+                                                  formType: 'delete',
+                                              }),
+                                          name: 'trash',
+                                      }),
+                                  ),
+                          },
+                          'outils',
+                      ),
+                      ce(THC, {dataField: 'dc_title', dataSort: true}, 'Nom'),
+                      ce(THC, {dataField: 'address'}, 'Addresse'),
+                      ce(THC, {dataField: 'city'}, 'Ville'),
+                  )
+        let form = null
         if (formType === 'edit') {
-            form = ce(ServiceEditor, {entity: selectedService,
-                                      dispatch: this.props.dispatch});
+            form = ce(ServiceEditor, {
+                entity: selectedService,
+                dispatch: this.props.dispatch,
+            })
         } else if (formType === 'image') {
-            const rtype = 'service_image';
-            form = ce(EntityRelatedEditor, {
+            const rtype = 'service_image'
+            form = ce(EntityRelatedEditor.EntityRelatedEditor, {
                 entity: Immutable.fromJS(selectedService),
-                rtypes:Immutable.fromJS(
-                    {service_image: {
-                        rtype: rtype, title: 'image de service'}}),
+                rtypes: Immutable.fromJS({
+                    service_image: {
+                        rtype: rtype,
+                        title: 'image de service',
+                    },
+                }),
                 dispatch: this.props.dispatch,
                 location: {search: `?name=${rtype}`},
-                formRedirects: {onCancel: this.handleClick,
-                                onSubmit: this.handleClick},
-            });
+                formRedirects: {
+                    onCancel: this.handleClick,
+                    onSubmit: this.handleClick,
+                },
+            })
         } else if (formType === 'oai') {
-            const rtype = 'service';
             form = ce(OAIRelatedEditor, {
-                targetType: 'OAIRepository',
-                entity: Immutable.fromJS(selectedService),
-                rtypes:Immutable.fromJS(
-                    {[rtype]: {
-                        rtype: rtype, title: 'entrepôt OAI'}}),
+                entity: selectedService,
                 dispatch: this.props.dispatch,
-                location: {search: `?name=${rtype}`},
-                sortTerm: 'url',
-                formRedirects: {onCancel: this.handleClick,
-                                onSubmit: this.handleClick},
-            });
+                formRedirects: {
+                    onCancel: this.handleClick,
+                    onSubmit: this.handleClick,
+                },
+            })
         } else if (formType === 'delete') {
-            form = ce(DeleteForm, {entity: Immutable.fromJS(selectedService),
-                                   location: {query: {}}});
+            form = ce(DeleteForm, {
+                entity: Immutable.fromJS(selectedService),
+                location: {query: {}},
+            })
         } else if (formType === 'annex') {
-            form = ce(SelectAnnex, {service: selectedService});
+            form = ce(SelectAnnex, {service: selectedService})
         }
-        return ce('div', null,
-                  ce('h1',
-                     null,
-                     "Édition de l'annuaire de service"),
-                  body,
-                  form);
+        return ce(
+            'div',
+            null,
+            ce('h1', null, "Édition de l'annuaire de service"),
+            body,
+            form,
+        )
     }
 }
 
 ServiceListEditor.propTypes = {
     dispatch: PropTypes.func.isRequired,
-};
+}
 
-
-exports.ServiceListEditor = connect()(ServiceListEditor);
+exports.ServiceListEditor = connect()(ServiceListEditor)

@@ -29,19 +29,16 @@
  */
 const {Component, createElement: ce} = require('react'),
     PropTypes = require('prop-types'),
-      _ = require('lodash'),
-      {connect} = require('react-redux');
+    _ = require('lodash'),
+    {connect} = require('react-redux')
 
-const {default: {
-    getRelated,
-    getEntity,
-    jsonFetch,
-}} = require('../api');
+const {
+    default: {getRelated, getEntity, jsonFetch},
+} = require('../api')
 
-const {Tree} = require('../components/tree');
+const {Tree} = require('../components/tree')
 
-const {spinner} = require('../components/fa');
-
+const {spinner} = require('../components/fa')
 
 function isleafProp(entity) {
     return Object.defineProperty(
@@ -49,58 +46,67 @@ function isleafProp(entity) {
         'isleaf',
         {
             get() {
-                return (this.cw_etype !== 'Section' &&
-                        this.cw_etype !== 'CommemoCollection');
+                return (
+                    this.cw_etype !== 'Section' &&
+                    this.cw_etype !== 'CommemoCollection'
+                )
             },
-        }
-    );
+        },
+    )
 }
 
-
 class TreeEditor extends Component {
-
     constructor(props) {
-        super(props);
-        this.topSections = this.props.topSections.toJS();
-        this.entity = this.props.entity.toJS();
-        this.state = {nodes: null};
+        super(props)
+        this.topSections = this.props.topSections.toJS()
+        this.entity = this.props.entity.toJS()
+        this.state = {nodes: null}
     }
 
     componentDidMount() {
-        const promises = this.topSections.map(
-            eid => getEntity('section', eid))
+        const promises = this.topSections.map(eid => getEntity('section', eid))
         Promise.all(promises).then(entities => {
-            const nodes = {};
+            const nodes = {}
             entities.forEach(e => {
-                nodes[e.eid] = isleafProp(e);
-            });
-            this.setState({nodes});
-        });
+                nodes[e.eid] = isleafProp(e)
+            })
+            this.setState({nodes})
+        })
     }
 
     render() {
         const {topSections, entity} = this,
-              {eid: currentEid} = entity,
-              {nodes} = this.state;
-        return ce('div', {id: 'tree-container'},
-                  nodes === null ? ce(spinner) : ce(Tree, {
+            {eid: currentEid} = entity,
+            {nodes} = this.state
+        return ce(
+            'div',
+            {id: 'tree-container'},
+            nodes === null
+                ? ce(spinner)
+                : ce(Tree, {
                       ancestors: this.props.ancestors,
                       nodes,
                       topEids: topSections,
                       onFetchChildren(entity) {
-                          return getRelated(entity.cw_etype, entity.eid, 'children')
-                              .then(children => children.map(isleafProp))
+                          return getRelated(
+                              entity.cw_etype,
+                              entity.eid,
+                              'children',
+                          ).then(children => children.map(isleafProp))
                       },
                       onMove(target) {
-                          return jsonFetch('/section', {method: 'post',
-                                                        body: JSON.stringify(
-                                                            {target: target.eid,
-                                                             child: currentEid,
-                                                             newOrder: 0})})
+                          return jsonFetch('/section', {
+                              method: 'post',
+                              body: JSON.stringify({
+                                  target: target.eid,
+                                  child: currentEid,
+                                  newOrder: 0,
+                              }),
+                          })
                       },
                       entity: this.entity,
-                  }));
-
+                  }),
+        )
     }
 }
 TreeEditor.propTypes = {
@@ -109,11 +115,10 @@ TreeEditor.propTypes = {
     ancestors: PropTypes.array,
 }
 
-
-module.exports = connect(
-    function mapStateToProps(state) {
-        return {topSections: state.getIn(['model', 'top']),
-                ancestors: state.getIn(['model', 'ancestors']),
-                entity: state.getIn(['model', 'entity'])};
+module.exports = connect(function mapStateToProps(state) {
+    return {
+        topSections: state.getIn(['model', 'top']),
+        ancestors: state.getIn(['model', 'ancestors']),
+        entity: state.getIn(['model', 'entity']),
     }
-)(TreeEditor);
+})(TreeEditor)

@@ -27,37 +27,42 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-'use strict';
+'use strict'
 const {Component, createElement: ce, Children} = require('react'),
-    PropTypes = require('prop-types');
+    PropTypes = require('prop-types')
 
-const {connect} = require('react-redux');
+const {connect} = require('react-redux')
 
 const {togglePanel} = require('../actions'),
-      {icon} = require('../components/fa'),
-      {AlertError} = require('./error'),
-      PublishBtn = require('./publish'),
-      OnHomePageIcon = require('./on-homepage'),
-      {FaImport} = require('./faimport'),
-      {TreeLink,
-       EditServiceListLink,
-       EditFormLink,
-       EditIndexLink,
-       displayRelated,
-       AlertLink,
-       DeleteLink,
-       TodoLink,
-       AddServiceLink,
-       AddCWUserLink,
-       ConsultationLink,
-       SearchCWUsersLink,
-       SearchFaTasksLink,
-       FAMonitoringBordLink,
-       EditHomePageMetataLink,
-       SameAsLink,
-       GroupAuthLink,
-       PublishTaskLink,
-       AddLink} = require('./index');
+    {icon} = require('../components/fa'),
+    {AlertError} = require('./error'),
+    PublishBtn = require('./publish'),
+    OnHomePageIcon = require('./on-homepage'),
+    {FaImport} = require('./faimport'),
+    {
+        TreeLink,
+        EditServiceListLink,
+        EditFormLink,
+        EditIndexLink,
+        displayRelated,
+        AlertLink,
+        DeleteLink,
+        TodoLink,
+        AddServiceLink,
+        AddCWUserLink,
+        AddEntityTranslation,
+        AddGlossaryTermLink,
+        AddFaqLink,
+        ConsultationLink,
+        SearchCWUsersLink,
+        SearchFaTasksLink,
+        FAMonitoringBordLink,
+        EditHomePageMetataLink,
+        SameAsLink,
+        GroupAuthLink,
+        PublishTaskLink,
+        AddLink,
+    } = require('./index')
 
 const ACTIONS = {
     tree: TreeLink,
@@ -71,10 +76,13 @@ const ACTIONS = {
     publish: PublishBtn,
     delete: DeleteLink,
     todos: TodoLink,
+    translate: AddEntityTranslation,
     'add-service': AddServiceLink,
     'add-user': AddCWUserLink,
+    'add-glossaryterm': AddGlossaryTermLink,
+    'add-faq': AddFaqLink,
     'fa-import': FaImport,
-    'cwusers': SearchCWUsersLink,
+    cwusers: SearchCWUsersLink,
     'fa-tasks': SearchFaTasksLink,
     'fa-bord': FAMonitoringBordLink,
     'consultation-link': ConsultationLink,
@@ -82,59 +90,71 @@ const ACTIONS = {
     'fa-publish-task': PublishTaskLink,
     'edit-same-as': SameAsLink,
     'group-authorities': GroupAuthLink,
-};
-
+}
 
 class App extends Component {
-
     constructor(props) {
-        super(props);
-        this.actions = [];
-        for (let l of Array.from(document.querySelectorAll('link[rel=cms-js]'))) {
-            this.actions.push(l.getAttribute('url'));
+        super(props)
+        this.actions = []
+        for (let l of Array.from(
+            document.querySelectorAll('link[rel=cms-js]'),
+        )) {
+            this.actions.push(l.getAttribute('url'))
         }
     }
 
     toggleParentWidth(showPanel) {
         if (showPanel) {
-            this.wrapper.parentElement.classList.add('panel-unfolded');
+            this.wrapper.parentElement.classList.add('panel-unfolded')
         } else {
-            this.wrapper.parentElement.classList.remove('panel-unfolded');
+            this.wrapper.parentElement.classList.remove('panel-unfolded')
         }
     }
 
     componentDidMount() {
-        this.toggleParentWidth(this.props.showPanel);
+        this.toggleParentWidth(this.props.showPanel)
     }
 
     UNSAFE_componentWillReceiveProps(nextProps) {
-        this.toggleParentWidth(nextProps.showPanel);
+        this.toggleParentWidth(nextProps.showPanel)
     }
 
     render() {
-        const {togglePanel, showPanel} = this.props;
+        const {togglePanel, showPanel} = this.props
         const children = [
             ce('h2', {}, "Outils d'édition"),
             ce('hr'),
-            ce('h2', {title: 'déplier/replier le panneau'},
-               ce(icon, {onClick: togglePanel,
-                         name: `toggle-${showPanel ? 'on' : 'off'}`,
-                         className: 'pointer'})),
-        ];
+            ce(
+                'h2',
+                {title: 'déplier/replier le panneau'},
+                ce(icon, {
+                    onClick: togglePanel,
+                    name: `toggle-${showPanel ? 'on' : 'off'}`,
+                    className: 'pointer',
+                }),
+            ),
+        ]
         for (const actionname of this.actions) {
-            children.push(
-                ce('hr'),
-                ce(ACTIONS[actionname])
-            );
+            children.push(ce('hr'), ce(ACTIONS[actionname]))
         }
-        return ce('div', {className: `row ${showPanel ? 'panel-unfolded' : ''}`,
-                          ref: n => this.wrapper = n},
-                  ce('div', {className: `col-xs-${showPanel ? '2' : '12'}`,
-                             id: 'toolbar'},
-                     ...children),
-                  ce('div', {className: 'col-xs-10', id: 'mainpanel'},
-                     ce(AlertError),
-                     ...Children.toArray(this.props.children)));
+        return ce(
+            'div',
+            {
+                className: `row ${showPanel ? 'panel-unfolded' : ''}`,
+                ref: n => (this.wrapper = n),
+            },
+            ce(
+                'div',
+                {className: `col-xs-${showPanel ? '2' : '12'}`, id: 'toolbar'},
+                ...children,
+            ),
+            ce(
+                'div',
+                {className: 'col-xs-10', id: 'mainpanel'},
+                ce(AlertError),
+                ...Children.toArray(this.props.children),
+            ),
+        )
     }
 }
 App.propTypes = {
@@ -143,17 +163,16 @@ App.propTypes = {
     children: PropTypes.object,
 }
 
-
 module.exports = connect(
     function mapStateToProps(state) {
-        return {showPanel: state.getIn(['app', 'showPanel'])};
+        return {showPanel: state.getIn(['app', 'showPanel'])}
     },
     function mapDispatchToProps(dispatch) {
         return {
             togglePanel() {
-                dispatch(togglePanel());
+                dispatch(togglePanel())
             },
-        };
-    }
-)(App);
-module.exports.App = App;
+        }
+    },
+)(App)
+module.exports.App = App

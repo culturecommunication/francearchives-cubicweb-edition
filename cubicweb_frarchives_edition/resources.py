@@ -34,13 +34,46 @@ from pyramid.httpexceptions import HTTPNotFound
 from logilab.common.decorators import monkeypatch
 from cubicweb import NoResultError
 
+from rql import nodes
+from pyramid.decorator import reify
 
-from cubicweb_jsonschema.resources.entities import EntityResource
+from cubicweb_jsonschema.resources.entities import EntityResource, RelatedEntitiesResource
 
 from cubicweb_jsonschema.resources import parent
 from cubicweb_jsonschema.resources.schema import EntitySchema
 
 _orig_eresource_getitem = EntityResource.__getitem__
+
+
+@monkeypatch(RelatedEntitiesResource)  # noqa patch jsonschema EntityResource
+@reify
+def rset(self):
+    # May raise HTTPNotFound, this is probably fine (isn't it?)
+    entity = self.__parent__.rset.one()
+    vreg = self.request.registry["cubicweb.registry"]
+    # XXX Until https://www.cubicweb.org/ticket/12306543 gets done.
+    kwargs = {"role": self.role}
+    target_type = self.request.params.get("target_type")
+    if target_type:
+        kwargs["targettypes"] = (target_type,)
+    rql = entity.cw_related_rql(self.rtype, **kwargs)
+    args = {"x": entity.eid}
+    select = vreg.parse(entity._cw, rql, args).children[0]
+    sortterms = self.request.params.get("sort")
+    if sortterms:
+        select.remove_sort_terms()
+        mainvar = select.get_variable("X")
+        for term in sortterms.split(","):
+            if term.startswith("-"):
+                asc = False
+                term = term[1:]
+            else:
+                asc = True
+            mdvar = select.make_variable()
+            rel = nodes.make_relation(mainvar, term, (mdvar,), nodes.VariableRef)
+            select.add_restriction(rel)
+            select.add_sort_var(mdvar, asc=asc)
+    return entity._cw.execute(rql, args)
 
 
 @monkeypatch(EntityResource)  # noqa patch jsonschema EntityResource
@@ -60,7 +93,7 @@ _orig_eschema_getitem = EntitySchema.__getitem__
 
 
 @monkeypatch(EntitySchema)  # noqa patch jsonschema EntityShema
-def __getitem__(self, value):
+def __getitem__(self, value):  # noqa
     try:
         entity = self.rset.one()
     except NoResultError:

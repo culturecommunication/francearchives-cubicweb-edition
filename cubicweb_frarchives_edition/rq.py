@@ -67,7 +67,7 @@ def rqjob(task):
             try:
                 result = task(cnx, *args, **kwargs)
             except Exception:
-                logging.getLogger("rq.task").exception("yo !")
+                logging.getLogger("rq.task").exception("An error has occurred.")
                 cnx.rollback()
                 irqjob.handle_failure(*sys.exc_info())
                 cnx.commit()

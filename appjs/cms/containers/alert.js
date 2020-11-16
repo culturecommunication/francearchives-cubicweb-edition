@@ -28,10 +28,10 @@
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 /* global ALERT_CARD */
-const {createElement: ce} = require('react');
+const {createElement: ce} = require('react')
 
-const Editor = require('./editor');
+const Editor = require('./editor')
 
 exports.AlertEditor = function AlertEditor() {
-    return ce(Editor, {entity: ALERT_CARD});
-};
+    return ce(Editor, {entity: ALERT_CARD})
+}

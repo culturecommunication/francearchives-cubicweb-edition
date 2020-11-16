@@ -66,6 +66,7 @@ class FrACubicConfigMixIn(object):
     def init_config(cls, config):
         config.default_admin_config["password"] = DEFAULT_SOURCES["admin"]["password"]
         config.anonymous_credential = ApptestConfiguration.anonymous_credential
+        config.set_option("published-index-name", "portal-index-name")
         super(FrACubicConfigMixIn, cls).init_config(config)
 
 
@@ -142,11 +143,18 @@ class EsSerializableMixIn(object):
         self.config.global_set_option("varnish-version", 4)
         self.index_name = "unittest_index_name"
         self.published_index_name = "unittest_published_index_name"
+        self.kibana_ir_index_name = "unittest_document_siaf"
+        self.kibana_services_index_name = "unittest_service_siaf"
+        self.kibana_auth_index_name = "unittest_authority_siaf"
         self.config.global_set_option("index-name", self.index_name)
         self.config.global_set_option("published-index-name", self.published_index_name)
         self.config.global_set_option(
             "published-appfiles-dir", self.datapath("published-appfiles-dir")
         )
+        self.config.global_set_option("enable-kibana-indexes", "yes")
+        self.config.global_set_option("kibana-ir-index-name", self.kibana_ir_index_name)
+        self.config.global_set_option("kibana-services-index-name", self.kibana_services_index_name)
+        self.config.global_set_option("kibana-authorities-index-name", self.kibana_auth_index_name)
         for name in ("published-staticdir-path", "staticdir-path"):
             path = self.datapath(name)
             self.config.global_set_option(name, path)
