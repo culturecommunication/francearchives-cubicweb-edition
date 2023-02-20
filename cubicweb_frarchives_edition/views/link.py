@@ -28,26 +28,9 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
-from cubicweb.predicates import is_instance, objectify_predicate, has_add_permission
+from cubicweb.predicates import is_instance, has_add_permission
 
 from cubicweb_jsonschema.views.link import EntityLink
-
-
-@objectify_predicate
-def in_commemocollection(cls, req, rset=None, entity=None, **kwargs):
-    """Return 1 if the entity type is a CommemoCollection or
-    a section inside a CommemoCollection
-    """
-    # import ipdb; ipdb.set_trace()
-    if rset and len(rset) == 1:
-        entity = rset.one()
-    if entity is None:
-        return 0
-    if entity.cw_etype == "CommemoCollection" or (
-        entity.cw_etype == "Section" and entity.is_commemo_section()
-    ):
-        return 1
-    return 0
 
 
 class has_add_target_permissions(has_add_permission):
@@ -98,6 +81,12 @@ class RelateChildrenLink(EntityLink):
         }
 
 
+class RelateChildrenCommemorationitemLink(RelateChildrenLink):
+    __regid__ = "entity.relate.children.commemorationitem"
+    __select__ = RelateChildrenLink.__select__ & is_instance("Section")
+    target_type = "CommemorationItem"
+
+
 class RelateChildrenNewsContentLink(RelateChildrenLink):
     __regid__ = "entity.relate.children.newscontent"
     __select__ = RelateChildrenLink.__select__ & is_instance("Section")
@@ -107,42 +96,9 @@ class RelateChildrenNewsContentLink(RelateChildrenLink):
 
 class RelateChildrenSectionLink(RelateChildrenLink):
     __regid__ = "entity.relate.children.section"
-    __select__ = RelateChildrenLink.__select__ & is_instance("Section", "CommemoCollection")
+    __select__ = RelateChildrenLink.__select__ & is_instance("Section")
     target_type = "Section"
     order = 20
-
-
-class RelateSectionTranslationLink(RelateChildrenLink):
-    __regid__ = "entity.relate.translation.sectiontranslation"
-    __select__ = RelateChildrenLink.__select__ & is_instance("Section")
-    rtype = "translation_of"
-    target_type = "SectionTranslation"
-
-
-class RelateBaseContentTranslationLink(RelateChildrenLink):
-    __regid__ = "entity.relate.translation.basecontent"
-    __select__ = RelateChildrenLink.__select__ & is_instance("BaseContent")
-    rtype = "translation_of"
-    target_type = "BaseContentTranslation"
-
-
-class RelateChildrenCommemorationitemLink(RelateChildrenLink):
-    __regid__ = "entity.relate.children.commemorationitem"
-    __select__ = RelateChildrenLink.__select__ & in_commemocollection()
-    target_type = "CommemorationItem"
-
-
-class RelateChildrenCommemoCollectionLink(RelateChildrenLink):
-    __regid__ = "entity.relate.children.commemocollection"
-    __select__ = RelateChildrenLink.__select__ & is_instance("Section")
-    target_type = "CommemoCollection"
-
-
-class RelateCommemorationitemTranslationLink(RelateChildrenLink):
-    __regid__ = "entity.relate.translation.commemorationitem"
-    __select__ = RelateChildrenLink.__select__ & is_instance("CommemorationItem")
-    rtype = "translation_of"
-    target_type = "CommemorationItemTranslation"
 
 
 class RelateChildrenCircularLink(RelateChildrenLink):
@@ -168,3 +124,24 @@ class RelateChildrenMapContentLink(RelateChildrenLink):
     __regid__ = "entity.relate.children.map"
     __select__ = RelateChildrenLink.__select__ & is_instance("Section")
     target_type = "Map"
+
+
+class RelateSectionTranslationLink(RelateChildrenLink):
+    __regid__ = "entity.relate.translation.sectiontranslation"
+    __select__ = RelateChildrenLink.__select__ & is_instance("Section")
+    rtype = "translation_of"
+    target_type = "SectionTranslation"
+
+
+class RelateBaseContentTranslationLink(RelateChildrenLink):
+    __regid__ = "entity.relate.translation.basecontent"
+    __select__ = RelateChildrenLink.__select__ & is_instance("BaseContent")
+    rtype = "translation_of"
+    target_type = "BaseContentTranslation"
+
+
+class RelateCommemorationitemTranslationLink(RelateChildrenLink):
+    __regid__ = "entity.relate.translation.commemorationitem"
+    __select__ = RelateChildrenLink.__select__ & is_instance("CommemorationItem")
+    rtype = "translation_of"
+    target_type = "CommemorationItemTranslation"

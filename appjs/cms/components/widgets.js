@@ -112,7 +112,7 @@ function removePropsInDataUrl(value) {
     return {value: prefix + suffix, name}
 }
 
-class ImagePicker extends Component {
+class ImagePickerComponent extends Component {
     constructor(props) {
         super(props)
         const {value, name} = removePropsInDataUrl(props.value)
@@ -124,6 +124,7 @@ class ImagePicker extends Component {
             name,
         }
         this.cropper = void 0
+        this.onChange = this.onChange.bind(this)
         this.onUpload = this.onUpload.bind(this)
         this.cropImage = this.cropImage.bind(this)
         this.resetCrop = this.resetCrop.bind(this)
@@ -140,7 +141,7 @@ class ImagePicker extends Component {
         }
         _this.setState({name: files[0].name})
         var reader = new FileReader()
-        reader.onload = function() {
+        reader.onload = function () {
             var url = reader.result
             _this.setState({src: url, origSrc: url})
             _this.onChange(url, files[0].name)
@@ -181,12 +182,12 @@ class ImagePicker extends Component {
                 onChange: this.onUpload,
             }),
             ce(Cropper, {
-                ref: cropper => {
+                ref: (cropper) => {
                     this.cropper = cropper
                 },
                 src: this.state.src,
                 style: {width: '100%'},
-                aspectRatio: 16 / 9,
+                aspectRatio: this.props.aspectRatio,
                 preview: '.image-preview',
             }),
             ce(
@@ -214,7 +215,39 @@ class ImagePicker extends Component {
         )
     }
 }
+
+ImagePickerComponent.propTypes = {
+    value: PropTypes.string,
+    src: PropTypes.string,
+    aspectRatio: PropTypes.float,
+    onChange: PropTypes.func.isRequired,
+}
+
+class ImagePicker extends Component {
+    render() {
+        return ce(ImagePickerComponent, {
+            ...this.props,
+            aspectRatio: 16 / 9,
+        })
+    }
+}
+
 ImagePicker.propTypes = {
+    value: PropTypes.string,
+    src: PropTypes.string,
+    onChange: PropTypes.func.isRequired,
+}
+
+class SubjectImagePicker extends Component {
+    render() {
+        return ce(ImagePickerComponent, {
+            ...this.props,
+            aspectRatio: 2 / 1,
+        })
+    }
+}
+
+SubjectImagePicker.propTypes = {
     value: PropTypes.string,
     src: PropTypes.string,
     onChange: PropTypes.func.isRequired,
@@ -234,15 +267,13 @@ class AutoCompleteField extends Component {
     }
 
     onChange(value) {
-        let ids
-        if (value === null) {
-            value = []
-            ids = []
-        } else {
-            ids = value.map(e => String(e.value))
-        }
+        const ids = value.map((e) => String(e.value))
         this.setState({related: value, formData: ids})
         this.props.onChange(ids)
+    }
+
+    setEmptyFormData() {
+        this.setState({formData: []})
     }
 
     componentDidMount() {
@@ -251,13 +282,12 @@ class AutoCompleteField extends Component {
         if (eid !== undefined) {
             Promise.all([getRelated(cw_etype, eid, rtype)]).then(
                 ([related]) => {
-                    // eslint-disable-next-line eqeqeq
-                    if (this.state.formData == undefined) {
+                    if (this.state.formData === undefined) {
                         // lack of oneOf support
-                        const ids = related.map(r => String(r.eid))
+                        const ids = related.map((r) => String(r.eid))
                         this.setState({formData: ids})
                     }
-                    const targets = related.map(r => ({
+                    const targets = related.map((r) => ({
                         value: r.eid,
                         label: r.dc_title,
                     }))
@@ -265,9 +295,8 @@ class AutoCompleteField extends Component {
                 },
             )
         } else {
-            // eslint-disable-next-line eqeqeq
-            if (this.state.formData == undefined) {
-                this.setState({formData: []})
+            if (this.state.formData === undefined) {
+                this.setEmptyFormData()
             }
         }
     }
@@ -283,15 +312,19 @@ class AutoCompleteField extends Component {
             if (input.length < 3) {
                 return []
             }
-            return getAvailableTargets(cw_etype, rtype, eid, input).then(d =>
-                d.map(e => ({label: e.title, value: e.eid})),
+            return getAvailableTargets(cw_etype, rtype, eid, input).then((d) =>
+                d.map((e) => ({label: e.title, value: e.eid})),
             )
         }
         const labelClass = required ? 'control-label required' : 'control-label'
         return ce(
             'div',
-            {className: 'form-group'},
-            ce('label', {className: labelClass}, rtype),
+            {className: 'mb-4'},
+            ce(
+                'label',
+                {className: labelClass},
+                this.props.schema.title || rtype,
+            ),
             ce(Async, {
                 isMulti: multi,
                 name: rtype,
@@ -314,6 +347,7 @@ AutoCompleteField.propTypes = {
     name: PropTypes.string,
     required: PropTypes.bool,
     formData: PropTypes.object,
+    schema: PropTypes.object,
     onChange: PropTypes.func.isRequired,
 }
 
@@ -348,5 +382,6 @@ module.exports = {
     FilePicker,
     DatePicker,
     ImagePicker,
+    SubjectImagePicker,
     AutoCompleteField,
 }

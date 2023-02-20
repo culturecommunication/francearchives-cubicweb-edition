@@ -34,6 +34,7 @@ import logging
 
 import rq
 
+from cubicweb_francearchives import POSTGRESQL_SUPERUSER
 from cubicweb_francearchives.dataimport import eac, sqlutil
 from cubicweb_francearchives.dataimport.stores import create_massive_store
 
@@ -43,7 +44,8 @@ from cubicweb_frarchives_edition.rq import update_progress, rqjob
 @rqjob
 def import_eac(cnx, filepaths, nodrop=True, taskeid=None):
     log = logging.getLogger("rq.task")
-    log.info("Start the task.")
+    log.info("Start the task with  %r", "superuser" if POSTGRESQL_SUPERUSER else "no superuser")
+
     job = rq.get_current_job()
     current_progress = update_progress(job, 0.0)
     progress_step = 1.0 / (len(filepaths) + 1)

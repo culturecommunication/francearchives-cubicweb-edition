@@ -31,28 +31,32 @@
 
 
 """cubicweb-frarchives-edition specific hooks and operations"""
-import re
 import io
 from itertools import chain
 
 import urllib.parse
 
 from lxml import etree
+from PIL import Image
 
 import requests
-
-from cubicweb.predicates import is_instance, relation_possible, score_entity
-
-from cubicweb.server import hook
-from cubicweb import Unauthorized, ValidationError
-
 from rql import RQLSyntaxError
 
-from cubicweb_francearchives.schema.cms import CMS_OBJECTS
-from cubicweb_francearchives import CMS_I18N_OBJECTS
-from cubicweb_francearchives.entities.cms import MapCSVReader
+from cubicweb import Unauthorized, ValidationError, Binary
+from cubicweb.predicates import is_instance, relation_possible, score_entity
+from cubicweb.server import hook
 
-from cubicweb_frarchives_edition import ForbiddenPublishedTransition
+from cubicweb_francearchives import CMS_I18N_OBJECTS, S3_ACTIVE
+from cubicweb_francearchives.entities.cms import MapCSVReader
+from cubicweb_francearchives.schema.cms import CMS_OBJECTS
+from cubicweb_francearchives.storage import S3BfssStorageMixIn
+
+from cubicweb_frarchives_edition import (
+    ForbiddenPublishedTransition,
+    FILE_URL_RE,
+    SUBJECT_IMAGE_SIZE,
+)
+from cubicweb_frarchives_edition.alignments import DataGouvQuerier
 
 
 def custom_on_fire_transition(etypes, tr_names):
@@ -88,7 +92,6 @@ class UndeletableCards(hook.Hook):
 # should match download_url() generated for File entities
 # (cf. cubicweb_francearchives.entities.FAFile.rest_path and
 # cubicweb_francearchives.entities.adapters.FAFileAdapter.download_url)
-FILE_URL_RE = re.compile(r"/file/([a-f0-9]{40})/([^/]+)$")
 
 
 def files_query_from_content(content):
@@ -105,10 +108,10 @@ def files_query_from_content(content):
         match = FILE_URL_RE.search(src)
         if match is None:
             continue
-        all_matches.append(match.groups())
+        all_matches.append(match.groupdict())
     # take files having referenced_files data first
     query = """Any F ORDERBY O, F, D {cond} WHERE F is File, O? referenced_files F,
-               F data_hash "%s", F data_name "%s", F creation_date D"""
+               F data_hash "%(hash)s", F data_name "%(name)s", F creation_date D"""
     return (
         [query.format(cond="LIMIT 1") % m for m in all_matches],
         [query.format(cond="OFFSET 1") % m for m in all_matches],
@@ -116,7 +119,7 @@ def files_query_from_content(content):
 
 
 class PniaCreateMentionFilesRel(hook.Hook):
-    """ rich text strings"""
+    """rich text strings"""
 
     __regid__ = "francearchives.referenced_files"
     __select__ = hook.Hook.__select__ & relation_possible("referenced_files")
@@ -208,7 +211,7 @@ class CreateReferencedFilesOp(hook.DataOperationMixIn, hook.Operation):
 
 
 class PniaRemoveReferencedFilesRel(hook.Hook):
-    """ rich text strings"""
+    """rich text strings"""
 
     __regid__ = "francearchives.remove_referenced_files"
     __select__ = hook.Hook.__select__ & hook.match_rtype("referenced_files")
@@ -573,7 +576,7 @@ class ValidateMapCSVFileSupportHook(hook.Hook, MapCSVReader):
                 raise ValidationError(self.entity.eid, {"map_file-subject": msg})
 
 
-class UniqueDServiceNameHook(hook.Hook):
+class UniqueServiceNameHook(hook.Hook):
     """Department services dpt_code and annex_of must be unique"""
 
     __regid__ = "facms.service-d-name"
@@ -582,7 +585,12 @@ class UniqueDServiceNameHook(hook.Hook):
     unique_attrs = set(("level", "dpt_code"))
 
     def __call__(self):
-        if self.entity.cw_edited.get("code"):
+        old_code, code = self.entity.cw_edited.oldnewvalue("code")
+        if code and code != old_code:
+            # ensure code is capitalized
+            if code != code.upper():
+                msg = self._cw._("A Service code must not contain any lower case characters")
+                raise ValidationError(self.entity.eid, {"code-subject": msg})
             UniqueServiceCodeOperation.get_instance(self._cw).add_data(self.entity)
 
 
@@ -601,6 +609,66 @@ class UniqueServiceCodeOperation(hook.DataOperationMixIn, hook.Operation):
             if rset:
                 msg = cnx._('A Service with "%s" code already exists' % entity.code)
                 raise ValidationError(entity.eid, {"code-subject": msg})
+
+
+class UpdateServiceDepartementHook(hook.Hook):
+    """Update a service department"""
+
+    __regid__ = "frarchives_edition.service.dpt"
+    __select__ = hook.Hook.__select__ & is_instance("Service")
+    events = ("before_add_entity", "before_update_entity")
+
+    def __call__(self):
+        if not self.entity.cw_edited.get("dpt_code"):
+            old_code_insee, code_insee = self.entity.cw_edited.oldnewvalue("code_insee_commune")
+            if code_insee and code_insee != old_code_insee:
+                if code_insee[:2] in ("2A", "2B"):
+                    self.entity.cw_edited["dpt_code"] = "20"
+                    return
+                if not code_insee.isdigit():
+                    return
+                dpt_code = None
+                if int(code_insee[:2]) < 96:
+                    dpt_code = code_insee[:2]
+                if int(code_insee[:2]) > 96:
+                    dpt_code = code_insee[:3]
+                if dpt_code:
+                    self.entity.cw_edited["dpt_code"] = dpt_code
+
+
+class UpdateServiceAddressHook(hook.Hook):
+    """Try to geolocalize a service"""
+
+    __regid__ = "frarchives_edition.service.geo"
+    __select__ = hook.Hook.__select__ & is_instance("Service")
+    events = ("before_add_entity", "before_update_entity")
+
+    def __call__(self):
+        if not (self.entity.cw_edited.get("longitude") and self.entity.cw_edited.get("longitude")):
+            old, new = self.entity.cw_edited.oldnewvalue("address")
+            if new and new != old:
+                ServiceGeoOperation.get_instance(self._cw).add_data(self.entity)
+                return
+
+            old, new = self.entity.cw_edited.oldnewvalue("code_insee_commune")
+            if new and new != old:
+                ServiceGeoOperation.get_instance(self._cw).add_data(self.entity)
+
+
+class ServiceGeoOperation(hook.DataOperationMixIn, hook.Operation):
+    def precommit_event(self):
+        cnx = self.cnx
+        for entity in self.get_data():
+            if cnx.deleted_in_transaction(entity.eid):
+                continue
+            res = DataGouvQuerier().geo_query(
+                entity.address,
+                entity.city,
+                postcode=entity.zip_code,
+                citycode=entity.code_insee_commune,
+            )
+            if res:
+                entity.cw_set(longitude=res[0], latitude=res[1])
 
 
 class CircularUpdateOfficialTextsHook(hook.Hook):
@@ -641,6 +709,130 @@ class CircularAddOfficialTextsOp(hook.DataOperationMixIn, hook.LateOperation):
                 if related:
                     text.cw_set(circular=related.one())
                     break
+
+
+class OnFrontPageHook(hook.Hook):
+    """if an entity is on HP :
+      - 'on_homepage_order' mandatory becomes mandatory
+      - 'header'/'short_description' (for Section) becomes mandatory
+    if an entity is removed from HP :
+      - 'on_homepage_order : must is set to None
+    """
+
+    __regid__ = "frarchives_edition.on_homepage"
+    __select__ = hook.Hook.__select__ & relation_possible("on_homepage")
+    events = ("before_add_entity", "before_update_entity")
+    category = "on_frontpage"
+
+    def __call__(self):
+        entity = self.entity
+        old_on_homepage, new_on_homepage = entity.cw_edited.oldnewvalue("on_homepage")
+        if old_on_homepage and not new_on_homepage:
+            entity.cw_edited["on_homepage_order"] = None
+            return
+        _ = self._cw._
+        if new_on_homepage:
+            if not (entity.cw_edited.get("header") or entity.header):
+                raise ValidationError(
+                    self.entity.eid, {"header-subject": _("this field is mandatory")}
+                )
+            if (
+                entity.cw_edited.get("on_homepage_order") is None
+                and entity.on_homepage_order is None
+            ):
+                raise ValidationError(
+                    self.entity.eid, {"on_homepage_order-subject": "this field is mandatory"}
+                )
+
+
+class SubjectImageCropHook(hook.Hook):
+    """resize Subject Image"""
+
+    __regid__ = "frarchives_edition.subject_image_resize"
+    __select__ = hook.Hook.__select__ & is_instance("Image")
+    events = ("before_update_entity",)
+
+    def __call__(self):
+        if self.entity.reverse_subject_image:
+            SubjectImageCropOp.get_instance(self._cw).add_data(self.entity.eid)
+
+
+class SubjectImageRelationResizeHook(hook.Hook):
+    __regid__ = "frarchives_edition.subject_image_resize.relation"
+    events = ("after_add_relation",)
+    __select__ = hook.Hook.__select__ & hook.match_rtype("subject_image")
+
+    def __call__(self):
+        SubjectImageCropOp.get_instance(self._cw).add_data(self.eidto)
+
+
+def normalise_crop_size(current, target):
+    if current == target:
+        return current
+    current_width, current_height = current
+    target_width, target_height = target
+
+    width_ratio = current_width / float(target_width)
+    height_ratio = current_height / float(target_height)
+
+    if width_ratio > height_ratio:
+        # width is too big
+        ratio = (target_width * current_height) / float(target_height * current_width)
+        return (int(round(current_width * ratio)), current_height)
+    elif height_ratio > width_ratio:
+        # height is too big
+        ratio = (target_height * current_width) / float(target_width * current_height)
+        return (current_width, int(round(current_height * ratio)))
+    else:
+        # ratios are equals
+        return (current_width, current_height)
+
+
+def crop_image(image, final_shape, crop_shape):
+    image_width, image_height = image.size
+    crop_width, crop_height = crop_shape
+    top = int(round(float(image_height) / 2 - (float(crop_height) / 2)))
+    left = int(round(float(image_width) / 2 - (float(crop_width) / 2)))
+    box = (left, top, left + crop_width, top + crop_height)
+    cropped_image = image.crop(box)
+    if cropped_image.size == final_shape:
+        return cropped_image
+    return cropped_image.resize(final_shape, Image.Resampling.LANCZOS)
+
+
+class SubjectImageCropOp(hook.DataOperationMixIn, hook.Operation):
+    """SubjectImages must all have the same SUBJECT_IMAGE_SIZE size."""
+
+    def precommit_event(self):
+        cnx = self.cnx
+        st = S3BfssStorageMixIn()
+        for eid in self.get_data():
+            if cnx.deleted_in_transaction(eid):
+                continue
+            image_path = cnx.execute(
+                "Any FSPATH(D) WHERE X eid %(e)s, X image_file F, F data D", {"e": eid}
+            )
+            image_entity = cnx.entity_from_eid(eid)
+            if not image_path:
+                continue
+            image_path = image_path[0][0].getvalue()
+            if not image_path:
+                continue
+            stream = io.BytesIO(st.storage_get_file_content(image_path))
+            image = Image.open(stream)
+            size = image.size
+            format_ = image.format
+            if size != SUBJECT_IMAGE_SIZE:
+                # avoid an odd difference between the desired size, and old size
+                crop_size = normalise_crop_size(size, SUBJECT_IMAGE_SIZE)
+                image = crop_image(image, SUBJECT_IMAGE_SIZE, crop_size)
+            if S3_ACTIVE:
+                byte_io = io.BytesIO()
+                image.save(byte_io, format_, optimize=True, quality=100)
+                content = byte_io.getvalue()
+                image_entity.image_file[0].cw_set(data=Binary(content))
+            else:
+                raise Exception("S3 is not active.")
 
 
 def registration_callback(vreg):

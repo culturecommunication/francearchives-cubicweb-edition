@@ -62,3 +62,4 @@ def includeme(config):
         factory=ApplicationSchema,
         strict_accept=JSONSCHEMA_MEDIA_TYPE,
     )
+    config.add_route("sitelinks", "/sitelinks")

@@ -215,6 +215,8 @@ def create_entity(context, request):
 def relationship_uischema(context, request):
     vreg = request.registry["cubicweb.registry"]
     entity = vreg["etypes"].etype_class(context.target_type)(request.cw_request)
+    entity.related_rtype = context.rtype
+    entity.related_role = context.role
     return entity.cw_adapt_to("IJsonFormEditable").ui_schema()
 
 

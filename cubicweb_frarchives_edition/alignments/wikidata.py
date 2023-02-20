@@ -95,7 +95,9 @@ class WikidataDatabase(SPARQLDatabase):
     def agent_infos(self, extid):
         rset = self.agent_query(extid)
         data_infos = {}
-        for (label, birthdate, deathdate, birthprecision, deathprecision, description) in rset:
+        if not rset:
+            return data_infos
+        for label, birthdate, deathdate, birthprecision, deathprecision, description in rset:
             data_infos["label"] = label
             dates = {}
             birthdate = compute_dates(birthdate, birthprecision)

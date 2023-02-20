@@ -59,7 +59,7 @@ def zip_files(files, archive=""):
     if not archive:
         fp = NamedTemporaryFile(delete=False)
         archive = fp.name
-        fp.close
+        fp.close()
     with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as fp:
         for filename, arcname in files:
             try:

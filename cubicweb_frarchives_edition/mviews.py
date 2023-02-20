@@ -34,6 +34,7 @@ from yams.constraints import UniqueConstraint
 from jinja2 import Environment, PackageLoader
 
 from cubicweb.schema import RQLExpression
+from cubicweb.server.ssplanner import prepare_plan
 from cubicweb.server.sqlutils import SQL_PREFIX
 
 from cubicweb_francearchives import CMS_OBJECTS
@@ -87,11 +88,11 @@ def bootstrap_view(cnx, expression, sqlschema="published"):
     # XXX too bad no simpler solution seems to exist
     querier = cnx.repo.querier
     source = cnx.repo.sources_by_uri["system"]
-    querier.rql_cache.solutions(cnx, rqlst, {})
-    querier._annotate(rqlst)
+    cnx.vreg.compute_var_types(cnx, rqlst, {})
+    cnx.vreg.rqlhelper.annotate(rqlst)
     plan = querier.plan_factory(rqlst, {}, cnx)
     plan.cache_key = None
-    querier._planner.build_plan(plan)
+    prepare_plan(plan, querier.schema, cnx.vreg.rqlhelper)
     if len(plan.steps) != 1:
         raise ValueError("Invalid RQL query")
     sql, args, _ = source._rql_sqlgen.generate(rqlst, {})

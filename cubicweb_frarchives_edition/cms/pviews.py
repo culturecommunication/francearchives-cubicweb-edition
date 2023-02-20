@@ -29,11 +29,20 @@
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
 
+import datetime
+
 import logging
+import os
+import os.path as osp
+
+
+from elasticsearch.exceptions import NotFoundError
+from elasticsearch_dsl import Search, Q, query as dsl_query
 
 from pyramid import httpexceptions, security
 from pyramid.view import view_config
 from pyramid.response import Response
+from pyramid.httpexceptions import HTTPNotFound
 import redis
 import rq
 
@@ -41,9 +50,17 @@ from cubicweb import ConfigurationError
 
 from cubicweb_jsonschema.resources.entities import EntityResource, ETypeResource
 from cubicweb_jsonschema.api import jsonapi_error, JSONBadRequest
+from cubicweb_elasticsearch.es import get_connection
 
+from cubicweb_francearchives.dataimport.oai import parse_oai_url
 from cubicweb_francearchives.pviews.faroutes import card_view
-
+from cubicweb_francearchives.pviews.cwroutes import download_s3_view
+from cubicweb_francearchives.utils import (
+    get_autorities_by_label,
+    get_autorities_by_eid,
+    register_blacklisted_authorities,
+)
+from cubicweb_frarchives_edition import AUTH_URL_PATTERN
 from cubicweb_frarchives_edition.entities import section as section_edition
 from cubicweb_frarchives_edition.api import json_config
 
@@ -100,7 +117,6 @@ def service(request):
         if not dpt:
             raise httpexceptions.HTTPNotFound()
         st.add_constant_restriction(st.get_variable("X"), "dpt_code", "d", "Substitute")
-        st.add_constant_restriction(st.get_variable("X"), "level", ("level-C", "level-D"), "String")
         rset = req.execute(st.as_string(), {"d": dpt.upper()})
     else:
         st.add_constant_restriction(st.get_variable("X"), "eid", "c", "Substitute")
@@ -205,20 +221,46 @@ def faforservice(request):
         raise httpexceptions.HTTPNotFound()
     rset = req.execute(
         """
-        Any F, EADID, SID, TITLEPROPER, UNITTITLE, UNITID, FNAME, CDATE, SNAME, OAI
+        Any F, EADID, SID, TITLEPROPER, UNITTITLE, UNITID, FNAME,
+            CDATE, MDATE, SNAME, OAI, APE_FNAME, APE_HASH
         ORDERBY CDATE DESC WHERE F is FindingAid,
         F service S, S code %(code)s,
         F eadid EADID,
         F fa_header FA, FA titleproper TITLEPROPER,
         F did D, D unittitle UNITTITLE, D unitid UNITID,
         F stable_id SID,
-        F findingaid_support FS?, FS data_name FNAME,
+        F findingaid_support FS?,
+        FS data_name FNAME,
         F creation_date CDATE,
+        F modification_date MDATE,
         F oai_id OAI,
+        F ape_ead_file APS?,
+        APS data_name APE_FNAME,
+        APS data_hash APE_HASH,
         F in_state ST?, ST name SNAME
         """,
         {"code": service_code},
     )
+    last_harvest_rset = req.execute(
+        """
+        Any OIT, URL ORDERBY OIT DESC LIMIT 1 WHERE
+        S code %(code)s,
+        R service S, R is OAIRepository, OIT oai_repository R, R url URL,
+        OIT in_state ST, ST name "wfs_oaiimport_completed"
+        """,
+        {"code": service_code},
+    )
+    if last_harvest_rset:
+        oai_eid, oai_url = last_harvest_rset[0]
+        oai_import = req.entity_from_eid(oai_eid)
+        wf = oai_import.cw_adapt_to("IWorkflowable")
+        last_harvest = wf.latest_trinfo().creation_date
+        base_url, params = parse_oai_url(oai_url.strip())
+        prefix = params.get("metadataPrefix")
+        prefix = "ead" if prefix != "oai_dc" else "dc"
+    else:
+        last_harvest = None
+        prefix = None
     entities = []
     _ = req._
     for (
@@ -230,20 +272,36 @@ def faforservice(request):
         unitid,
         filename,
         creation_date,
+        modification_date,
         status,
         oai,
+        ape_fname,
+        ape_hash,
     ) in rset:
         name = titleproper or unittitle or unitid or "???"
+        if oai:
+            # for now only consider IR  from metaPrefix=ead
+            key = f"file/s3/{service_code}/oaipmh/ead/{filename}"
+        else:
+            # do not process csv files, only imported by ead
+            key = f"file/s3/{service_code}/{filename}"
+        if ape_hash:
+            ape_key = req.build_url(f"file/{ape_hash}/ape-ead/{service_code}/{ape_fname}")
+        else:
+            ape_key = ""
         entities.append(
             {
                 "eid": eid,
                 "eadid": eadid,
                 "stable_id": stable_id,
                 "name": name,
-                "filename": filename,
+                "filename": [filename, req.build_url(key)] if filename else ["", ""],
                 "import": "OAI" if bool(oai) else "ZIP",
                 "creation_date": creation_date,
+                "modification_date": modification_date,
+                "harvest_date": last_harvest if bool(oai) else None,
                 "url": [eadid, req.build_url("findingaid/{}".format(stable_id))],
+                "ape_ead": [ape_fname, ape_key] if ape_key else ["", ""],
                 "status": _(status),
             }
         )
@@ -254,14 +312,18 @@ def faforservice(request):
 @json_config(route_name="rqtasks")
 def rqtasks(request):
     req = request.cw_request
+    today = datetime.datetime.today()
     rset = req.execute(
-        "DISTINCT Any X, SN, D ORDERBY D desc "
-        "WHERE X is RqTask, "
-        "X creation_date D, "
-        "X status SN"
+        """DISTINCT Any X, SN, D ORDERBY D desc
+           WHERE X is RqTask, X status SN,
+           X creation_date D, X creation_date >= %(last_year)s
+        """,
+        {"last_year": today - datetime.timedelta(356)},
     )
     if not rset:
-        raise httpexceptions.HTTPNotFound()
+        return {"data": []}
+        # FIXME handle httpexceptions in the task code
+        # raise httpexceptions.HTTPNotFound()
     entities = [e.cw_adapt_to("IJSONSchema").serialize() for e in rset.entities()]
     return {"data": entities}
 
@@ -272,6 +334,216 @@ def rq_tween_factory(handler, registry):
             return handler(request)
 
     return rq_tween
+
+
+@view_config(route_name="s3-oai", request_method=("GET", "HEAD"))
+def oai_s3_download_view(request):
+    cwconfig = request.registry["cubicweb.config"]
+    filepath = osp.join(
+        cwconfig["ead-services-dir"],
+        request.matchdict["servicecode"],
+        "oaipmh",
+        request.matchdict["prefix"],
+        request.matchdict["basename"],
+    )
+    return download_s3_view(filepath)
+
+
+@view_config(route_name="s3-xml", request_method=("GET", "HEAD"))
+def xml_s3_download_view(request):
+    cwconfig = request.registry["cubicweb.config"]
+    filepath = osp.join(
+        cwconfig["ead-services-dir"],
+        request.matchdict["servicecode"],
+        request.matchdict["basename"],
+    )
+    return download_s3_view(filepath)
+
+
+@view_config(route_name="s3-csv", request_method=("GET", "HEAD"))
+def csv_s3_download_view(request):
+    """
+    On CMS display unpublished images/files by fallback to .hidden
+    """
+    filepath = "{hash}_{basename}".format(**request.matchdict)
+    return download_s3_view(filepath)
+
+
+@view_config(route_name="s3-cms", request_method=("GET", "HEAD"))
+def s3_download_view(request):
+    """
+    On CMS display unpublished images/files by fallback to .hidden
+    """
+    filepath = "{hash}_{basename}".format(**request.matchdict)
+    basename = request.matchdict["basename"]
+    if "_nomina_" in basename and basename.endswith("csv"):
+        # XXX find a better way
+        data_hash = request.matchdict["hash"]
+        cwreq = request.cw_request
+        rset = cwreq.execute(f"Any FSPATH(D) WHERE F data_hash '{data_hash}', F data D")
+        if rset:
+            filepath = rset[0][0].getvalue().decode("utf-8")
+    try:
+        response = download_s3_view(filepath)
+        # cubicweb_francearchives.pviews.cwroutes.3_download_view don't raise, but
+        # return an HTTPNotFound
+        if isinstance(response, HTTPNotFound):
+            raise HTTPNotFound()
+        return response
+    except HTTPNotFound:
+        # TODO use secret key to improve security of .hidden
+        return download_s3_view(".hidden/" + filepath)
+
+
+@json_config(route_name="get-blacklisted")
+def get_blacklisted_authorities(request):
+    req = request.cw_request
+    query = """SELECT label FROM blacklisted_authorities ORDER BY label DESC"""
+    data = [{"label": label} for label, in req.cnx.system_sql(query).fetchall()]
+    return data
+
+
+@json_config(route_name="add-blacklisted")
+def add_blacklisted_authority(request):
+    req = request.cw_request
+    data = request.json_body
+    register_blacklisted_authorities(req.cnx, data["label"])
+
+
+@json_config(route_name="remove-blacklisted")
+def remove_blacklisted_authority(request):
+    req = request.cw_request
+    data = request.json_body
+    req.cnx.system_sql(
+        """DELETE FROM blacklisted_authorities
+           WHERE label=%(label)s""",
+        data,
+    )
+    req.cnx.commit()
+
+
+@json_config(route_name="show-blacklisted-candidates")
+def show_blacklisted_candidates(request):
+    req = request.cw_request
+    data = request.json_body
+    label = data["label"]
+    match = AUTH_URL_PATTERN.match(label)
+    if match:
+        res = get_autorities_by_eid(req, match["eid"])
+        if res:
+            return res
+    res = get_autorities_by_label(req, label, auth_etypes="SubjectAuthority")
+    return res
+
+
+@json_config(route_name="sectionthemes")
+def sectionthemes(request):
+    req = request.cw_request
+    section_eid = request.matchdict["eid"]
+    entities = {"available": [], "selected": []}
+    # retrieve all children sections
+    es = get_connection(req.vreg.config)
+    if not es:
+        req.error("no elastisearch connection available")
+        return entities
+    index_name = req.vreg.config["index-name"]
+    content_eids = []
+    # retrive all children of the sections with a related authority
+    # unfortunately we can't filter on the authority etype
+    search = Search(
+        index="{}_all".format(index_name),
+        extra={"size": 10000},
+    )
+    must = [{"match": {"ancestors": section_eid}}, Q("exists", field="index_entries")]
+    search.query = dsl_query.Bool(must=must)
+    try:
+        response = search.execute()
+    except NotFoundError:
+        return entities
+    content_eids = [str(r.eid) for r in response]
+    if not content_eids:
+        return entities
+    # retrieve all related subject authorities
+    rset = req.execute(
+        """DISTINCT Any A, L WHERE Y eid IN (%(e)s),
+        Y related_authority A,
+        A is SubjectAuthority, A label L"""
+        % {"e": ", ".join(content_eids)},
+    )
+    if not rset:
+        return entities
+    index_name = req.vreg.config["index-name"]
+    eids = [row[0] for row in rset]
+    search = Search(
+        index="{}_suggest".format(index_name),
+        extra={"size": 10000},
+    ).sort("-siteres")
+    must = [
+        {"terms": {"eid": eids}},
+    ]
+    search.query = dsl_query.Bool(must=must)
+    try:
+        response = search.execute()
+    except NotFoundError:
+        return []
+    selected_themes = {
+        row[0]: [row[1], row[2]]
+        for row in req.execute(
+            """Any A, OA, O WHERE X eid %(e)s, X section_themes OA,
+               OA subject_entity A, OA order O""",
+            {"e": section_eid},
+        )
+    }
+    for result in response:
+        ordered_data = selected_themes.get(result.eid)
+        if ordered_data:
+            entities["selected"].append(
+                {
+                    "count": result.siteres,
+                    "label": [result.text, req.build_url(f"subject/{result.eid}")],
+                    "order": ordered_data[1],
+                    "eid": ordered_data[0],
+                }
+            )
+        else:
+            entities["available"].append(
+                {
+                    "count": result.siteres,
+                    "label": [result.text, req.build_url(f"subject/{result.eid}")],
+                    "eid": result.eid,
+                }
+            )
+    return entities
+
+
+@json_config(route_name="add-sectiontheme")
+def add_sectiontheme(request):
+    req = request.cw_request
+    req.create_entity(
+        "OrderedSubjectAuthority",
+        order=0,
+        subject_entity=request.json_body["eid"],
+        reverse_section_themes=request.matchdict["eid"],
+    )
+
+
+@json_config(route_name="modify-subjecttheme")
+def modify_subjecttheme(request):
+    req = request.cw_request
+    # should we recalculate all orders ?
+    req.execute(
+        """SET X order %(o)s WHERE X eid %(eid)s""",
+        {"eid": request.matchdict["eid"], "o": request.json_body["order"]},
+    )
+
+
+@json_config(route_name="delete-sectiontheme")
+def delete_sectiontheme(request):
+    req = request.cw_request
+    req.execute(
+        """DELETE OrderedSubjectAuthority OA WHERE OA eid %(subj)s""",
+        {"subj": request.json_body["eid"]},
+    )
 
 
 def includeme(config):
@@ -286,8 +558,48 @@ def includeme(config):
     config.add_route("rqtasks", "/rqtasks", strict_accept="application/json")
     config.add_route("faservices", "/faservices", strict_accept="application/json")
     config.add_route("faforservice", "/faforservice", strict_accept="application/json")
+    config.add_route("get-blacklisted", "/get-blacklisted", strict_accept="application/json")
+    config.add_route("add-blacklisted", "/add-blacklisted", strict_accept="application/json")
+    config.add_route("remove-blacklisted", "/remove-blacklisted", strict_accept="application/json")
+    config.add_route(
+        "show-blacklisted-candidates",
+        "/show-blacklisted-candidates",
+        strict_accept="application/json",
+    )
+    config.add_route(
+        "sectionthemes",
+        "/sectionthemes/{eid}",
+        strict_accept="application/json",
+    )
+    config.add_route(
+        "add-sectiontheme",
+        "/add-sectiontheme/{eid}",
+        strict_accept="application/json",
+    )
+    config.add_route(
+        "delete-sectiontheme",
+        "/delete-sectiontheme/{eid}",
+        strict_accept="application/json",
+    )
+    config.add_route(
+        "modify-subjecttheme",
+        "/modify-subjecttheme/{eid}",
+        strict_accept="application/json",
+    )
     config.scan(__name__)
     cwconfig = config.registry["cubicweb.config"]
+    if os.getenv("AWS_S3_BUCKET_NAME"):
+        config.add_route("s3-cms", "/file/{hash}/{basename}")
+        config.add_route("s3-oai", "/file/s3/{servicecode}/oaipmh/{prefix}/{basename}")
+        config.add_route("s3-xml", "/file/s3/{servicecode}/{basename}")
+        config.add_route("s3-csv", "/file/s3/{hash}/{basename}")
+    else:
+        # required because pyramid needs to find routes declared in @view_config - unused
+        config.add_route("s3-cms", "/next/file/{hash}/{basename}")
+        config.add_route("s3-oai", "/file/s3/{servicecode}/oaipmh/{prefix}/{basename}")
+        config.add_route("s3-nomina", "/next/file/s3/{servicecode}/oaipmh/{prefix}/{basename}")
+        config.add_route("s3-xml", "/next/file/s3/{servicecode}/{basename}")
+        config.add_route("s3-csv", "/next/file/s3/{hash}/{basename}")
     if cwconfig.mode == "test" and "frarchives_edition.rq.redis" in config.registry.settings:
         config.registry.settings["rq.redis"] = config.registry.settings[
             "frarchives_edition.rq.redis"

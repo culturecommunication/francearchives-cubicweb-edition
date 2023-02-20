@@ -31,7 +31,7 @@
 
 from cubicweb.predicates import is_instance, match_kwargs, score_entity
 from cubicweb.schema import display_name
-from cubicweb.view import EntityAdapter
+from cubicweb.entity import EntityAdapter
 
 
 class JsonFormEditableAdapter(EntityAdapter):
@@ -103,20 +103,6 @@ class CircularJsonFormEditableAdapter(JsonFormEditableAdapter):
         return defs
 
 
-class OAIRepositoryJsonFormEditableAdapter(JsonFormEditableAdapter):
-    __select__ = JsonFormEditableAdapter.__select__ & is_instance("OAIRepository")
-
-    def ui_schema(self):
-        defs = super(OAIRepositoryJsonFormEditableAdapter, self).ui_schema()
-        defs.update(
-            {
-                "should_normalize": {"ui:widget": "radio"},
-                "context_service": {"ui:widget": "radio"},
-            }
-        )
-        return defs
-
-
 class CmsObjectJsonFormEditableAdapter(JsonFormEditableAdapter):
     __abstract__ = True
 
@@ -169,15 +155,15 @@ class SectionTranslationJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter
         defs = super(SectionTranslationJsonFormEditableAdapter, self).ui_schema()
         defs.update(
             {
-                "content": {
-                    "ui:widget": "wysiwygEditor",
-                },
+                "short_description": {"ui:widget": "textarea"},
+                "header": {"ui:widget": "textarea"},
                 "language": {"ui:disabled": {}},
                 "ui:order": [
                     "title",
                     "subtitle",
-                    "content",
                     "short_description",
+                    "content",
+                    "header",
                     "language",
                 ],
             }
@@ -185,7 +171,21 @@ class SectionTranslationJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter
         return defs
 
 
-class TopSectionJsonFormEditableAdapter(RelatedTranslationMixin, CmsObjectJsonFormEditableAdapter):
+class SectionJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter):
+    __abstract__ = True
+
+    def ui_schema(self):
+        defs = super(SectionJsonFormEditableAdapter, self).ui_schema()
+        defs.update(
+            {
+                "short_description": {"ui:widget": "textarea"},
+                "header": {"ui:widget": "textarea"},
+            }
+        ),
+        return defs
+
+
+class TopSectionJsonFormEditableAdapter(RelatedTranslationMixin, SectionJsonFormEditableAdapter):
     __select__ = is_instance("Section") & score_entity(lambda x: x.cssimage)
 
     def related(self):
@@ -196,9 +196,7 @@ class TopSectionJsonFormEditableAdapter(RelatedTranslationMixin, CmsObjectJsonFo
         return defs
 
 
-class OtherSectionJsonFormEditableAdapter(
-    RelatedTranslationMixin, CmsObjectJsonFormEditableAdapter
-):
+class OtherSectionJsonFormEditableAdapter(RelatedTranslationMixin, SectionJsonFormEditableAdapter):
     __select__ = is_instance("Section") & ~score_entity(lambda x: x.cssimage)
 
 
@@ -209,13 +207,20 @@ class NewsContentJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter):
         defs = super(NewsContentJsonFormEditableAdapter, self).ui_schema()
         defs.update(
             {
-                "start_date": {
-                    "ui:widget": "dateEditor",
-                },
-                "stop_date": {
-                    "ui:widget": "dateEditor",
-                },
-            }
+                "start_date": {"ui:widget": "dateEditor"},
+                "stop_date": {"ui:widget": "dateEditor"},
+                "header": {"ui:widget": "textarea"},
+                "ui:order": [
+                    "title",
+                    "content",
+                    "start_date",
+                    "stop_date",
+                    "order",
+                    "header",
+                    "on_homepage",
+                    "on_homepage_order",
+                ],
+            },
         )
         return defs
 
@@ -248,19 +253,27 @@ class BaseContentJsonFormEditableAdapter(
                 "basecontent_service": {
                     "ui:field": "autocompleteField",
                 },
+                "related_content_suggestion": {
+                    "ui:field": "autocompleteField",
+                },
                 "summary": {"ui:widget": "wysiwygEditor"},
+                "header": {"ui:widget": "textarea"},
             }
         )
         defs.update(
             {
                 "ui:order": [
+                    "content_type",
                     "title",
                     "content",
                     "summary",
                     "summary_policy",
-                    "on_homepage",
                     "order",
+                    "header",
+                    "on_homepage",
+                    "on_homepage_order",
                     "basecontent_service",
+                    "related_content_suggestion",
                 ]
             }
         )
@@ -277,11 +290,13 @@ class BaseContentTranslationJsonFormEditableAdapter(CmsObjectJsonFormEditableAda
                 "summary": {
                     "ui:widget": "wysiwygEditor",
                 },
+                "header": {"ui:widget": "textarea"},
                 "language": {"ui:disabled": {}},
                 "ui:order": [
                     "title",
                     "content",
                     "summary",
+                    "header",
                     "language",
                 ],
             }
@@ -296,6 +311,35 @@ class CommemorationItemJsonFormEditableAdapter(
         "CommemorationItem",
     )
 
+    def ui_schema(self):
+        defs = super(CommemorationItemJsonFormEditableAdapter, self).ui_schema()
+        defs.update(
+            {
+                "header": {"ui:widget": "textarea"},
+                "summary": {"ui:widget": "wysiwygEditor"},
+                "related_content_suggestion": {
+                    "ui:field": "autocompleteField",
+                },
+                "ui:order": [
+                    "title",
+                    "subtitle",
+                    "alphatitle",
+                    "content",
+                    "summary",
+                    "summary_policy",
+                    "start_year",
+                    "stop_year",
+                    "commemoration_year",
+                    "order",
+                    "header",
+                    "on_homepage",
+                    "on_homepage_order",
+                    "related_content_suggestion",
+                ],
+            }
+        )
+        return defs
+
 
 class CommemorationItemTranslationJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter):
     __select__ = is_instance("CommemorationItemTranslation")
@@ -307,11 +351,14 @@ class CommemorationItemTranslationJsonFormEditableAdapter(CmsObjectJsonFormEdita
                 "content": {
                     "ui:widget": "wysiwygEditor",
                 },
+                "header": {"ui:widget": "textarea"},
                 "language": {"ui:disabled": {}},
                 "ui:order": [
                     "title",
+                    "header",
                     "subtitle",
                     "content",
+                    "summary",
                     "language",
                 ],
             }
@@ -351,9 +398,7 @@ class CardJsonFormEditableAdapter(JsonFormEditableAdapter):
         return []
 
 
-class ImageJsonFormEditableAdapter(JsonFormEditableAdapter):
-    __select__ = is_instance("Image", "CssImage")
-
+class ImageJsonFormEditableMixin:
     def ui_schema(self):
         defs = {
             "caption": {
@@ -365,7 +410,7 @@ class ImageJsonFormEditableAdapter(JsonFormEditableAdapter):
             "image_file": {
                 "items": {
                     "data": {
-                        "ui:widget": "imageEditor",
+                        "ui:widget": self.image_editor,
                     },
                 },
                 "ui:options": {
@@ -378,6 +423,19 @@ class ImageJsonFormEditableAdapter(JsonFormEditableAdapter):
 
     def get_ancestors(self):
         return []
+
+
+class ImageJsonFormEditableAdapter(ImageJsonFormEditableMixin, JsonFormEditableAdapter):
+    __select__ = is_instance("Image", "CssImage") & score_entity(
+        lambda x: x.related_rtype != "subject_image"
+    )
+    image_editor = "imageEditor"
+
+
+class SectionImageJsonFormEditableAdapter(ImageJsonFormEditableMixin, JsonFormEditableAdapter):
+    __absract__ = False
+    __select__ = is_instance("Image") & score_entity(lambda x: x.related_rtype == "subject_image")
+    image_editor = "subjectImageEditor"
 
 
 class FingingAidJsonFormEditableAdapter(JsonFormEditableAdapter):
@@ -400,6 +458,10 @@ class ExternRefJsonFormEditableAdapter(RelatedAuthorityMixin, CmsObjectJsonFormE
                 "exref_service": {
                     "ui:field": "autocompleteField",
                 },
+                "related_content_suggestion": {
+                    "ui:field": "autocompleteField",
+                },
+                "header": {"ui:widget": "textarea"},
             }
         )
         return defs
@@ -427,6 +489,34 @@ class ServiceJsonFormEditableAdapter(JsonFormEditableAdapter):
             "other": {
                 "ui:widget": "wysiwygEditor",
             },
+            "ui:order": [
+                "category",
+                "name",
+                "name2",
+                "short_name",
+                "level",
+                "code",
+                "phone_number",
+                "email",
+                "address",
+                "mailing_address",
+                "zip_code",
+                "city",
+                "dpt_code",
+                "code_insee_commune",
+                "latitude",
+                "longitude",
+                "website_url",
+                "search_form_url",
+                "thumbnail_url",
+                "thumbnail_dest",
+                "iiif_extptr",
+                "annual_closure",
+                "opening_period",
+                "contact_name",
+                "other",
+                "service_social_network",
+            ],
         }
 
 
@@ -469,6 +559,28 @@ class GlossaryTermJsonFormEditableAdapter(JsonFormEditableAdapter):
         return defs
 
 
+class NominaRecordJsonFormEditableAdapter(JsonFormEditableAdapter):
+    __select__ = is_instance(
+        "NominaRecord",
+    )
+
+    def related(self):
+        defs = super(NominaRecordJsonFormEditableAdapter, self).related()
+        _ = self._cw._
+        rtype = "same_as"
+        defs[rtype] = {
+            "fetchPossibleTargets": False,
+            "multiple": True,
+            "rtype": rtype,
+            "title": _(rtype),
+            "titles": [
+                _("index_agent"),
+            ],
+            "etargets": ["AgentAuthority"],
+        }
+        return defs
+
+
 class RqTaskJsonFormEditableAdapter(JsonFormEditableAdapter):
     __select__ = is_instance("RqTask")
 
@@ -486,8 +598,6 @@ class ImportEadRqTaskJsonFormEditableAdapter(RqTaskJsonFormEditableAdapter):
             "file": {
                 "ui:widget": "filepicker",
             },
-            "should_normalize": {"ui:widget": "radio"},
-            "context_service": {"ui:widget": "radio"},
         }
 
 
@@ -517,26 +627,38 @@ class ImportCSVTaskJsonFormEditableAdapter(RqTaskJsonFormEditableAdapter):
             "metadata": {
                 "ui:widget": "filepicker",
             },
-            "should_normalize": {"ui:widget": "radio"},
-            "context_service": {"ui:widget": "radio"},
         }
 
 
-class ImportOaiTaskJsonFormEditableAdapter(RqTaskJsonFormEditableAdapter):
+class ImportCSVNominaTaskJsonFormEditableAdapter(RqTaskJsonFormEditableAdapter):
     __select__ = RqTaskJsonFormEditableAdapter.__select__ & match_kwargs(
-        {"schema_type": "import_oai"}
+        {"schema_type": "import_csv_nomina"}
     )
 
     def ui_schema(self):
         return {
-            "should_normalize": {"ui:widget": "radio"},
-            "context_service": {"ui:widget": "radio"},
+            "file": {
+                "ui:widget": "filepicker",
+            },
         }
 
 
 class ImportAuthoritiesRqTaskJsonFormEditableAdapter(RqTaskJsonFormEditableAdapter):
     __select__ = RqTaskJsonFormEditableAdapter.__select__ & match_kwargs(
         {"schema_type": "import_authorities"}
+    )
+
+    def ui_schema(self):
+        return {
+            "file": {
+                "ui:widget": "filepicker",
+            },
+        }
+
+
+class ImportQualifiedAuthoritiesRqTaskJsonFormEditableAdapter(RqTaskJsonFormEditableAdapter):
+    __select__ = RqTaskJsonFormEditableAdapter.__select__ & match_kwargs(
+        {"schema_type": "import_qualified_authorities"}
     )
 
     def ui_schema(self):
@@ -602,6 +724,46 @@ class FaqItemTranslationJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter
                     "anwser",
                     "language",
                 ],
+            }
+        )
+        return defs
+
+
+class SiteLinkJsonFormEditableAdapter(CmsObjectJsonFormEditableAdapter):
+    __select__ = is_instance("SiteLink")
+
+    def ui_schema(self):
+        defs = super(SiteLinkJsonFormEditableAdapter, self).ui_schema()
+        defs.update(
+            {
+                "ui:order": [
+                    "context",
+                    "link",
+                    "order",
+                    "label_fr",
+                    "label_en",
+                    "label_es",
+                    "label_de",
+                    "description_fr",
+                    "description_en",
+                    "description_es",
+                    "description_de",
+                ]
+            }
+        )
+        return defs
+
+
+class OAIRepositoryditableAdapter(CmsObjectJsonFormEditableAdapter):
+    __select__ = is_instance("OAIRepository")
+
+    def ui_schema(self):
+        defs = super(OAIRepositoryditableAdapter, self).ui_schema()
+        defs.update(
+            {
+                "last_successful_import": {
+                    "ui:readonly": "true",
+                },
             }
         )
         return defs

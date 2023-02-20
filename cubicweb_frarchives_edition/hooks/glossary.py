@@ -58,16 +58,6 @@ class GlossaryTermSortKeyHook(hook.Hook):
                 raise ValidationError(self.entity.eid, {attr: self._cw._("required property")})
 
 
-class GlossaryTermUpdateCacheHook(hook.Hook):
-    __regid__ = "frarchives.glossary.cache"
-    events = ("after_add_entity", "after_update_entity", "after_delete_entity")
-    __select__ = hook.Hook.__select__ & is_instance("GlossaryTerm")
-    category = "glossary"
-
-    def __call__(self):
-        GlossaryTermsUpdateCacheOp.get_instance(self._cw).add_data(self.entity.eid)
-
-
 class GlossaryTermsUpdateCacheOp(hook.DataOperationMixIn, hook.LateOperation):
     def precommit_event(self):
         GLOSSARY_CACHE[:] = []

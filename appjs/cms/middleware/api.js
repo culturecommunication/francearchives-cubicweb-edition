@@ -27,7 +27,6 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-/* global fetch */
 
 const {
     default: {buildUrl},
@@ -51,12 +50,12 @@ function callApi(url, fetchopts) {
         },
         fetchopts,
     )
-    return fetch(url, opts).then(response =>
-        response.json().then(json => ({json, response})),
+    return fetch(url, opts).then((response) =>
+        response.json().then((json) => ({json, response})),
     )
 }
 
-const middleware = store => next => action => {
+const middleware = (store) => (next) => (action) => {
     const callApiDetails = action[CALL_FETCH]
     if (callApiDetails === undefined) {
         return next(action)
@@ -74,13 +73,13 @@ const middleware = store => next => action => {
         return next({type: notNecessaryActionType, payload})
     }
     return callApi(endpoint, fetchopts).then(
-        response =>
+        (response) =>
             next({
                 payload,
                 type: successActionType,
                 response,
             }),
-        error =>
+        (error) =>
             next({
                 type: failureActionType,
                 error: error.message,

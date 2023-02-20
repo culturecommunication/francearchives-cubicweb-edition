@@ -29,7 +29,7 @@
  */
 'use strict'
 
-const {createStore, applyMiddleware} = require('redux'),
+const {createStore, applyMiddleware, compose} = require('redux'),
     {Iterable} = require('immutable'),
     thunk = require('redux-thunk').default
 
@@ -46,18 +46,18 @@ function stateTransformer(state) {
         return state
     }
 }
-
 if (process.env.NODE_ENV !== 'production') {
     // transform immutable structure to plain object
     // (recipe from redux-logger README.md)
     middlewares.push(createLogger({collapsed: true, stateTransformer}))
 }
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
 
 function configureStore(initialState) {
     return createStore(
         rootReducer,
         initialState,
-        applyMiddleware(...middlewares),
+        composeEnhancers(applyMiddleware(...middlewares)),
     )
 }
 

@@ -27,6 +27,7 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
+
 import React from 'react'
 import {connect} from 'react-redux'
 import PropTypes from 'prop-types'
@@ -91,9 +92,9 @@ class SameAsItem extends React.Component {
         if (source !== undefined) {
             /* new form*/
             sourceInput = (
-                <div className="form-group">
-                    <label className="control-label col-xs-1">source</label>
-                    <div className="col-xs-11">
+                <div className="mb-4">
+                    <label className="form-label col-md-1">Source</label>
+                    <div className="col-md-11">
                         <input
                             className="form-control"
                             value={source}
@@ -106,39 +107,42 @@ class SameAsItem extends React.Component {
         if (latitude && longitude) {
             let mapUri = uri || link
             coordinatesIntput = (
-                <div>
-                    <div className="form-group">
-                        <label className="control-label col-xs-1">
-                            latitude
-                        </label>
-                        <div className="col-xs-4">
-                            <input
-                                className="form-control"
-                                value={latitude}
-                                disabled="disabled"
-                            />
-                        </div>
-                        <label className="control-label col-xs-1">
-                            longitude
-                        </label>
-                        <div className="col-xs-4">
-                            <input
-                                className="form-control"
-                                value={longitude}
-                                disabled="disabled"
-                            />
-                        </div>
-                        <label className="control-label col-xs-1">
-                            voir la carte
+                <div className="row mb-4 g-3 align-items-center">
+                    <div className="col-md-5">
+                        <label className="form-label">Latitude</label>
+                        <input
+                            className="form-control"
+                            value={latitude}
+                            disabled="disabled"
+                        />
+                    </div>
+                    <div className="col-md-5">
+                        <label className="form-label">Longitude</label>
+                        <input
+                            className="form-control"
+                            value={longitude}
+                            disabled="disabled"
+                        />
+                    </div>
+                    <div className="col-md-2">
+                        <label className="form-label col-md-1">
+                            Voir la carte
                         </label>
                         <a
+                            title="voir sur la carte https://www.geonames.org/"
                             href={mapUri}
-                            className="fa-stack fa-lg url_link col-xs-2"
+                            className="fa-stack fa-xl url_link col-md-11"
                             target="_blank"
                             rel="noopener noreferrer"
                         >
-                            <i className="fa fa-circle fa-stack-2x"></i>
-                            <i className="fa fa-arrow-right  fa-stack-1x fa-inverse"></i>
+                            <i
+                                className="fa fa-circle fa-stack-2x"
+                                aria-hidden="true"
+                            ></i>
+                            <i
+                                className="fa fa-arrow-right  fa-stack-1x fa-inverse"
+                                aria-hidden="true"
+                            ></i>
                         </a>
                     </div>
                 </div>
@@ -155,11 +159,9 @@ class SameAsItem extends React.Component {
                 </button>
                 <fieldset>
                     <legend>Alignement</legend>
-                    <div className="form-group">
-                        <label className="control-label col-xs-1">
-                            libéllé
-                        </label>
-                        <div className="col-xs-11">
+                    <div className="mb-4">
+                        <label className="form-label col-md-1">Libéllé</label>
+                        <div className="col-md-11">
                             <input
                                 className="form-control"
                                 value={label}
@@ -167,9 +169,9 @@ class SameAsItem extends React.Component {
                             />
                         </div>
                     </div>
-                    <div className="form-group">
-                        <label className="control-label col-xs-1">uri</label>
-                        <div className="col-xs-11">{uriInput}</div>
+                    <div className="mb-4">
+                        <label className="form-label col-md-1">URI</label>
+                        <div className="col-md-11">{uriInput}</div>
                     </div>
                     {coordinatesIntput}
                     {sourceInput}
@@ -202,7 +204,9 @@ function SameAsList({data, onItemChange}) {
                         <li className="list-group-item" key={link.eid}>
                             <SameAsItem
                                 item={link}
-                                onChange={item => onItemChange(item, itemrank)}
+                                onChange={(item) =>
+                                    onItemChange(item, itemrank)
+                                }
                             />
                         </li>
                     ),
@@ -214,6 +218,30 @@ function SameAsList({data, onItemChange}) {
 SameAsList.propTypes = {
     data: PropTypes.array.isRequired,
     onItemChange: PropTypes.func.isRequired,
+}
+
+function EditSameAsButtonsGroup({shouldSubmit, submitting, onCancel}) {
+    return (
+        <div className="btn-group">
+            <button className="btn btn-default" onClick={onCancel}>
+                Annuler
+            </button>
+            <button
+                disabled={!shouldSubmit}
+                className="btn btn-primary"
+                type="submit"
+            >
+                {submitting ? <Spinner /> : null}
+                Enregistrer
+            </button>
+        </div>
+    )
+}
+
+EditSameAsButtonsGroup.propTypes = {
+    shouldSubmit: PropTypes.bool.isRequired,
+    submitting: PropTypes.bool.isRequired,
+    onCancel: PropTypes.func.isRequired,
 }
 
 class EditSameAsComp extends React.Component {
@@ -234,12 +262,16 @@ class EditSameAsComp extends React.Component {
     componentDidMount() {
         const {entity} = this.props,
             eid = entity.get('eid')
-        Api.jsonFetch(`/fa/authority/${eid}/same_as`).then(data => {
-            if (data.length === 0) {
-                data = [{uri: '', label: ''}]
-            }
-            this.setState({data, loading: false})
-        })
+        Api.jsonFetch(`/fa/authority/${eid}/same_as`)
+            .then((data) => {
+                if (data.length === 0) {
+                    data = [{uri: '', label: ''}]
+                }
+                this.setState({data, loading: false})
+            })
+            .catch((err) => {
+                console.error(err)
+            })
     }
 
     onSubmit(ev) {
@@ -251,19 +283,21 @@ class EditSameAsComp extends React.Component {
             method: 'PUT',
             body: JSON.stringify(data),
         })
-            .then(doc => {
+            .then((doc) => {
                 if (doc.errors && doc.errors.length) {
                     this.setState({errors: doc.errors})
                 } else {
                     document.location.reload()
                 }
             })
-            .catch(err => console.error('oups', err))
+            .catch((err) => {
+                console.error('oups', err)
+            })
     }
 
     onAdd() {
         const {data} = this.state
-        data.push({uri: '', label: ''})
+        data.unshift({uri: '', label: ''})
         this.setState({data, shouldSubmit: true})
     }
 
@@ -283,14 +317,23 @@ class EditSameAsComp extends React.Component {
         const {data, submitting, loading, shouldSubmit, errors} = this.state,
             {entity} = this.props,
             title = entity.get('dc_title'),
-            i18netype = entity.get('i18n_cw_etype'),
-            reltitle = 'pour ajouter des alignements'
+            entityUrl = `${window.BASE_URL}${entity.get('rest_path')}`,
+            i18netype = entity.get('i18n_cw_etype')
         let errorsDiv = null
         if (loading) {
             return (
                 <div>
-                    <h1>{title}</h1>
-                    <h2>{reltitle}</h2>
+                    <h1>
+                        {i18netype}{' '}
+                        <a
+                            target="_blank"
+                            href={entityUrl}
+                            rel="noopener noreferrer"
+                        >
+                            {title}
+                        </a>{' '}
+                        : gérer les alignements
+                    </h1>
                     <Spinner />
                 </div>
             )
@@ -301,13 +344,10 @@ class EditSameAsComp extends React.Component {
                     <div className="panel-heading">
                         <h3 className="panel-title">Errors</h3>
                         <ul className="list-group">
-                            {errors.map((
-                                error,
-                                i, // eslint-disable-line no-unused-vars
-                            ) => (
+                            {errors.map((error, i) => (
                                 <li
                                     className="list-group-item text-danger"
-                                    key="{i}"
+                                    key={i}
                                 >
                                     {error.details};
                                 </li>
@@ -320,29 +360,35 @@ class EditSameAsComp extends React.Component {
         return (
             <div>
                 <h1>
-                    {i18netype} : &quot;{title}&quot;
+                    {i18netype}{' '}
+                    <a
+                        target="_blank"
+                        href={entityUrl}
+                        rel="noopener noreferrer"
+                    >
+                        {title}
+                    </a>{' '}
+                    : gérer les alignements
                 </h1>
-
                 <div className="cms_add_link">
                     <button className="btn btn-default" onClick={this.onAdd}>
-                        Cliquer ici
+                        Ajouter un alignement
                     </button>
-                    &nbsp;{reltitle}
                 </div>
                 {errors ? errorsDiv : null}
-                <form className="form-horizontal" onSubmit={this.onSubmit}>
+                <hr />
+                <form onSubmit={this.onSubmit}>
+                    <EditSameAsButtonsGroup
+                        shouldSubmit={shouldSubmit}
+                        submitting={submitting}
+                        onCancel={this.onCancel}
+                    />
                     <SameAsList data={data} onItemChange={this.onItemChange} />
-                    <button className="btn btn-default" onClick={this.onCancel}>
-                        annuler
-                    </button>
-                    <button
-                        disabled={!shouldSubmit}
-                        className="btn btn-primary"
-                        type="submit"
-                    >
-                        {submitting ? <Spinner /> : null}
-                        enregistrer
-                    </button>
+                    <EditSameAsButtonsGroup
+                        shouldSubmit={shouldSubmit}
+                        submitting={submitting}
+                        onCancel={this.onCancel}
+                    />
                 </form>
             </div>
         )

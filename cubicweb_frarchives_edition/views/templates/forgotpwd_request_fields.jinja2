@@ -1,0 +1,46 @@
+{% if message_error %}
+<div class="alert alert-danger">
+  <div class="form-message-content-error">{{ message_error }}</div>
+</div>
+{% endif %}
+<div class="mb-4 col-lg-8">
+  <label class="form-label" for="upassword">
+    <span class="required" title="{{ required_info }}">*</span>
+    {{ upassword_label }}
+  </label>
+  {% if forgotpwd_upassword_error %}
+  <span id="cel_upassword" class="error text-danger">{{ forgotpwd_upassword_error }}</span>
+  {% endif %}
+  <div class="input-group">
+    <input name="upassword" id="upassword" class="form-control password"
+        type="password" aria-describedby="upasswordHelpBlock"
+        autocomplete="off" required="required" value="" />
+     <div class="input-group-append">
+       <span class="input-group-text form-control togglePassword" role="button"
+         aria-controls="upassword" aria-expanded="false">
+         <i class="fa fa-eye"></i>
+      </span>
+    </div>
+  </div>
+  <div id="upasswordHelpBlock" class="form-text">{{ _("pwd_policy") }}</div>
+</div>
+<div class="mb-4 col-lg-8">
+  <label class="form-label" for="upassword-confirm">
+    <span class="required" title="{{ required_info }}">*</span>
+    {{ upassword_confirm_label }}
+  </label>
+  {% if forgotpwd_upassword_confirm_error %}
+  <span id="cel_upassword-confirm" class="error text-danger">{{ upassword_confirm_error }}</span>
+  {% endif %}
+  <div class="input-group">
+    <input name="upassword-confirm" id="upassword-confirm" class="form-control" type="password"
+       autocomplete="off" required="required" />
+     <div class="input-group-append">
+       <span class="input-group-text form-control togglePassword" role="button"
+         aria-controls="upassword-confirm" aria-expanded="false">
+         <i class="fa fa-eye"></i>
+      </span>
+    </div>
+  </div>
+</div>
+<button class="btn btn-primary" name="submit" type="submit">{{ _("button_ok").capitalize() }}</button>

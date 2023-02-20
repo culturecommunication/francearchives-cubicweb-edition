@@ -31,6 +31,9 @@
 # standard library imports
 import io
 import csv
+from tempfile import TemporaryDirectory
+from datetime import datetime
+
 import json
 import zipfile
 import glob
@@ -40,12 +43,19 @@ import os.path
 # third party imports
 # CubicWeb specific imports
 # library specific imports
-from cubicweb_francearchives.testutils import HashMixIn
+from cubicweb_francearchives.testutils import S3BfssStorageTestMixin
+from cubicweb_frarchives_edition.alignments.importers import (
+    GeonamesAlignImporter,
+    GeonameAligner,
+    GeonameRecord,
+    align_findingaid,
+)
+
 from utils import create_findingaid, TaskTC
 from pgfixtures import setup_module, teardown_module  # noqa
 
 
-class ComputeAlignmentsAllTC(HashMixIn, TaskTC):
+class ComputeAlignmentsAllTC(S3BfssStorageTestMixin, TaskTC):
     """Compute alignments (entire database) task test cases."""
 
     def setup_database(self):
@@ -96,6 +106,8 @@ class ComputeAlignmentsAllTC(HashMixIn, TaskTC):
         """Set up job queue and configuration."""
         super(ComputeAlignmentsAllTC, self).setUp()
         self.config.global_set_option("appfiles-dir", str(self.datapath("appfiles")))
+        self.config.global_set_option("compute-hash", "yes")
+        self.config.global_set_option("hash-algorithm", "sha1")
 
     def tearDown(self):
         """Clean up job queue."""
@@ -104,18 +116,30 @@ class ComputeAlignmentsAllTC(HashMixIn, TaskTC):
         for filename in filenames:
             os.remove(filename)
 
-    def get_output_file_path(self, output_file):
+    def get_output_file_path(self, cnx, output_file):
         """Get output file path.
 
+        :param Connection cnx: CubicWeb database connection
         :param File output_file: output file
 
         :returns: output file path
         :rtype: str
         """
-        return os.path.join(
-            self.config["appfiles-dir"],
-            "{}_{}".format(output_file.compute_hash(), output_file.data_name),
+        fkey = (
+            cnx.execute(
+                f"Any {self.fkeyfunc}(D) WHERE X data D, X eid %(e)s", {"e": output_file.eid}
+            )[0][0]
+            .getvalue()
+            .decode()
         )
+        if self.s3_bucket_name:
+            return fkey
+        else:
+            expected_path = os.path.join(
+                self.config["appfiles-dir"], f"{output_file.data_hash}_{output_file.data_name}"
+            )
+            self.assertEqual(fkey, expected_path)
+            return fkey
 
     def test_compute_alignments_all_geoname(self):
         """Test computing alignments to target datasets (entire database).
@@ -148,9 +172,10 @@ class ComputeAlignmentsAllTC(HashMixIn, TaskTC):
             # 1 output file
             self.assertEqual(len(task.output_file), 1)
             output_file = task.output_file[0]
-            self.assertEqual(output_file.name, "alignment-geoname.csv")
-            expected = self.get_output_file_path(output_file)
-            self.assertTrue(os.path.isfile(expected))
+            today = datetime.now().strftime("%Y%m%d")
+            self.assertEqual(output_file.name, f"alignment-geoname-{today}-{task.eid}.csv")
+            expected_path = self.get_output_file_path(cnx, output_file)
+            self.assertTrue(self.isFile(expected_path))
             # CSV file contains headers + 2 authorities = 3 rows
             with io.TextIOWrapper(output_file.data, encoding="utf-8", newline="") as fp:
                 reader = csv.reader(fp, delimiter="\t")
@@ -186,7 +211,7 @@ class ComputeAlignmentsAllTC(HashMixIn, TaskTC):
             task = cnx.execute('Any X WHERE X is RqTask, X name "compute_alignments_all"').one()
             self.work(cnx)
             output_file = task.output_file[0]
-            self.assertTrue(os.path.isfile(self.get_output_file_path(output_file)))
+            self.assertTrue(self.isFile(self.get_output_file_path(cnx, output_file)))
             # simplified CSV file format
             # fieldnames
             fieldnames = [
@@ -199,6 +224,7 @@ class ComputeAlignmentsAllTC(HashMixIn, TaskTC):
                 "latitude",
                 "keep",
                 "fiabilite_alignement",
+                "quality",
             ]
             # rows
             eids = cnx.execute('Any X WHERE X is LocationAuthority, X label "Paris (Paris)"').rows
@@ -210,12 +236,13 @@ class ComputeAlignmentsAllTC(HashMixIn, TaskTC):
                     str(eid),
                     auth_uri.format(eid=eid),
                     "Paris (Paris)",
-                    "http://www.geonames.org/2968815",
+                    "https://www.geonames.org/2968815",
                     "Paris (Paris)",
                     "",
                     "",
                     "yes",
                     "1.000",
+                    "no",
                 ]
                 for eid, in eids
             ]
@@ -226,6 +253,44 @@ class ComputeAlignmentsAllTC(HashMixIn, TaskTC):
                 # rows
                 actual = [next(reader), next(reader)]
                 self.assertCountEqual(actual, expected)
+
+    def test_compute_alignments_all_geoname_unique(self):
+        """Run a first alignments and assert the pairs are inserted.
+        Run a second alignments, and assert that no now pairs is found.
+        """
+
+        config = {
+            "nodrop": True,
+            "services": "",
+            "force": True,
+            "dbname": "geonames",
+        }
+
+        with self.admin_access.cnx() as cnx, TemporaryDirectory() as tmpdir:
+            config["csv_dir"] = tmpdir
+
+            importer = GeonamesAlignImporter(cnx, config)
+
+            # Run the alignment a first time almost normally
+            # (“almost” because we directly call align_findingaid not to deal
+            # with paralleling stuff)
+            aligner = GeonameAligner(cnx)
+            findingaids = cnx.execute(
+                "Any X, S WHERE X is FindingAid, X stable_id S",
+            )
+            # compute the new alignments
+            align_findingaid(aligner, GeonameRecord, findingaids, config, ...)
+            # import them
+            importer.import_alignments()
+            cnx.commit()
+
+            # let's compute the alignment again, with the same findingaids.
+            # (call compute_findingaid_alignments directly instead of
+            # `align_findingaid` to get the number of alignment found
+            lines = aligner.compute_findingaid_alignments(
+                (findingaid for findingaid, _ in findingaids)
+            )
+            self.assertEqual(len(lines), 0)  # assert nothing new is found
 
     def test_compute_alignments_all_bano(self):
         """Test computing alignments to target datasets (entire database).
@@ -258,8 +323,9 @@ class ComputeAlignmentsAllTC(HashMixIn, TaskTC):
             # 1 output file
             self.assertEqual(len(task.output_file), 1)
             output_file = task.output_file[0]
-            self.assertEqual(output_file.name, "alignment-bano.csv")
-            self.assertTrue(os.path.isfile(self.get_output_file_path(output_file)))
+            today = datetime.now().strftime("%Y%m%d")
+            self.assertEqual(output_file.name, f"alignment-bano-{today}-{task.eid}.csv")
+            self.assertTrue(self.isFile(self.get_output_file_path(cnx, output_file)))
             # CSV file contains headers + 2 authorities = 3 rows
             with io.TextIOWrapper(output_file.data, encoding="utf-8", newline="") as fp:
                 reader = csv.reader(fp, delimiter="\t")
@@ -269,7 +335,7 @@ class ComputeAlignmentsAllTC(HashMixIn, TaskTC):
             self.assertEqual(len(task.subtasks), 1)
             self.assertEqual(task.subtasks[0].name, "import_alignment")
 
-    def test_compute_alignments_all(self):
+    def test_compute_alignments_all_bases(self):
         """Test computing alignments to target datasets (entire database).
 
         Trying: aligning to GeoNames and BANO and file size 2
@@ -309,12 +375,13 @@ class ComputeAlignmentsAllTC(HashMixIn, TaskTC):
                 [output_file.name for output_file in output_files],
                 ["{}.zip".format(target) for target in targets],
             )
+            today = datetime.now().strftime("%Y%m%d")
             for target, output_file in zip(targets, output_files):
-                self.assertTrue(os.path.isfile(self.get_output_file_path(output_file)))
+                self.assertTrue(self.isFile(self.get_output_file_path(cnx, output_file)))
                 with zipfile.ZipFile(output_file.data) as zip_file:
                     expected = [
-                        "alignment-{}-01.csv".format(target),
-                        "alignment-{}-02.csv".format(target),
+                        f"alignment-{target}-{today}-01.csv",
+                        f"alignment-{target}-{today}-02.csv",
                     ]
                     self.assertCountEqual(zip_file.namelist(), expected)
                     for filename in zip_file.namelist():

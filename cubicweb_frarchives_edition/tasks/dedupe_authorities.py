@@ -115,6 +115,7 @@ def dedupe_one_type(cnx, authtype, log=None, strict=True, service=None):
                 {"a": auth_to_keep, "old": autheid},
             )
             # delete old authority
+            cnx.transaction_data["delete-orphans"] = True
             auth.cw_delete()
 
 

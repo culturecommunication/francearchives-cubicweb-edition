@@ -31,16 +31,17 @@
 
 
 # standard library imports
-import os
 import csv
+from collections import OrderedDict, defaultdict
 import json
 import logging
-from collections import OrderedDict
 
 # third party imports
 from urllib.parse import urljoin
 
 # library specific imports
+from cubicweb_francearchives.storage import S3BfssStorageMixIn
+
 from cubicweb_frarchives_edition import get_samesas_history, IncompatibleFile
 from cubicweb_frarchives_edition.alignments.databnf import compute_dates as databnf_dates
 from cubicweb_frarchives_edition.alignments.wikidata import compute_dates as wikidata_dates
@@ -50,50 +51,238 @@ class Record(object):
     """Alignment record base class.
 
     :cvar OrderedDict headers: CSV headers
-    :cvar tuple REQUIRED_HEADERS: required CSV headers
+    :cvar tuple REQUIRED_HEADERS_ALIGN: required CSV headers used for alignements
+    :cvar tuple REQUIRED_HEADERS_LABELS: required CSV headers used for labels changes
+    :cvar tuple REQUIRED_HEADERS_QUALITY: required CSV headers used for quality changes
     """
 
     headers = OrderedDict([])
-    REQUIRED_HEADERS = ()
+    REQUIRED_HEADERS_ALIGN = ()
+    REQUIRED_HEADERS_LABELS = ()
+    REQUIRED_HEADERS_QUALITY = ()
+    BOOLEAN_HEADERS = ()
+    BOOLEAN_VALUES = {False: ("no", "non"), True: ("yes", "oui")}
 
-    def __init__(self, dictrow):
+    def check_boolean(self, value):
+        if value.lower() not in (self.BOOLEAN_VALUES[True] + self.BOOLEAN_VALUES[False]):
+            return value
+        return value.lower() in self.BOOLEAN_VALUES[True]
+
+    def __init__(self, dictrow, align=True, labels=False, quality=False):
         """Initialize alignment record.
 
         :param dict dictrow: row
+        :param Bool align: flag to check REQUIRED_HEADERS_LIGN
+        :param Bool align: labels to check REQUIRED_HEADERS_LABELS
+        :param Bool align: quality to check REQUIRED_HEADERS_QUALITY
         """
-        self._validate(dictrow)
+        self._validate(dictrow, align=align, labels=labels, quality=quality)
         for k, v in list(self.headers.items()):
-            self.__dict__[v] = dictrow.get(k)
+            value = dictrow.get(k)
+            if value and k in self.BOOLEAN_HEADERS:
+                value = self.check_boolean(value)
+            self.__dict__[v] = value
 
-    def _validate(self, dictrow):
+    def _validate(self, dictrow, align=True, labels=False, quality=False):
         """Validate row.
 
         :param dict dictrow: row
+        :param Bool align: flag to check REQUIRED_HEADERS_LIGN
+        :param Bool align: labels to check REQUIRED_HEADERS_LABELS
+        :param Bool align: quality to check REQUIRED_HEADERS_QUALITY
 
         :raises: ValueError if row is invalid
         """
+        required_headers = set()
+        if align:
+            required_headers |= set(self.REQUIRED_HEADERS_ALIGN)
+        if labels:
+            required_headers |= set(self.REQUIRED_HEADERS_LABELS)
+        if quality:
+            required_headers |= set(self.REQUIRED_HEADERS_QUALITY)
         set_columns = [k for k in dictrow if dictrow.get(k)]
-        non_set_required = [k for k in self.REQUIRED_HEADERS if k not in set_columns]
+        non_set_required = [k for k in list(required_headers) if k not in set_columns]
         if non_set_required:
             raise ValueError("{columns}".format(columns=",".join(non_set_required)))
 
     @classmethod
-    def validate_csv(cls, fieldnames):
+    def validate_csv(cls, fieldnames, align=True, labels=False, quality=False):
         """Validate CSV.
 
-        :param list fieldnames: CSV headers
+        :param list fieldnames: CSV headers to check again required headers
+        :param Bool align: flag to check REQUIRED_HEADERS_LIGN
+        :param Bool align: labels to check REQUIRED_HEADERS_LABELS
+        :param Bool align: quality to check REQUIRED_HEADERS_QUALITY
         :raises: ValueError if CSV is invalid
         """
+        required_headers = set()
+        if align:
+            required_headers |= set(cls.REQUIRED_HEADERS_ALIGN)
+        if labels:
+            required_headers |= set(cls.REQUIRED_HEADERS_LABELS)
+        if quality:
+            required_headers |= set(cls.REQUIRED_HEADERS_QUALITY)
+        required_headers = list(required_headers)
         if not fieldnames:
-            missing_required = list(cls.REQUIRED_HEADERS)
+            missing_required = required_headers
         else:
-            missing_required = [k for k in cls.REQUIRED_HEADERS if k not in fieldnames]
+            missing_required = [k for k in required_headers if k not in fieldnames]
         if missing_required:
             raise ValueError(
                 "following required columns are missing: {columns}".format(
                     columns=",".join(missing_required)
                 )
             )
+
+
+class ImportAligner(object):
+    """ImportAligner base class.
+
+    :ivar Connection cnx: CubicWeb database connection
+    :ivar Logger log: logger
+    """
+
+    modified_alignments = False
+
+    def __init__(self, cnx, log=None):
+        """Initialize aligner.
+
+        :param Connection cnx: CubicWeb database connection
+        :param str cw_etype: Authority cw_etype
+
+        :param log: logger
+        :type: Logger or None
+        """
+        if log is None:
+            self.log = logging.getLogger()
+        else:
+            self.log = log
+        self.cnx = cnx
+        self._sameas_history = None
+
+    def sameas_history(self):
+        if self._sameas_history is None:
+            self._sameas_history = get_samesas_history(self.cnx)
+        return self._sameas_history
+
+    def _process_csv(self, fp):
+        """Process CSV file (generator).
+
+        :param file fp: CSV file
+
+        :returns: alignment
+        :rtype: list
+        """
+        log = logging.getLogger("rq.task")
+        reader = csv.DictReader(fp, delimiter="\t")
+        try:
+            self.record_type.validate_csv(reader.fieldnames)
+        except ValueError as exception:
+            log.error(exception)
+            raise exception
+        for i, row in enumerate(reader):
+            if row:
+                try:
+                    record = self.record_type(row)
+                except ValueError as exception:
+                    yield ("", "", "", "", "{} ({})".format(i + 1, exception))
+                    continue
+                keep = record.keep.lower() in record.BOOLEAN_VALUES[True]
+                remove = record.keep.lower() in record.BOOLEAN_VALUES[False]
+                if not any((keep, remove)):
+                    log.warning(
+                        "row %d contains invalid value '%s' in column 'keep' (skip)",
+                        i + 1,
+                        record.keep,
+                    )
+                yield (record.autheid, record.sourceid, record, keep, "")
+
+    def process_csv(self, fp, existing_alignment, override_alignments=False):
+        """Process CSV file.
+
+        :param file fp: CSV file
+        :param set existing_alignment: list of existing alignments
+        :param bool override_alignments: toggle overwriting user-defined
+        alignments on/off
+
+        :returns: list of new alignments, list of alignments to remove
+        :rtype: dict, dict
+        """
+        invalid = []
+        alignments = []
+        if override_alignments:
+            to_modify = defaultdict(list)
+            for autheid, sourceeid, record, keep, err in self._process_csv(fp):
+                if err:
+                    invalid.append(err)
+                    continue
+                to_modify[autheid].append(((autheid, sourceeid), record, keep))
+            conflicts = self.find_conflicts(to_modify)
+            alignments = []
+            for autheid, entries in to_modify.items():
+                if autheid not in conflicts:
+                    alignments += entries
+        else:
+            for autheid, sourceeid, record, keep, err in self._process_csv(fp):
+                if err:
+                    invalid.append(err)
+                    continue
+                alignments.append(((autheid, sourceeid), record, keep))
+        if invalid:
+            self.log.warning(
+                "found missing value in required column(s): {}".format(";".join(invalid))
+            )
+        new_alignment, to_remove_alignment = self._fill_alignments(existing_alignment, alignments)
+        return new_alignment, to_remove_alignment
+
+    def _fill_alignments(self, existing_alignment, alignments):
+        """Fill lists of new alignments and alignments to remove.
+
+        :param set existing_alignment: list of existing alignments
+        :param list alignments: list of read-in alignments
+
+        :returns: list of new alignments, list of alignments to remove
+        :rtype: dict, dict
+        """
+        new_alignment = {}
+        to_remove_alignment = {}
+        for key, record, keep in alignments:
+            if keep and key not in existing_alignment:
+                new_alignment[key] = record
+            elif not keep and key in existing_alignment:
+                to_remove_alignment[key] = record
+        return new_alignment, to_remove_alignment
+
+    def process_csvpath(self, csvpath, override_alignments=False):
+        """Process CSV file.
+
+        :param str csvpath: CSV file path
+        :param bool override_alignments: toggle overwriting user-defined alignments on/off
+        """
+        existing_alignment = self.compute_existing_alignment()
+        st = S3BfssStorageMixIn()
+        try:
+            with st.storage_read_file(csvpath) as fp:
+                new_alignment, to_remove_alignment = self.process_csv(
+                    fp, existing_alignment, override_alignments=override_alignments
+                )
+        except UnicodeDecodeError:
+            raise IncompatibleFile("File encoding is not UTF-8")
+        self.process_alignments(
+            new_alignment,
+            to_remove_alignment,
+            override_alignments=override_alignments,
+        )
+        self.modified_alignments = bool(new_alignment or to_remove_alignment)
+
+    def process_alignments(self, new_alignment, to_remove_alignment, override_alignments=False):
+        """Update database.
+
+        :param dict new_alignment: alignment(s) to add to database
+        :param dict to_remove_alignment: alignment(s) to remove from database
+        :param bool override_alignments: toggle overwriting user-defined alignments on/off
+        """
+        raise NotImplementedError
 
 
 class AgentRecord(Record):
@@ -269,7 +458,7 @@ class LocationRecord(Record):
         raise NotImplementedError
 
 
-class LocationAligner(object):
+class LocationAligner(ImportAligner):
     """Aligner base class.
 
     :cvar str location_query: RQL query FindingAid and related FAComponent(s)
@@ -280,7 +469,7 @@ class LocationAligner(object):
 
     location_query = """
     (
-    Any FU, SN, SC, G, GL, X, XL WHERE
+    Any FU, SN, SC, G, GL, X, XL, Q WHERE
     X is LocationAuthority,
     X label XL,
     F is FindingAid,
@@ -292,9 +481,10 @@ class LocationAligner(object):
     S dpt_code SC,
     G index F,
     G authority X,
-    G label GL
+    G label GL,
+    X quality Q {restrict}
     ) UNION (
-    Any FU, SN, SC, G, GL, X, XL WHERE
+    Any FU, SN, SC, G, GL, X, XL, Q WHERE
     X is LocationAuthority,
     X label XL,
     F is FindingAid,
@@ -307,47 +497,45 @@ class LocationAligner(object):
     S dpt_code SC,
     G index FA,
     G authority X,
-    G label GL
+    G label GL,
+    X quality Q {restrict}
     )
     """
     record_type = LocationRecord
+    cw_etype = "LocationAuthority"
+    source = ""
 
-    def __init__(self, cnx, log=None):
-        """Initialize aligner.
+    def compte_location_query(self, force=False):
+        """Fetch location(s) related to the given FindingAid entities.
 
-        :param Connection cnx: CubicWeb database connection
-        :param log: logger
-        :type: Logger or None
+        :param boolean force: if True: recalculate existing alignements, if False: ignore them
+
+        :returns: url
+        :rtype: string
         """
-        if log is None:
-            self.log = logging.getLogger()
-        else:
-            self.log = log
-        self.cnx = cnx
-        self._sameas_history = None
+        raise NotImplementedError
 
-    def sameas_history(self):
-        if self._sameas_history is None:
-            self._sameas_history = get_samesas_history(self.cnx)
-        return self._sameas_history
-
-    def fetch_locations(self, findingaid_eids):
+    def fetch_locations(self, findingaid_eids, simplified=False, force=False):
         """Fetch location(s) related to the given FindingAid entities.
 
         :param list findingaid_eids: FindingAid entity IDs
+        :param boolean simplified: use simplified header for genarated csv file
+        :param boolean force: if True: recalculate existing alignements, if False: ignore them
 
         :returns: location(s)
         :rtype: list
         """
+        base_url = self.cnx.vreg.config.get("consultation-base-url")
         locations = []
+        location_query = self.compte_location_query(force=force)
         resultset = self.cnx.execute(
-            self.location_query % {"e": ",".join('"%s"' % eid for eid in findingaid_eids)}
+            location_query % {"e": ",".join('"%s"' % eid for eid in findingaid_eids)}
         )
         for row in resultset:
             geogname_eid, geogname_label = str(row[3]), row[4]
             auth_eid, auth_label = str(row[5]), row[6]
             unitid, code, dpt = row[:3]
-            base_url = self.cnx.vreg.config.get("consultation-base-url")
+            quality = "yes" if row[7] else "no"
             location = (
                 auth_eid,
                 urljoin(base_url, "geogname/{eid}".format(eid=geogname_eid)),
@@ -357,6 +545,7 @@ class LocationAligner(object):
                 unitid,
                 code,
                 dpt,
+                quality,
             )
             locations.append(location)
         return locations
@@ -375,98 +564,8 @@ class LocationAligner(object):
         :returns: exiting alignment(s)
         :rtype: set
         """
-        raise NotImplementedError
-
-    def _process_csv(self, fp):
-        """Process CSV file (generator).
-
-        :param file fp: CSV file
-
-        :returns: alignment
-        :rtype: list
+        alignment_query = f"""DISTINCT Any X, E
+        WHERE X is LocationAuthority, X same_as EX,
+        EX {'extid' if self.source == 'bano' else 'uri'} E, EX source '{self.source}'
         """
-        log = logging.getLogger("rq.task")
-        reader = csv.DictReader(fp, delimiter="\t")
-        try:
-            self.record_type.validate_csv(reader.fieldnames)
-        except ValueError as exception:
-            log.error(exception)
-            raise exception
-        for i, row in enumerate(reader):
-            if row:
-                try:
-                    record = self.record_type(row)
-                except ValueError as exception:
-                    yield ("", "", "", "", "{} ({})".format(i + 1, exception))
-                    continue
-                keep = record.keep.lower() in ("y", "yes", "o", "oui")
-                remove = record.keep.lower() in ("n", "no", "non")
-                if not any((keep, remove)):
-                    log.warning(
-                        "row %d contains invalid value '%s' in column 'keep' (skip)",
-                        i + 1,
-                        record.keep,
-                    )
-                yield (record.autheid, record.sourceid, record, keep, "")
-
-    def _fill_alignments(self, existing_alignment, alignments):
-        """Fill lists of new alignments and alignments to remove.
-
-        :param set existing_alignment: list of existing alignments
-        :param list alignments: list of read-in alignments
-
-        :returns: list of new alignments, list of alignments to remove
-        :rtype: dict, dict
-        """
-        new_alignment = {}
-        to_remove_alignment = {}
-        for key, record, keep in alignments:
-            if keep and key not in existing_alignment:
-                new_alignment[key] = record
-            elif not keep and key in existing_alignment:
-                to_remove_alignment[key] = record
-        return new_alignment, to_remove_alignment
-
-    def process_csv(self, fp, existing_alignment, override_alignments=False):
-        """Process CSV file.
-
-        :param file fp: CSV file
-        :param set existing_alignment: list of existing alignments
-        :param bool override_alignments: toggle overwriting user-defined
-        alignments on/off
-
-        :returns: list of new alignments, list of alignments to remove
-        :rtype: set, set
-        """
-        raise NotImplementedError
-
-    def process_csvpath(self, csvpath, override_alignments=False):
-        """Process CSV file.
-
-        :param str csvpath: CSV file path
-        :param bool override_alignments: toggle overwriting user-defined alignments on/off
-        """
-        existing_alignment = self.compute_existing_alignment()
-        try:
-            with open(csvpath) as fp:
-                new_alignment, to_remove_alignment = self.process_csv(
-                    fp, existing_alignment, override_alignments=override_alignments
-                )
-        except UnicodeDecodeError:
-            raise IncompatibleFile("File encoding is not UTF-8")
-        finally:
-            os.unlink(csvpath)
-        self.process_alignments(
-            new_alignment,
-            to_remove_alignment,
-            override_alignments=override_alignments,
-        )
-
-    def process_alignments(self, new_alignment, to_remove_alignment, override_alignments=False):
-        """Update database.
-
-        :param dict new_alignment: alignment(s) to add to database
-        :param dict to_remove_alignment: alignment(s) to remove from database
-        :param bool override_alignments: toggle overwriting user-defined alignments on/off
-        """
-        raise NotImplementedError
+        return {(str(auth), attr) for auth, attr in self.cnx.execute(alignment_query)}

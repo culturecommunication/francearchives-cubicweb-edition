@@ -43,9 +43,9 @@ function SelectContentType({onChange, options}) {
     return ce(
         'select',
         {
-            onChange: ev => onChange(ev.target.value),
+            onChange: (ev) => onChange(ev.target.value),
             defaultValue: options[0][0],
-            className: 'form-control',
+            className: 'form-select mb-4',
         },
         options.map(([etype, label], i) =>
             ce('option', {key: `opt-${i}`, value: etype}, label),
@@ -68,9 +68,9 @@ class Add extends Component {
         // `related.children` links to build data for SelectContentType
         // component
         const {cw_etype, eid} = this.entity
-        getSchema(cw_etype, eid).then(schema => {
+        getSchema(cw_etype, eid).then((schema) => {
             const links = schema.links
-                    .filter(l => l.rel === 'related.children')
+                    .filter((l) => l.rel === 'related.children')
                     .sort((a, b) => a.order - b.order),
                 options = []
             for (let link of links) {
@@ -98,7 +98,7 @@ class Add extends Component {
             'children',
             ev.formData,
             this.state.etype,
-        ).then(doc => {
+        ).then((doc) => {
             if (doc.errors && doc.errors.length) {
                 this.props.showErrors(doc.errors)
             } else if (doc.absoluteUrl || doc.cwuri) {
@@ -113,7 +113,7 @@ class Add extends Component {
         return ce(
             'div',
             null,
-            ce('span', null, 'Ajouter du contenu dans cette rubrique :'),
+            ce('h1', null, 'Ajouter du contenu dans cette rubrique :'),
             options === null
                 ? ce(spinner)
                 : ce(SelectContentType, {

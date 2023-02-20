@@ -32,9 +32,24 @@
 """creation of helpers views"""
 
 import logging
+import time
+
+from cubicweb_frarchives_edition import AUTHORITIES
+
+SUBJECT_AUTHORITY_SAMEAS_QUERY = """SELECT DISTINCT {field}cw_label.cw_label,
+    cw_concept.cw_cwuri,
+    cw_conceptscheme.cw_title
+    FROM cw_concept, cw_conceptscheme, cw_label, in_scheme_relation, same_as_relation
+    WHERE same_as_relation.eid_to=cw_concept.cw_eid
+    AND in_scheme_relation.eid_to=cw_conceptscheme.cw_eid
+    AND cw_label.cw_label_of=cw_concept.cw_eid
+    AND cw_label.cw_kind=%(l)s
+    AND cw_label.cw_language_code='fr-fr'
+    {cond}
+    """
 
 
-def create_auth_services(cnx, log):
+def create_auth_services(cnx, etypes, log):
     creation_query = """CREATE TEMPORARY TABLE IF NOT EXISTS {table} AS
       (SELECT DISTINCT
                 it.cw_authority as autheid,
@@ -75,13 +90,16 @@ def create_auth_services(cnx, log):
         ("Geogname", "LocationAuthority"),
         ("Subject", "SubjectAuthority"),
     ):
+        if etype not in etypes:
+            log.info(f"{time.ctime()}: skip {etype} as unwanted option")
+            continue
         tablename = "kibana_{etype}_services".format(etype=etype.lower())
-        log.info("creating {} table".format(tablename))
-        print("creating {} table".format(tablename))
+        log.info(f"{time.ctime()}: creating {tablename} table")
         cnx.system_sql(
             creation_query.format(index_table_name=index, authtable=etype.lower(), table=tablename)
         )
         cnx.commit()
+        log.info(f"{time.ctime()}: table {tablename} created")
 
 
 def create_auth_sameas(cnx, log):
@@ -98,17 +116,16 @@ def create_auth_sameas(cnx, log):
                    _E.cw_source AS source
             FROM cw_ExternalId AS _E, same_as_relation AS rel_same_as0
             WHERE rel_same_as0.eid_to=_E.cw_eid)""",
-        """(SELECT DISTINCT rel_same_as0.eid_from, _CL.cw_label, _C.cw_cwuri, _S.cw_title
-               FROM cw_Concept AS _C, cw_ConceptScheme AS _S, cw_Label AS _CL,
-                    in_scheme_relation AS rel_in_scheme1,
-                    same_as_relation AS rel_same_as0
-               WHERE rel_same_as0.eid_to=_C.cw_eid AND
-                     rel_in_scheme1.eid_from=_C.cw_eid AND
-                     rel_in_scheme1.eid_to=_S.cw_eid AND
-                     _CL.cw_label_of=_C.cw_eid AND
-                     _CL.cw_kind=%(l)s)
-
-        """,
+        """(SELECT DISTINCT rel_same_as0.eid_from as autheid,
+                    _E.cw_record_id AS label,
+                    _E.cw_record_id AS uri,
+                    'EAC-CPF' AS source
+            FROM cw_AuthorityRecord AS _E, same_as_relation AS rel_same_as0
+            WHERE rel_same_as0.eid_to=_E.cw_eid)""",
+        SUBJECT_AUTHORITY_SAMEAS_QUERY.format(
+            field="same_as_relation.eid_from,",
+            cond="AND in_scheme_relation.eid_from=cw_concept.cw_eid",
+        ),
     ]
     query = """CREATE TEMPORARY TABLE IF NOT EXISTS {table} AS
     SELECT DISTINCT tmp.autheid, tmp.label, tmp.uri, tmp.source
@@ -118,20 +135,23 @@ def create_auth_sameas(cnx, log):
         (autheid);
         """
     tablename = "kibana_auth_sameas"
-    log.info("creating {} table".format(tablename))
-    print("creating {} table".format(tablename))
+    log.info(f"{time.ctime()}: creating {tablename} table")
     cnx.system_sql(
         query.format(table=tablename, queries=" UNION ALL ".join(same_as_queries)),
         {"l": "preferred"},
     )
     cnx.commit()
+    log.info(f"{time.ctime()}: table {tablename} created")
 
 
-def create_kibana_authorities_sql(cnx, log=None):
+def create_kibana_authorities_sql(cnx, etypes=None, log=None):
     """
     Create temporary tables to speed up kibana authority indexation
     """
     log = log or logging.getLogger("sql.kibana")
-    print("creating sql tables")
-    create_auth_services(cnx, log)
+    log.setLevel(logging.DEBUG)
+    log.info(f"{time.ctime()}: creating sql tables")
+    if not etypes:
+        etypes = AUTHORITIES
+    create_auth_services(cnx, etypes, log)
     create_auth_sameas(cnx, log)

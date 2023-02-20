@@ -47,7 +47,7 @@ class PublishBtn extends Component {
 
     updatePossibleTransition() {
         const {cw_etype, eid} = this.entity
-        return getTransitionsSchema(cw_etype, eid).then(s =>
+        return getTransitionsSchema(cw_etype, eid).then((s) =>
             this.setState({
                 possibleTransition:
                     s.definitions.TrInfo.properties.name.enum[0],

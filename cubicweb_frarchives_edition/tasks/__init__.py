@@ -33,9 +33,9 @@ from .export_ape import export_ape  # noqa
 from .publish import publish_findingaid  # noqa
 from .import_oai import import_oai  # noqa
 from .import_csv import import_csv  # noqa
+from .import_csv_nomina import import_csv_nomina  # noqa
 from .import_eac import import_eac  # noqa
 from .compute_alignments import compute_alignments, compute_alignments_all  # noqa
-from .compute_alignments import compute_alignments  # noqa
 from .import_alignments import import_alignment  # noqa
 from .export_authorities import export_authorities  # noqa
 from .dedupe_authorities import dedupe_authorities  # noqa
@@ -45,3 +45,6 @@ from .import_authorities import import_authorities  # noqa
 from .delete_findingaids import delete_findingaids  # noqa
 from .run_dead_links import run_dead_links  # noqa
 from .index_kibana import index_kibana  # noqa
+from .qualify_authorities import import_qualified_authorities  # noqa
+from .remove_authorities import remove_authorities  # noqa
+from .delete_nomina import delete_nomina_by_service  # noqa

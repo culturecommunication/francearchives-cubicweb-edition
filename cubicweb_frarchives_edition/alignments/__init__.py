@@ -34,19 +34,45 @@ from collections import namedtuple
 import logging
 
 import re
+import requests
 
 import SPARQLWrapper
+
+import time
+import urllib.parse
 
 from cubicweb_frarchives_edition import GEONAMES_RE
 from cubicweb_frarchives_edition.alignments.location import Geodata
 
+
+# https://data.bnf.fr/11907966/victor_hugo
 DATABNF_RE = re.compile(r"data.bnf.fr/.{0,3}(?P<notice_id>\d{8})/.+")
 # .{0,3} is here for language infix (2 chars) followed by '/'
-DATABNF_ARK_RE = re.compile(r"data.bnf.fr/.{0,3}ark:/.*(?P<notice_id>\d{8}).*")
+# databnf.fr ark domains is ARK 12148: ark:/12148/\w+?(?P<notice_id>\d{8})\w
+
+DATABNF_ARK_RE = re.compile(r"data.bnf.fr/.{0,3}ark:/12148/\w{2}(?P<notice_id>\d{8})\w")
 DATABNF_SOURCE = "databnf"
 
 WIKIDATA_RE = re.compile(r"wikidata.org/wiki/(?P<wikiid>Q\d+)")
 WIKIDATA_SOURCE = "wikidata"
+
+
+def get_externaluri_data(uri):
+    for source, regx in (
+        (DATABNF_SOURCE, DATABNF_RE),
+        (DATABNF_SOURCE, DATABNF_ARK_RE),
+        (WIKIDATA_SOURCE, WIKIDATA_RE),
+        ("geoname", GEONAMES_RE),
+    ):
+        m = regx.search(uri)
+        if m:
+            return source, m.group(1)
+    source = urllib.parse.urlparse(uri).netloc
+    if source == "data.bnf.fr":
+        source = DATABNF_SOURCE
+    elif source == "wikidata.org":
+        source = WIKIDATA_SOURCE
+    return source, None
 
 
 class Literal(str):
@@ -121,10 +147,7 @@ class SPARQLDatabase(object):
             return SparqlRset(raw_results)
         except Exception:
             logging.exception("failed to execute SPARQL query %r", query)
-            return {
-                "head": {"vars": ()},
-                "results": {"bindings": ()},
-            }
+            return {}
 
 
 def compute_label_from_url(cnx, url):
@@ -194,3 +217,56 @@ def compute_geonames_label(cnx, url):
         if res:
             label = "{} ({})".format(label, res)
     return label
+
+
+class DataGouvQuerier(object):
+    """This class contains the geo_query function which allows to interrogate
+    the "Base Adresse Nationale" API from the French Government
+    """
+
+    endpoint = "https://api-adresse.data.gouv.fr/search"
+
+    def __init__(self, **kwargs):
+        self.logger = logging.getLogger("francearchives.data.gouv.alignment")
+
+    def execute(self, **kwargs):
+        """perform `query` on the database endpoint"""
+        time.sleep(0.1)  # limit is 10 requests by second https://geo.api.gouv.fr/faq
+        self.logger.info(f'try query "{self.endpoint}", {kwargs}')
+        try:
+            r = requests.get(self.endpoint, params=kwargs)
+            return r.json()
+        except Exception:
+            logging.exception("failed to execute")
+
+    def geo_query(self, address, city, postcode=None, citycode=None, limit=30):
+        """
+        :param address string: postal address
+        :param city string: city
+        :param postalcode string: code postal
+        :param citycode string: code commune INSEE
+
+        :returns: [longitude, latitude]
+
+        Known issues:
+        - City name comparison with or without accent (e.g., Epinal, Épinal)
+        - Shortened city name (e.g., Saint-Ouen, Saint-Ouen-sur-Seine)
+        """
+        if not address:
+            return None
+        kwargs = {"q": address}
+        if limit:
+            kwargs["limit"] = limit
+        if citycode:
+            kwargs["citycode"] = citycode
+        elif postcode:
+            kwargs["postcode"] = postcode
+        results = self.execute(**kwargs)
+        if results:
+            for res in results.get("features", []):
+                if citycode:
+                    if res["geometry"]["type"] == "Point":
+                        return res["geometry"]["coordinates"]
+                if res["properties"]["city"].lower() == city.lower():
+                    if res["geometry"]["type"] == "Point":
+                        return res["geometry"]["coordinates"]

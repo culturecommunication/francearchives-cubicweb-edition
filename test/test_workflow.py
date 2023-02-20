@@ -137,7 +137,6 @@ class TranslationHookTests(FrACubicConfigMixIn, CubicWebTC):
                 content="contenu",
                 alphatitle="titre",
                 commemoration_year=1500,
-                collection_top=cnx.create_entity("CommemoCollection", title="Moyen Age", year=1500),
             )
             cnx.commit()
             commemo.cw_adapt_to("IWorkflowable").fire_transition("wft_cmsobject_publish")

@@ -35,6 +35,9 @@ from collections import defaultdict
 from cubicweb.server import hook
 from cubicweb.predicates import score_entity, is_instance
 
+from cubicweb import ValidationError
+
+
 from cubicweb_frarchives_edition import get_leaflet_cache_entities
 from cubicweb_francearchives.entities.es import SUGGEST_ETYPES
 
@@ -42,10 +45,8 @@ from cubicweb_frarchives_edition import update_samesas_history, GEONAMES_RE
 
 from cubicweb_frarchives_edition.alignments import (
     compute_label_from_url,
-    DATABNF_RE,
-    DATABNF_ARK_RE,
+    get_externaluri_data,
     DATABNF_SOURCE,
-    WIKIDATA_RE,
     WIKIDATA_SOURCE,
 )
 
@@ -184,6 +185,7 @@ class RegisterSameAsLocalisationOp(hook.DataOperationMixIn, hook.Operation):
         return records
 
     def change_autority_coordinates(self, auth):
+        """this method is called if a same_as relation has been deleted"""
         kwargs = {"latitude": None, "longitude": None}
         uris = auth.same_as
         if uris:
@@ -253,17 +255,19 @@ class UpdateExternalUriSourceHook(hook.Hook):
 
     def __call__(self):
         entity = self.entity
-        for source, regx in (
-            ("geoname", GEONAMES_RE),
-            (DATABNF_SOURCE, DATABNF_RE),
-            (DATABNF_SOURCE, DATABNF_ARK_RE),
-            (WIKIDATA_SOURCE, WIKIDATA_RE),
-        ):
-            m = regx.search(entity.uri)
-            if m:
-                entity.cw_edited["source"] = source
-                entity.cw_edited["extid"] = m.group(1)
-                break
+        old_uri, new_uri = self.entity.cw_edited.oldnewvalue("uri")
+        # extid and source are never updated in UI, but can be changed programmatically
+        if new_uri != old_uri:
+            source, extid = get_externaluri_data(entity.uri)
+            entity.cw_edited["source"] = source
+            entity.cw_edited["extid"] = extid
+        old_extid, new_extid = self.entity.cw_edited.oldnewvalue("extid")
+        update = (new_uri != old_uri) or (old_extid != new_extid)
+        if self.entity.reverse_agent_info_of and update:
+            if entity.source == DATABNF_SOURCE:
+                AuthorityBnFDataOperation.get_instance(self._cw).add_data(self.entity.eid)
+            if entity.source == WIKIDATA_SOURCE:
+                AuthorityWikiDataOperation.get_instance(self._cw).add_data(self.entity.eid)
 
 
 class SameAsRelHook(hook.Hook):
@@ -289,17 +293,21 @@ class AgentAuthorityDataOperation(hook.DataOperationMixIn, hook.LateOperation):
         cnx = self.cnx
         aligner = self.aligner()
         for eid in self.get_data():
-            if cnx.deleted_in_transaction(eid):
+            if cnx.deleted_in_transaction(eid) or eid is None:
                 continue
-            exturi = cnx.entity_from_eid(eid)
             try:
-                data = aligner.agent_infos(exturi.extid)
+                exturi = cnx.entity_from_eid(eid)
             except Exception:
                 continue
+            try:
+                data = aligner.agent_infos(exturi.extid)
+            except Exception as ex:
+                msg = cnx._("Could not retrieve data from {}: {}").format(exturi.uri, ex)
+                raise ValidationError(eid, {"uri": msg})
             if data:
-                # add ExternalUri label
                 label = data.pop("label", None)
-                if label and not exturi.label:
+                # add ExternalUri label
+                if label and label != exturi.label:
                     exturi.cw_set(label=label)
                 # create a new AgentInfo
                 cnx.execute(
@@ -324,14 +332,20 @@ class AuthorityWikiDataOperation(AgentAuthorityDataOperation):
 
 
 class LocationAuthorityLeafletMap(hook.Hook):
+    """This hook is triggered when same_as relation is added or deleted on the
+    entity
+
+    """
+
     __regid__ = "francearchives.geo-map"
     __select__ = hook.Hook.__select__ & is_instance("LocationAuthority")
-    events = ("after_add_entity", "after_update_entity")
+    events = ("before_add_entity", "before_update_entity")
 
     def __call__(self):
-        if "latitude" in self.entity.cw_edited:
-            latitude = self.entity.cw_edited["latitude"]
-            action = False if latitude is None else True
+        old_latitude, new_latitude = self.entity.cw_edited.oldnewvalue("latitude")
+        old_longitude, new_longitude = self.entity.cw_edited.oldnewvalue("longitude")
+        if (old_latitude != new_latitude) or (old_longitude != new_longitude):
+            action = bool(new_latitude or new_longitude)
             leaflet_op = LocationAuthorityLeafletMapOp.get_instance(self._cw)
             leaflet_op.add_data((self.entity.eid, action))
 
@@ -403,7 +417,7 @@ class GeonamesLabelCreationHook(hook.Hook):
 class GeonamesLabelCreationOperation(hook.DataOperationMixIn, hook.Operation):
     def precommit_event(self):
         cnx = self.cnx
-        for (eid, label) in self.get_data():
+        for eid, label in self.get_data():
             if cnx.deleted_in_transaction(eid):
                 continue
             entity = cnx.entity_from_eid(eid)

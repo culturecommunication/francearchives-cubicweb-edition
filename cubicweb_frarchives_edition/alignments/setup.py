@@ -68,8 +68,9 @@ def table_exists(dbparams, tablename):
         try:
             query = "SELECT * FROM {0} LIMIT 1".format(tablename)
             crs.execute(query)
-            crs.fetchall()
         except psycopg2.ProgrammingError:
+            return False
+        except psycopg2.OperationalError:
             return False
         else:
             return True

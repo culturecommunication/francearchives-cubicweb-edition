@@ -1,0 +1,24 @@
+<section class="sitelinkview">
+  {% block head %}
+    <h1>{{ title }}</h1>
+  {% endblock %}
+  {% for context, sitelink in links %}
+  <div id="{{context}}" class="sitelink_context">
+    <div class="sitelink_context__title">
+      <h2>{{ _(context) }}</h2>
+    </div>
+    <ul class="sitelink_context__items">
+      {% for eid, link_url, link, label, order in sitelink %}
+        <li class="sitelink_context__item" id="{{ eid }}">
+         <a class="edit-link" href="{{ link_url }}">
+           {{ label }}<i class="fa fa-edit"></i>
+         </a>,
+         {{ _('link')}} :  <a class="edit-link" href="{{ link }}">{{ link }}</a>,
+         {{ _('order')}} : {{ order }}
+         </span>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endfor %}
+</section>

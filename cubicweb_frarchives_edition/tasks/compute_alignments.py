@@ -29,6 +29,7 @@
 
 
 # standard library imports
+from datetime import datetime
 import logging
 
 from uuid import uuid4
@@ -131,10 +132,11 @@ def update_rqtask(cnx, rows, target, auto_import=False, simplified=False, file_s
         rows.sort(key=lambda x: (x[4], x[0]))
     # if unlimited file size or number of rows less than file size
     # output file is CSV file
+    date = datetime.now().strftime("%Y%m%d")
     if not file_size or len(rows) < file_size:
         rows.insert(0, headers)
         output_file = serve_csv(
-            cnx, eid, "alignment-{target}.csv".format(target=target), rows, delimiter="\t"
+            cnx, eid, f"alignment-{target}-{date}-{eid}.csv", rows, delimiter="\t"
         )
         if auto_import:
             rqtask.cw_set(subtasks=auto_run_import(cnx, rqtask, aligner_cls, output_file))
@@ -143,7 +145,7 @@ def update_rqtask(cnx, rows, target, auto_import=False, simplified=False, file_s
     else:
         temp_files = []
         for i, chunk in enumerate(split_up(rows, file_size - 1), 1):
-            title = "alignment-{target}-{i}.csv".format(target=target, i=str(i).zfill(2))
+            title = f"alignment-{target}-{date}-{str(i).zfill(2)}.csv"
             chunk.insert(0, headers)
             temp_csv, file_name = _get_temp_csv_output_file(cnx, chunk, title)
             temp_files.append((temp_csv, file_name, title))

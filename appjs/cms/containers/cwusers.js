@@ -31,7 +31,7 @@ const {Component, createElement: ce} = require('react')
 const PropTypes = require('prop-types')
 const {connect} = require('react-redux')
 
-const SearchCWUsers = require('../components/cwusers.js'),
+const {SearchCWUsers} = require('../components/cwusers.js'),
     {AddEntityForm} = require('../components/editor')
 
 module.exports.SearchCWUsers = connect()(SearchCWUsers)

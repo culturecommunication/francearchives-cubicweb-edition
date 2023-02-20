@@ -42,8 +42,9 @@ import datetime
 from urllib.parse import urljoin
 
 # CubicWeb specific imports
-
 # library specific imports
+from cubicweb_francearchives.testutils import S3BfssStorageTestMixin
+
 from pgfixtures import setup_module, teardown_module  # noqa
 from utils import TaskTC
 
@@ -52,13 +53,15 @@ def today():
     return datetime.datetime.now().strftime("%Y%m%d")
 
 
-class ExportTC(TaskTC):
+class ExportTC(S3BfssStorageTestMixin, TaskTC):
     """Export authorities task test cases."""
 
     def setUp(self):
         """Set up job queue and configuration."""
         super(ExportTC, self).setUp()
         self.config.global_set_option("appfiles-dir", str(self.datapath("appfiles")))
+        self.config.global_set_option("compute-hash", "yes")
+        self.config.global_set_option("hash-algorithm", "sha1")
 
     def tearDown(self):
         """Clean up job queue."""
@@ -205,12 +208,39 @@ class ExportTC(TaskTC):
             cnx.commit()
             cnx.allow_all_hooks_but()
 
-    def _check_zip_archive(self, output_file, content):
+    def get_output_file_path(self, cnx, output_file):
+        """Get output file path.
+
+        :param Connection cnx: CubicWeb database connection
+        :param File output_file: output file
+
+        :returns: output file path
+        :rtype: str
+        """
+        fkey = (
+            cnx.execute(
+                f"Any {self.fkeyfunc}(D) WHERE X data D, X eid %(e)s", {"e": output_file.eid}
+            )[0][0]
+            .getvalue()
+            .decode()
+        )
+        if self.s3_bucket_name:
+            return fkey
+        else:
+            expected_path = os.path.join(
+                self.config["appfiles-dir"], f"{output_file.compute_hash()}_{output_file.data_name}"
+            )
+            self.assertEqual(fkey, expected_path)
+            return fkey
+
+    def _check_zip_archive(self, cnx, output_file, content):
         """Check Zip archive.
 
         :param File output_file: Zip archive
         :param dict content: expected rows per file
         """
+        fpath = self.get_output_file_path(cnx, output_file)
+        self.assertTrue(self.isFile(fpath))
         with zipfile.ZipFile(output_file.data) as zip_file:
             self.assertCountEqual(content.keys(), zip_file.namelist())
             for filename, rows in content.items():
@@ -251,7 +281,9 @@ class ExportTC(TaskTC):
             # Zip archive exists
             self.assertEqual(1, len(job.output_file))
             output_file = job.output_file[0]
-            self.assertTrue(output_file.data_name == output_file.title == "authorities.zip")
+            self.assertTrue(
+                output_file.data_name == output_file.title == "location_authorities.zip"
+            )
             # CSV file exists and contains 2 rows
             filename = "geoname/frad000-{today}.csv".format(today=today())
             fieldnames = [
@@ -266,6 +298,7 @@ class ExportTC(TaskTC):
                 "latitude",
                 "keep",
                 "fiabilite_alignement",
+                "quality",
             ]
             external_uri = cnx.execute("Any X WHERE X is ExternalUri, X source 'geoname'").one()
             base_url = cnx.vreg.config.get("consultation-base-url")
@@ -275,6 +308,7 @@ class ExportTC(TaskTC):
             geogname_uri = urljoin(base_url, "geogname/{eid}".format(eid=geogname.eid))
             auth = cnx.execute("Any X WHERE X is LocationAuthority, EXISTS(X same_as E)").one()
             auth_uri = urljoin(base_url, "location/{eid}".format(eid=auth.eid))
+            self.assertFalse(auth.quality)
             expected = [
                 str(auth.eid),
                 str(geogname_uri),
@@ -287,10 +321,11 @@ class ExportTC(TaskTC):
                 str(auth.latitude),
                 "yes",
                 "",
+                "no",
             ]
             rows = [fieldnames, expected]
             content = {filename: rows}
-            self._check_zip_archive(output_file, content)
+            self._check_zip_archive(cnx, output_file, content)
 
     def test_export_particular_service_agent(self):
         """Test export authorities task.
@@ -323,7 +358,7 @@ class ExportTC(TaskTC):
             # Zip archive exists
             self.assertEqual(1, len(job.output_file))
             output_file = job.output_file[0]
-            self.assertTrue(output_file.data_name == output_file.title == "authorities.zip")
+            self.assertTrue(output_file.data_name == output_file.title == "agent_authorities.zip")
             # CSV files exist and file related to Wikidata contains 2 rows
             filenames = [
                 "databnf/frad000-{today}.csv".format(today=today()),
@@ -336,9 +371,10 @@ class ExportTC(TaskTC):
                 "URI_AgentAuthority",
                 "libelle_AgentAuthority",
                 "type_AgentName",
-                "URI_wikidata",
-                "libelle_wikidata",
+                "URI_ExternalUri",
+                "libelle_ExternalUri",
                 "keep",
+                "quality",
             ]
             external_uri = cnx.execute("Any X WHERE X is ExternalUri, X source 'wikidata'").one()
             base_url = cnx.vreg.config.get("consultation-base-url")
@@ -348,6 +384,7 @@ class ExportTC(TaskTC):
             agentname_uri = urljoin(base_url, "agentname/{eid}".format(eid=agentname.eid))
             auth = cnx.execute("Any X WHERE X is AgentAuthority, EXISTS (X same_as E)").one()
             auth_uri = urljoin(base_url, "agent/{eid}".format(eid=auth.eid))
+            self.assertFalse(auth.quality)
             expected = [
                 str(auth.eid),
                 agentname_uri,
@@ -358,9 +395,10 @@ class ExportTC(TaskTC):
                 external_uri.uri,
                 external_uri.label,
                 "yes",
+                "no",
             ]
             content = {filenames[0]: [], filenames[1]: [fieldnames, expected]}
-            self._check_zip_archive(output_file, content)
+            self._check_zip_archive(cnx, output_file, content)
 
     def test_export_particular_service_subject(self):
         """Test export authorities task.
@@ -393,7 +431,7 @@ class ExportTC(TaskTC):
             # Zip archive exists
             self.assertEqual(1, len(job.output_file))
             output_file = job.output_file[0]
-            self.assertTrue(output_file.data_name == output_file.title == "authorities.zip")
+            self.assertTrue(output_file.data_name == output_file.title == "subject_authorities.zip")
             # CSV file exists and contains 2 rows
             filename = "thesaurus/frad000-{today}.csv".format(today=today())
             fieldnames = [
@@ -403,9 +441,10 @@ class ExportTC(TaskTC):
                 "URI_SubjectAuthority",
                 "libelle_SubjectAuthority",
                 "type_Subject",
-                "URI_thesaurus",
-                "libelle_thesaurus",
+                "URI_ExternalUri",
+                "libelle_ExternalUri",
                 "keep",
+                "quality",
             ]
             concept = cnx.execute("Any X WHERE X is Concept").one()
             base_url = cnx.vreg.config.get("consultation-base-url")
@@ -415,6 +454,7 @@ class ExportTC(TaskTC):
             subject_uri = urljoin(base_url, "subjectname/{eid}".format(eid=subject.eid))
             auth = cnx.execute("Any X WHERE X is SubjectAuthority, EXISTS (X same_as E)").one()
             auth_uri = urljoin(base_url, "subject/{eid}".format(eid=auth.eid))
+            self.assertFalse(auth.quality)
             expected = [
                 str(auth.eid),
                 subject_uri,
@@ -425,9 +465,10 @@ class ExportTC(TaskTC):
                 concept.cwuri,
                 concept.dc_title(),
                 "yes",
+                "no",
             ]
             content = {filename: [fieldnames, expected]}
-            self._check_zip_archive(output_file, content)
+            self._check_zip_archive(cnx, output_file, content)
 
     def test_export_no_service(self):
         """Test export authorities task.
@@ -460,6 +501,7 @@ class ExportTC(TaskTC):
             output_file = job.output_file[0]
             # CSV files geoname/frad000.csv and geoname/frad001.csv exist
             self._check_zip_archive(
+                cnx,
                 output_file,
                 {
                     "geoname/frad000-{today}.csv".format(today=today()): [],
@@ -515,6 +557,7 @@ class ExportTC(TaskTC):
                 "latitude",
                 "keep",
                 "fiabilite_alignement",
+                "quality",
             ]
             base_url = cnx.vreg.config.get("consultation-base-url")
             geogname = cnx.execute(
@@ -523,6 +566,7 @@ class ExportTC(TaskTC):
             geogname_uri = urljoin(base_url, "geogname/{eid}".format(eid=geogname.eid))
             auth = cnx.execute("Any X WHERE X is LocationAuthority, NOT EXISTS(X same_as E)").one()
             auth_uri = urljoin(base_url, "location/{eid}".format(eid=auth.eid))
+            self.assertFalse(auth.quality)
             expected = [
                 str(auth.eid),
                 str(geogname_uri),
@@ -535,9 +579,10 @@ class ExportTC(TaskTC):
                 "",
                 "yes",
                 "",
+                "no",
             ]
             content = {filename: [fieldnames, expected] for filename in filenames}
-            self._check_zip_archive(output_file, content)
+            self._check_zip_archive(cnx, output_file, content)
 
     def test_export_nonaligned_agent(self):
         """Test export nonaligned AgentAuthorities.
@@ -580,6 +625,7 @@ class ExportTC(TaskTC):
                 "libelle_AgentAuthority",
                 "type_AgentName",
                 "keep",
+                "quality",
             ]
             base_url = cnx.vreg.config.get("consultation-base-url")
             agentname = cnx.execute(
@@ -588,6 +634,7 @@ class ExportTC(TaskTC):
             agentname_uri = urljoin(base_url, "agentname/{eid}".format(eid=agentname.eid))
             auth = cnx.execute("Any X WHERE X is AgentAuthority, NOT EXISTS(X same_as E)").one()
             auth_uri = urljoin(base_url, "agent/{eid}".format(eid=auth.eid))
+            self.assertFalse(auth.quality)
             expected = [
                 str(auth.eid),
                 agentname_uri,
@@ -596,9 +643,10 @@ class ExportTC(TaskTC):
                 auth.label,
                 agentname.type,
                 "yes",
+                "no",
             ]
             content = {filename: [fieldnames, expected]}
-            self._check_zip_archive(output_file, content)
+            self._check_zip_archive(cnx, output_file, content)
 
     def test_export_nonaligned_subject(self):
         """Test export nonaligned SubjectAuthorities.
@@ -641,6 +689,7 @@ class ExportTC(TaskTC):
                 "libelle_SubjectAuthority",
                 "type_Subject",
                 "keep",
+                "quality",
             ]
             base_url = cnx.vreg.config.get("consultation-base-url")
             subject = cnx.execute(
@@ -649,6 +698,7 @@ class ExportTC(TaskTC):
             subject_uri = urljoin(base_url, "subjectname/{eid}".format(eid=subject.eid))
             auth = cnx.execute("Any X WHERE X is SubjectAuthority, NOT EXISTS(X same_as E)").one()
             auth_uri = urljoin(base_url, "subject/{eid}".format(eid=auth.eid))
+            self.assertFalse(auth.quality)
             expected = [
                 str(auth.eid),
                 subject_uri,
@@ -657,9 +707,10 @@ class ExportTC(TaskTC):
                 auth.label,
                 subject.type,
                 "yes",
+                "no",
             ]
             content = {filename: [fieldnames, expected]}
-            self._check_zip_archive(output_file, content)
+            self._check_zip_archive(cnx, output_file, content)
 
     def test_export_simplified_location(self):
         """Test export aligned and nonaligned LocationAuthorities (simplified CSV file format).
@@ -707,6 +758,7 @@ class ExportTC(TaskTC):
                 "latitude",
                 "keep",
                 "fiabilite_alignement",
+                "quality",
             ]
             # aligned LocationAuthorities
             external_uri = cnx.execute(
@@ -715,6 +767,7 @@ class ExportTC(TaskTC):
             base_url = cnx.vreg.config.get("consultation-base-url")
             auth = cnx.execute("Any X WHERE X is LocationAuthority, EXISTS(X same_as E)").one()
             auth_uri = urljoin(base_url, "location/{eid}".format(eid=auth.eid))
+            self.assertFalse(auth.quality)
             expected_aligned = [
                 str(auth.eid),
                 str(auth_uri),
@@ -725,6 +778,7 @@ class ExportTC(TaskTC):
                 str(auth.latitude),
                 "yes",
                 "",
+                "no",
             ]
             # nonaligned LocationAuthorities
             auth = cnx.execute("Any X WHERE X is LocationAuthority, NOT EXISTS(X same_as E)").one()
@@ -739,9 +793,10 @@ class ExportTC(TaskTC):
                 "",
                 "yes",
                 "",
+                "no",
             ]
             content = {
                 filenames[0]: [fieldnames, expected_aligned],
                 filenames[1]: [fieldnames, expected_nonaligned],
             }
-            self._check_zip_archive(output_file, content)
+            self._check_zip_archive(cnx, output_file, content)

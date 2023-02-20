@@ -39,6 +39,8 @@ import rq
 from uuid import uuid4
 
 from cubicweb import Binary
+from cubicweb_francearchives.storage import S3BfssStorageMixIn
+
 from cubicweb_frarchives_edition import CANDIDATE_SEP
 
 from cubicweb_frarchives_edition import update_suggest_es
@@ -61,25 +63,6 @@ def location_authorities_to_group(cnx, log=None):
     if not do_group:
         return
     write_and_save_candidates(cnx, do_group, rqtask)
-
-
-def write_and_save_csv(cnx, candidates, rqtask):
-    """
-    save resulting csv with:
-    - first column: authorities to group with
-    - other columns: all authorities to group
-    each column contains authority's label and url separated by '###' (CANDIDATE_SEP)
-
-    """
-    b = Binary()
-    writer = csv.writer(b, delimiter="\t")
-    for label_to, other_labels in list(candidates.items()):
-        writer.writerow([label_to.candidate_info] + [ol.candidate_info for ol in other_labels])
-    uuid = str(uuid4().hex)
-    filename = "location_authorities_to_group_{}{:02d}{:02d}_{}.csv".format(
-        NOW.year, NOW.day, NOW.month, uuid
-    )
-    return add_file_to_rtqsk(cnx, rqtask, b, filename, uuid)
 
 
 def add_file_to_rtqsk(cnx, rqtask, data, filename, uuid):
@@ -152,10 +135,11 @@ def group_location_authorities_candidates(cnx, csvpath, log=None):
     rqtask = cnx.entity_from_eid(int(job.id))
     failed = []
     current_progress = update_progress(job, 0.0)
+    st = S3BfssStorageMixIn(log=log)
     with cnx.allow_all_hooks_but(
         "reindex-suggest-es",
     ):
-        with open(csvpath, "r") as f:
+        with st.storage_read_file(csvpath) as f:
             reader = list(csv.reader(f, delimiter="\t"))
             progress_step = 1.0 / (len(reader) + 1)
             for idx, row in enumerate(reader, 1):
@@ -203,6 +187,8 @@ def group_location_authorities_candidates(cnx, csvpath, log=None):
     if failed:
         log.warning("%s records could not be grouped", len(failed))
         write_and_save_failed_candidates(cnx, failed, rqtask)
+    # delete the temporary file
+    st.storage_delete_file(csvpath)
 
 
 def write_and_save_failed_candidates(cnx, failed, rqtask):
@@ -212,9 +198,10 @@ def write_and_save_failed_candidates(cnx, failed, rqtask):
     - other columns: all authorities to group
     """
     b = Binary()
-    writer = csv.writer(b, delimiter="\t")
+    fp = io.TextIOWrapper(b, encoding="utf-8", newline="")
+    writer = csv.writer(fp, delimiter="\t")
     writer.writerows(failed)
-
+    fp.detach()
     uuid = str(uuid4().hex)
     filename = "failed_authorities_to_group_{}{:02d}{:02d}_{}.csv".format(
         NOW.year, NOW.day, NOW.month, uuid

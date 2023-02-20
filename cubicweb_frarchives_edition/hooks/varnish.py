@@ -35,20 +35,10 @@ from cubicweb.server import hook
 
 from cubicweb_frarchives_edition.hooks import custom_on_fire_transition
 from cubicweb_frarchives_edition import VarnishPurgeMixin
+from cubicweb.predicates import is_instance
 
 
-class VarnishPurgeHook(VarnishPurgeMixin, hook.Hook):
-    __abstract__ = True
-    category = "varnish"
-
-    def __call__(self):
-        entity = self.get_entity()
-        ivarnish = entity.cw_adapt_to("IVarnish")
-        urls_to_purge = [url for url in ivarnish.urls_to_purge()]
-        self.purge_varnish(urls_to_purge)
-
-
-class PurgeStateInNotEsIndexableHook(VarnishPurgeHook):
+class PurgeStateInNotEsIndexableHook(hook.Hook):
     """a GlossaryTerm has modified, purge its URLs"""
 
     __regid__ = "frarchives_edition.update-state-in-es"
@@ -57,17 +47,40 @@ class PurgeStateInNotEsIndexableHook(VarnishPurgeHook):
         {"wft_cmsobject_publish", "wft_cmsobject_unpublish"},
     )
     events = ("after_add_entity",)
+    category = "varnish"
 
-    def get_entity(self):
-        return self.entity.for_entity
+    def __call__(self):
+        VarnishPurgeHookOperation.get_instance(self._cw).add_data(self.entity.for_entity.eid)
 
 
-class PurgeAuthoritiesUrlHook(VarnishPurgeHook):
+class PurgeAuthoritiesUrlHook(hook.Hook):
     """an authority has been grouped with an other, purge its URL"""
 
     __regid__ = "frarchives_edition.authority.varnish"
     __select__ = hook.Hook.__select__ & hook.match_rtype("grouped_with")
     events = ("after_add_relation",)
+    category = "varnish"
 
-    def get_entity(self):
-        return self._cw.entity_from_eid(self.eidfrom)
+    def __call__(self):
+        VarnishPurgeHookOperation.get_instance(self._cw).add_data(self.eidfrom)
+
+
+class PurgeSiteUrlHook(hook.Hook):
+    """purge its SiteUrl data"""
+
+    __regid__ = "frarchives_edition.siteurl.varnish"
+    __select__ = hook.Hook.__select__ & is_instance("SiteLink")
+    events = ("after_update_entity", "after_delete_entity")
+    category = "varnish"
+
+    def __call__(self):
+        VarnishPurgeHookOperation.get_instance(self._cw).add_data(self.entity.eid)
+
+
+class VarnishPurgeHookOperation(VarnishPurgeMixin, hook.DataOperationMixIn, hook.LateOperation):
+    def postcommit_event(self):
+        for eid in self.get_data():
+            entity = self.cnx.entity_from_eid(eid)
+            ivarnish = entity.cw_adapt_to("IVarnish")
+            urls_to_purge = [url for url in ivarnish.urls_to_purge()]
+            self.purge_varnish(urls_to_purge, self.cnx.vreg.config)

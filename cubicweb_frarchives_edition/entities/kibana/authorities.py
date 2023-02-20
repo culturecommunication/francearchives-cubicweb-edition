@@ -30,13 +30,17 @@
 #
 
 """indexes authoritie/service for kibana"""
+import datetime
 
 from cubicweb.predicates import is_instance
+
+from cubicweb_frarchives_edition import AUTHORITIES
 
 from cubicweb_frarchives_edition.entities.kibana import (
     AbstractKibanaSerializable,
     AbstractKibanaIndexer,
 )
+from cubicweb_frarchives_edition.entities.kibana.sqlutils import SUBJECT_AUTHORITY_SAMEAS_QUERY
 
 
 class PniaAuthorityDocumentsKibanaIndexer(AbstractKibanaIndexer):
@@ -44,16 +48,17 @@ class PniaAuthorityDocumentsKibanaIndexer(AbstractKibanaIndexer):
 
     __regid__ = "kibana-auth-indexer"
 
-    etypes = ["AgentAuthority", "LocationAuthority", "SubjectAuthority"]
+    etypes = AUTHORITIES
 
     mapping = {
         "properties": {
             "eid": {"type": "integer"},
             "cw_etype": {"type": "keyword"},
-            "label": {"type": "keyword"},
+            "label": {"type": "keyword", "fields": {"raw": {"type": "text"}}},
             "location": {"type": "geo_point"},
             "grouped_with": {"type": "integer"},
             "grouped_with_count": {"type": "integer"},
+            # used for filter, may use a scripted field doc['grouped_with'].length
             "is_grouped": {"type": "boolean"},
             "services": {
                 "properties": {
@@ -63,12 +68,11 @@ class PniaAuthorityDocumentsKibanaIndexer(AbstractKibanaIndexer):
                     "title": {"type": "keyword"},
                 },
             },
+            "quality": {"type": "boolean"},
             "services_count": {
                 "type": "integer"
-            },  # used for filter, use a scripted field doc['services.eid'].length
-            "documents_count": {
-                "type": "integer"
-            },  # used in map, use a scripted field doc['documents'].length,
+            },  # used for filter, may use a scripted field doc['services.eid'].length
+            "documents_count": {"type": "integer"},
             "same_as": {
                 "properties": {
                     "label": {"type": "keyword"},
@@ -77,6 +81,8 @@ class PniaAuthorityDocumentsKibanaIndexer(AbstractKibanaIndexer):
                 },
             },
             "same_as_count": {"type": "integer"},  # use a scripted field doc['same_as.uri'].length
+            "creation_date": {"type": "date"},
+            "reindex_date": {"type": "date"},
             "urlpath": {"type": "keyword"},
         }
     }
@@ -227,14 +233,6 @@ class AbstractAuthorityKibanaSerializable(AbstractKibanaSerializable):
         cu = self._cw.system_sql(queries, {"l": "preferred", "eid": self.entity.eid})
         return [{"label": lbl, "uri": u, "source": s} for lbl, u, s in cu.fetchall()]
 
-    def reverse_grouped_with(self):
-        rset = self._cw.execute(
-            """Any Y WHERE Y grouped_with X, X eid %(eid)s""",
-            {"eid": self.entity.eid},
-            build_descr=False,
-        )
-        return [x[0] for x in rset]
-
     def serialize(self, complete=True):
         entity = self.entity
         if complete:
@@ -251,22 +249,37 @@ class AbstractAuthorityKibanaSerializable(AbstractKibanaSerializable):
             # because user could have group authorities so
             # one authority could have 2 AgentName with two different
             # type
+            "location": self.location(),
             "types": self.index_types(),
             "grouped_with": [x[0] for x in grouped_with],
             "grouped_with_count": len(grouped_with),
-            "is_grouped": bool(grouped_with),
+            "is_grouped": bool(entity.grouped_with),
             "services": services,
             "services_count": len(services),
             "documents_count": self.ir_documents_count(),
             "same_as": same_as,
             "same_as_count": len(same_as),
-            "urlpath": "{}/{}".format(etype.split("Authority")[0].lower(), entity.eid),
+            "quality": entity.quality,
+            "creation_date": entity.creation_date,
+            "reindex_date": datetime.date.today().strftime("%Y-%m-%d"),
+            "urlpath": f"{self._cw.base_url()}{etype.split('Authority')[0].lower()}/{entity.eid}",
         }
 
 
 class AgentAuthorityKibanaSerializable(AbstractAuthorityKibanaSerializable):
     __select__ = is_instance("AgentAuthority")
     index_table_name = "AgentName"
+
+    @property
+    def sameas_queries(self):
+        return [
+            """SELECT DISTINCT
+                    ext.cw_record_id AS label,
+                    ext.cw_record_id AS uri,
+                    'EAC-CPF' AS source
+                FROM cw_AuthorityRecord AS ext, same_as_relation AS rel_same_as0
+                WHERE rel_same_as0.eid_from=%(eid)s AND rel_same_as0.eid_to=ext.cw_eid""",
+        ]
 
 
 class LocationAuthorityKibanaSerializable(AbstractAuthorityKibanaSerializable):
@@ -282,16 +295,10 @@ class SubjectAuthorityKibanaSerializable(AbstractAuthorityKibanaSerializable):
     def sameas_queries(self):
         queries = super(SubjectAuthorityKibanaSerializable, self).sameas_queries
         queries.append(
-            """
-            SELECT DISTINCT label.cw_label, concept.cw_cwuri, _S.cw_title
-            FROM cw_Concept AS concept, cw_ConceptScheme AS _S, cw_Label AS label,
-                  in_scheme_relation AS rel_in_scheme1,
-                  same_as_relation AS rel_same_as0
-            WHERE rel_same_as0.eid_from=%(eid)s AND rel_same_as0.eid_to=concept.cw_eid AND
-                  rel_in_scheme1.eid_from=concept.cw_eid AND
-                  rel_in_scheme1.eid_to=_S.cw_eid AND
-                  label.cw_label_of=concept.cw_eid AND
-                  label.cw_kind=%(l)s"""
+            SUBJECT_AUTHORITY_SAMEAS_QUERY.format(
+                field="",
+                cond="AND same_as_relation.eid_from=%(eid)s",
+            )
         )
 
         return queries

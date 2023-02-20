@@ -30,19 +30,24 @@
 #
 import logging
 
+from collections import defaultdict
 
 from cwtags import tag as T
 
 from logilab.mtconverter import xml_escape, html_unescape
 
-from cubicweb.predicates import anonymous_user, is_instance
+from cubicweb import _
+
+from cubicweb.predicates import anonymous_user, match_user_groups, is_instance
+from cubicweb.web.views.baseviews import ListItemView
 from cubicweb.web.views.primary import PrimaryView, URLAttributeView, uicfg
 from cubicweb.utils import json_dumps
-from cubicweb.view import EntityView
+from cubicweb.view import EntityView, View
+
 
 from cubicweb_francearchives import FIRST_LEVEL_SECTIONS
 from cubicweb_francearchives.views import primary, circular, index, exturl_link
-from cubicweb_francearchives.views.service import Service as ServiceView
+from cubicweb_francearchives.views.service import DepartmentMapView, Service as ServiceView
 
 from cubicweb_frarchives_edition.views import get_template
 
@@ -109,7 +114,8 @@ class EditionMixin(object):
 
     def add_update_links(self, entity):
         if entity.cw_has_perm("update"):
-            self.w('<link rel="cms-js" url="tree">')
+            if hasattr(entity, "reverse_children"):
+                self.w('<link rel="cms-js" url="tree">')
             self.w('<link rel="cms-js" url="edit-form">')
             self.w('<link rel="cms-js" url="relation">')
 
@@ -127,7 +133,18 @@ class EditionMixin(object):
             self.w('<link rel="cms-js" url="delete">')
 
 
-class BaseContentPrimaryView(EditionMixin, primary.BaseContentPrimaryView):
+class OnHomePageMixin(object):
+    def initial_state(self, entity):
+        defs = super(OnHomePageMixin, self).initial_state(entity)
+        defs["app"].update({"showOnHomepage": entity.on_homepage})
+        return defs
+
+    def add_editor_links(self, entity):
+        self.w('<link rel="cms-js" url="mark-home">')
+        super(OnHomePageMixin, self).add_editor_links(entity)
+
+
+class BaseContentPrimaryView(OnHomePageMixin, EditionMixin, primary.BaseContentPrimaryView):
     __select__ = primary.BaseContentPrimaryView.__select__ & ~anonymous_user()
 
 
@@ -135,22 +152,13 @@ class CircularPrimaryView(EditionMixin, primary.CircularPrimaryView):
     __select__ = primary.CircularPrimaryView.__select__ & ~anonymous_user()
 
 
-class OnPageMixin(object):
-    def initial_state(self, entity):
-        defs = super(OnPageMixin, self).initial_state(entity)
-        defs["app"].update({"showOnHomepage": entity.on_homepage})
-        return defs
-
-    def add_editor_links(self, entity):
-        self.w('<link rel="cms-js" url="mark-home">')
-        super(OnPageMixin, self).add_editor_links(entity)
-
-
-class NewsContentPrimaryView(OnPageMixin, EditionMixin, primary.NewsContentPrimaryView):
+class NewsContentPrimaryView(OnHomePageMixin, EditionMixin, primary.NewsContentPrimaryView):
     __select__ = primary.NewsContentPrimaryView.__select__ & ~anonymous_user()
 
 
-class CommemorationItemPrimaryView(OnPageMixin, EditionMixin, primary.CommemorationItemPrimaryView):
+class CommemorationItemPrimaryView(
+    OnHomePageMixin, EditionMixin, primary.CommemorationItemPrimaryView
+):
     __select__ = primary.CommemorationItemPrimaryView.__select__ & ~anonymous_user()
 
 
@@ -204,9 +212,7 @@ class ImagePrimaryView(EditionMixin, PrimaryView):
     __select__ = PrimaryView.__select__ & is_instance("Image") & ~anonymous_user()
 
 
-class SectionPrimaryView(EditionMixin, primary.SectionPrimaryView):
-    __select__ = PrimaryView.__select__ & is_instance("Section") & ~anonymous_user()
-
+class SectionMixin(OnHomePageMixin, EditionMixin):
     def add_publish_link(self, entity):
         if entity.name in FIRST_LEVEL_SECTIONS:
             return
@@ -218,46 +224,22 @@ class SectionPrimaryView(EditionMixin, primary.SectionPrimaryView):
         self.w('<link rel="cms-js" url="consultation-link">')
         self.add_publish_link(entity)
         self.add_update_links(entity)
+        self.w('<link rel="cms-js" url="section-themes">')
         self.w('<link rel="cms-js" url="add">')
-        self.w('<link rel="cms-js" url="translate"')
+        self.w('<link rel="cms-js" url="translate">')
         if entity.cw_has_perm("delete"):
             self.w('<link rel="cms-js" url="delete">')
 
 
-class CommemoCollectionPrimaryView(EditionMixin, primary.CommemoCollectionPrimaryView):
-    __select__ = PrimaryView.__select__ & is_instance("CommemoCollection") & ~anonymous_user()
-
-    def render_left_block_with_date(self, subsection, children):
-        with T.section(self.w, Class="commemoration-side-content"):
-            with T.div(self.w, Class="commemoration-side-content-header"):
-                self.w(T.span(xml_escape(subsection.title or ""), Class="header-title"))
-                # --> patch start
-                with T.a(self.w, href=subsection.absolute_url()):
-                    self.w(T.i(Class="fa fa-external-link-square", aria_hidden="true"))
-                # patch end <--
-            with T.div(self.w, Class="commemoration-side-content-item"):
-                for rset in children:
-                    with T.div(self.w, Class="event-item"):
-                        with T.div(self.w, Class="event-timeline"):
-                            self.w(T.span(str(rset[0][-1]), Class="date"))
-                            self.w(T.span(Class="line"))
-                        with T.div(self.w, Class="event-title"):
-                            with T.ul(self.w):
-                                for child in rset.entities():
-                                    self.w(T.li(T.a(child.title, href=child.absolute_url())))
-
-    def add_editor_links(self, entity):
-        self.w('<link rel="cms-js" url="consultation-link">')
-        self.add_publish_link(entity)
-        self.add_update_links(entity)
-        self.w('<link rel="cms-js" url="add">')
-        if entity.cw_has_perm("delete"):
-            self.w('<link rel="cms-js" url="delete">')
+class SectionPrimaryView(SectionMixin, primary.SectionPrimaryView):
+    __select__ = primary.SectionPrimaryView.__select__ & ~anonymous_user()
 
 
-class ServicePrimaryView(EditionMixin, ServiceView):
-    __select__ = ServiceView.__select__ & ~anonymous_user()
+class GererPrimaryView(SectionMixin, primary.GererPrimaryView):
+    __select__ = primary.GererPrimaryView.__select__ & ~anonymous_user()
 
+
+class ServiceMixin(EditionMixin):
     def add_editor_links(self, entity):
         self.w('<link rel="cms-js" url="consultation-link">')
         self.w('<link rel="cms-js" url="edit-service-list">')
@@ -274,6 +256,23 @@ class ServicePrimaryView(EditionMixin, ServiceView):
                 "rest_path": entity.rest_path(),
             }
         return state
+
+
+class ServiceView(ServiceMixin, ServiceView):
+    __select__ = ServiceView.__select__ & ~anonymous_user()
+
+
+class ServiceDepartmentMapView(ServiceMixin, DepartmentMapView):
+    __select__ = DepartmentMapView.__select__ & ~anonymous_user()
+
+    def call(self):
+        entity = self.cw_rset.get_entity(0, 0)
+        self.add_editor_links(entity)
+        self._cw.html_headers.define_var("INITIAL_STATE", self.initial_state(entity))
+        self._cw.html_headers.define_var(
+            "CONSULTATION_BASE_URL", self._cw.vreg.config.get("consultation-base-url")
+        )
+        super(ServiceDepartmentMapView, self).call()
 
 
 class CardPrimaryView(EditionMixin, primary.PniaCardPrimaryView):
@@ -348,9 +347,11 @@ class AuthorityPrimaryView(EditionMixin, index.AuthorityPrimaryView):
     )
 
     def add_editor_links(self, entity):
-        self.w('<link rel="cms-js" url="edit-form">')
-        self.w('<link rel="cms-js" url="edit-same-as">')
-        self.w('<link rel="cms-js" url="group-authorities">')
+        if entity.cw_has_perm("update"):
+            self.w('<link rel="cms-js" url="edit-form">')
+            self.w('<link rel="cms-js" url="edit-same-as">')
+            self.w('<link rel="cms-js" url="group-authorities">')
+            self.w('<link rel="cms-js" url="relation">')
 
 
 class AuthorityRecordPrimaryView(EditionMixin, primary.AuthorityRecordPrimaryView):
@@ -358,6 +359,16 @@ class AuthorityRecordPrimaryView(EditionMixin, primary.AuthorityRecordPrimaryVie
 
     def add_update_links(self, entity):
         pass
+
+
+class NominaRecordPrimaryView(EditionMixin, primary.NominaRecordPrimaryView):
+    __select__ = primary.NominaRecordPrimaryView.__select__ & ~anonymous_user()
+
+    def add_editor_links(self, entity):
+        if entity.cw_has_perm("update"):
+            self.w('<link rel="cms-js" url="relation">')
+        if entity.cw_has_perm("delete"):
+            self.w('<link rel="cms-js" url="delete">')
 
 
 class TranslationEditionMixin(EditionMixin):
@@ -374,27 +385,11 @@ class EditablePniaTranslationsPrimaryView(primary.PniaTranslationsPrimaryView):
     __abstract__ = True
     editable = True
 
-    def content_meta_props(self, entity):
-        data = super(EditablePniaTranslationsPrimaryView, self).content_meta_props(entity)
+    def metadata(self, entity):
+        data = super(EditablePniaTranslationsPrimaryView, self).metadata(entity)
         state = entity.cw_adapt_to("IWorkflowable").state
-        data.append((self._cw._(state), "flag" if state == "wfs_cmsobject_published" else "flag-o"))
+        data.insert(1, (_("State"), self._cw._(state)))
         return data
-
-    def main_props(self, entity):
-        _ = self._cw._
-        main_props = []
-        original = entity.original_entity
-        main_props.append(
-            (
-                _("original ressource"),
-                "{} ({})".format(
-                    original.view("incontext"), _(original.cw_adapt_to("IWorkflowable").state)
-                ),
-            )
-        )
-        for attr in original.i18nfields:
-            main_props.append((_(attr), entity.printable_value(attr)))
-        return main_props
 
 
 class SectionTranslationPrimaryView(TranslationEditionMixin, EditablePniaTranslationsPrimaryView):
@@ -463,11 +458,14 @@ class GlossaryTermPrimaryView(
 
     def main_props(self, entity):
         eschema = self._cw.vreg.schema.eschema(entity.cw_etype)
-        return [
-            (self._cw._(rschema), getattr(entity, rschema.type))
+        data = [
+            (self._cw._(rschema), getattr(entity, rschema.type) or "")
             for rschema in eschema.subjrels
             if not rschema.meta and rschema.final
         ]
+        glossary_url = "{}#{}".format(self._cw.build_url("glossaire"), entity.eid)
+        data.append((self._cw._("Copy the glossary term link"), glossary_url))
+        return data
 
     def add_editor_links(self, entity):
         super(GlossaryTermPrimaryView, self).add_editor_links(entity)
@@ -498,6 +496,86 @@ class FaqItemPrimaryView(EditionWorkflowablePrimaryMix, EditionMixin, primary.Fa
         super(FaqItemPrimaryView, self).add_editor_links(entity)
         if entity.cw_has_perm("add"):
             self.w('<link rel="cms-js" url="add-faq">')
+
+
+class AdminSiteLinkStartView(View, primary.JinjaViewMixin):
+    __regid__ = "sitelinks"
+    __select__ = primary.View.__select__ & match_user_groups("managers")
+    template = get_template("sitelinks.jinja2")
+    title = _("SiteLink_plural")
+    editable = False
+
+    @property
+    def breadcrumbs(self):
+        b_url = self._cw.build_url
+        breadcrumbs = [(b_url(""), self._cw._("Home"))]
+        breadcrumbs.append((b_url("sitelinks"), self._cw._("SiteLinks")))
+        return breadcrumbs
+
+    def call(self, **kw):
+        req = self._cw
+        rset = req.execute(
+            """ Any X, C, U, LF, LE, LS, LD, O ORDERBY C, O WHERE
+            X is SiteLink, X context C, X order O, X link U,
+            X label_fr LF, X label_en LE,  X label_es LS, X label_de LD
+            """
+        )
+        lang = self._cw.lang
+        links = defaultdict(list)
+        for eid, context, link, lf, le, ls, ld, order in rset:
+            lang = {"fr": lf, "es": ls, "en": le, "de": ld}
+            link = link if link.startswith("http") else self._cw.build_url(link)
+            link_url = self._cw.build_url("sitelink/{}".format(eid))
+            links[context].append((eid, link_url, link, lang[self._cw.lang] or lf, order))
+        links = sorted(links.items(), key=lambda e: e[0])
+        attrs = {
+            "editable": self.editable,
+            "_": req._,
+            "links": links,
+            "title": req._(self.title),
+        }
+        self.call_template(**attrs)
+        self.w('<link rel="cms-js" url="add-sitelink">')
+        self.w('<link rel="cms-js" url="sitelinks">')
+
+
+class AdminSiteLinkPrimaryView(
+    EditionWorkflowablePrimaryMix, EditionMixin, primary.SiteLinkPrimaryView
+):
+    __select__ = (
+        primary.SiteLinkPrimaryView.__select__
+        & is_instance("SiteLink")
+        & match_user_groups("managers")
+    )
+    editable = True
+
+    def content_meta_props(self, entity):
+        link = """<a href="{url}">{title}</a>""".format(
+            url=self._cw.build_url("sitelinks"),
+            title=self._cw._("SiteLink_plural"),
+        )
+        return [(link, "link")]
+
+    def main_props(self, entity):
+        values = []
+        attrs = (
+            [f"label_{lang}" for lang in ["fr", "en", "es", "de"]]
+            + [f"description_{lang}" for lang in ["fr", "en", "es", "de"]]
+            + ["context", "order"]
+        )
+        for attr in attrs:
+            if attr != "link":
+                values.append((self._cw._(attr), entity.printable_value(attr)))
+            else:
+                values.append(
+                    (self._cw._(attr), """<a href="{link}">{link}</a>""".format(link=entity.url()))
+                )
+        return values
+
+    def add_editor_links(self, entity):
+        super(AdminSiteLinkPrimaryView, self).add_editor_links(entity)
+        self.w('<link rel="cms-js" url="add-sitelink">')
+        self.w('<link rel="cms-js" url="sitelinks">')
 
 
 class AnonRqTaskPrimaryView(EditionMixin, primary.ContentPrimaryView):
@@ -543,7 +621,7 @@ def log_to_table(loglines):
 
 
 class OAIRepositoryURLAttributeView(URLAttributeView):
-    """ open the url in a new tab"""
+    """open the url in a new tab"""
 
     __select__ = URLAttributeView.__select__ & is_instance("OAIRepository")
 
@@ -551,6 +629,20 @@ class OAIRepositoryURLAttributeView(URLAttributeView):
         url = entity.printable_value(rtype)
         if url:
             self.w(exturl_link(self._cw, html_unescape(url)))
+
+
+class RqTaskInContextView(ListItemView):
+    __select__ = EntityView.__select__ & is_instance("RqTask") & ~anonymous_user()
+
+    def cell_call(self, row, col, es_response=None, **kwargs):
+        entity = self.cw_rset.get_entity(row, col)
+        title = xml_escape(entity.dc_title())
+        url = xml_escape(entity.absolute_url())
+        state = entity.cw_adapt_to("IRqJob").status
+        self.w(
+            f"""<a href="{url}" >{title}</a> <span>{state}</span>
+        <span class="rqtask-state--block rqtask-state rqtask-state-{state}"><span>"""
+        )
 
 
 class RqTaskPrimaryView(EditionMixin, primary.ContentPrimaryView):
@@ -575,7 +667,9 @@ class RqTaskPrimaryView(EditionMixin, primary.ContentPrimaryView):
             self.w('<link rel="cms-js" url="fa-publish-task">')
         rqjob = entity.cw_adapt_to("IRqJob")
         if rqjob.status is not None and not rqjob.is_finished():
-            self._cw.add_onload("window.setTimeout(function() {document.location.reload();}, 5000)")
+            self._cw.add_onload(
+                "window.setTimeout(function() {document.location.reload();}, 10000)"
+            )
 
     def display_logs(self, entity, limit=50000):
         logs = entity.cw_adapt_to("IRqJob").log
@@ -637,29 +731,8 @@ class RqTaskPrimaryView(EditionMixin, primary.ContentPrimaryView):
                 "data": json_dumps(rows) if rows else None,
             }
 
-    def imported_persons(self, entity):
-        rset = self._cw.execute(
-            """Any P, N, FN WHERE R is RqTask, R eid %(e)s,
-               R fatask_person P, P name N, P forenames FN""",
-            {"e": entity.eid},
-        )
-        if rset:
-            _ = self._cw._
-            rows = []
-            for eid, name, forenames in rset:
-                title = " ".join([e for e in [forenames, name] if e])
-                link = self._cw.build_url("person/{}".format(eid))
-                if not title:
-                    title = link
-                rows.append({"eid": eid, "title": (title, link)})
-            return {
-                "title": "{} ({})".format(_("fatask_person"), rset.rowcount),
-                "data": json_dumps(rows) if rows else None,
-            }
-
     def template_attrs(self, entity):
         req = self._cw
-        req.add_css("react-bootstrap-table-all.min.css")
         req.add_js("bundle-rq-table.js")
         attrs = super(RqTaskPrimaryView, self).template_attrs(entity)
         _ = req._
@@ -674,20 +747,26 @@ class RqTaskPrimaryView(EditionMixin, primary.ContentPrimaryView):
         authrecords = self.imported_authrecords(entity)
         if authrecords:
             attrs["authrecords"] = authrecords
-        persons = self.imported_persons(entity)
-        if persons:
-            attrs["persons"] = persons
         main_props = []
-        oai_repository = None
         for label, value in (
             (_("task_name"), _(entity.name)),
             (_("progress bar"), self.display_progress(entity)),
             (_("output_descr"), entity.printable_value("output_descr")),
             (_("output_file"), ", ".join(e.view("incontext") for e in entity.output_file)),
-            (_("subtasks"), ", ".join(e.view("incontext") for e in entity.subtasks)),
         ):
             if value:
                 main_props.append((label, value))
+        views = self._cw.vreg["views"]
+        for label, view in (
+            (_("subtasks"), views.select_or_none("list", self._cw, entity.related("subtasks"))),
+            (
+                _("parent task"),
+                views.select_or_none("list", self._cw, entity.related("subtasks", role="object")),
+            ),
+        ):
+            if view:
+                main_props.append((label, view.render()))
+        oai_repository = None
         if entity.oaiimport_task:
             oai_repository = entity.oaiimport_task[0].oai_repository[0]
             last_import_date = oai_repository.last_successful_import

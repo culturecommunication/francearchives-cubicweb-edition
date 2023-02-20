@@ -29,6 +29,7 @@
  */
 const {Component, createElement: ce} = require('react'),
     PropTypes = require('prop-types')
+const draft06 = require('ajv/lib/refs/json-schema-draft-06.json')
 
 const {default: Form} = require('react-jsonschema-form')
 
@@ -38,6 +39,7 @@ const {TinyMCEWrapper} = require('./ckeditor'),
         FilePicker,
         DatePicker,
         ImagePicker,
+        SubjectImagePicker,
         AutoCompleteField,
     } = require('./widgets'),
     {showErrors} = require('../actions'),
@@ -80,7 +82,7 @@ class CmsForm extends Form {
         const {status, errors} = this.state
         const {showErrorList, serverErrors} = this.props
         if (serverErrors) {
-            serverErrors.forEach(err => {
+            serverErrors.forEach((err) => {
                 if (err.source && err.source.pointer) {
                     errors.push({
                         stack: `${err.source.pointer}: ${err.details}`,
@@ -102,12 +104,14 @@ CmsForm.defaultProps = {
         wysiwygEditor: TinyMCEWrapper,
         dateEditor: DatePicker,
         imageEditor: ImagePicker,
+        subjectImageEditor: SubjectImagePicker,
         autocompleteField: AutoCompleteField,
         filepicker: FilePicker,
     },
     fields: {
         autocompleteField: AutoCompleteField,
     },
+    additionalMetaSchemas: [draft06],
 }
 
 const location_reload = document.location.reload.bind(document.location)
@@ -208,7 +212,7 @@ class AddEntityForm extends Component {
 
     onSubmit(ev) {
         this.setState({formData: ev.formData})
-        return createEntity(this.props.etype, ev.formData).then(doc => {
+        return createEntity(this.props.etype, ev.formData).then((doc) => {
             if (doc.errors && doc.errors.length) {
                 this.props.dispatch(showErrors(doc.errors))
                 return

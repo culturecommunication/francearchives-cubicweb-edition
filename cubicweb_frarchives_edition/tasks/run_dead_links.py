@@ -41,6 +41,8 @@ import rq
 # CubicWeb specific imports
 # library specific imports
 from cubicweb_francearchives.scripts.dead_links import clean_up_linkchecker, run_linkchecker
+from cubicweb_francearchives.storage import S3BfssStorageMixIn
+
 from cubicweb_frarchives_edition.rq import rqjob
 from cubicweb_frarchives_edition.tasks.utils import serve_csv
 
@@ -56,13 +58,22 @@ def run_dead_links(cnx):
         run_linkchecker(
             cnx.repo.vreg.config["consultation-base-url"],
             linkchecker_output,
+            cnx.vreg.config["linkchecker-maxmem"],
             config=cnx.vreg.config["linkchecker-config"],
         )
     except RuntimeError as exception:
         log.warning("incomplete results:%s", exception)
-    os.makedirs(dead_links_output, exist_ok=True)
-    clean_up_linkchecker(linkchecker_output, dead_links_output)
-    with open(os.path.join(dead_links_output, "liens_morts.csv")) as fp:
+    except Exception as exception:
+        log.error(exception)
+        return
+    st = S3BfssStorageMixIn(log=log)
+    try:
+        clean_up_linkchecker(linkchecker_output, dead_links_output)
+    except Exception as exception:
+        log.error(exception)
+        return
+    output_file = os.path.join(dead_links_output, "liens_morts.csv")
+    with st.storage_read_file(output_file) as fp:
         serve_csv(
             cnx,
             eid,

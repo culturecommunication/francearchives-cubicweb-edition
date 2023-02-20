@@ -200,7 +200,7 @@ class EditAuthorityComp extends React.Component {
         const {entity} = this.props,
             eid = entity.get('eid'),
             etype = entity.get('cw_etype')
-        Api.jsonFetch(`/fa/${etype}/${eid}/indexes`).then(data =>
+        Api.jsonFetch(`/fa/${etype}/${eid}/indexes`).then((data) =>
             this.setState({data, loading: false}),
         )
     }
@@ -208,8 +208,8 @@ class EditAuthorityComp extends React.Component {
     onNewAuthClick(indexEid) {
         showOverlay()
         Api.jsonFetch(`/fa/index/${indexEid}/authority`, {method: 'POST'})
-            .then(data => document.location.replace(data.location))
-            .catch(err => {
+            .then((data) => document.location.replace(data.location))
+            .catch((err) => {
                 alert('une erreur est survenue :s')
                 console.error(err)
             })

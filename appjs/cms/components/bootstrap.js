@@ -33,7 +33,7 @@ const {createElement: ce} = require('react')
 function FormItem({label, value, name, id}) {
     return ce(
         'div',
-        {className: 'form-group'},
+        {className: 'mb-4'},
         ce(
             'label',
             null,

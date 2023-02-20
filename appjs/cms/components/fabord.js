@@ -39,7 +39,7 @@ const {
     default: ToolkitProvider,
     Search,
     CSVExport,
-} = require('react-bootstrap-table2-toolkit')
+} = require('react-bootstrap-table2-toolkit/dist/react-bootstrap-table2-toolkit.min')
 const {
     default: paginationFactory,
     PaginationProvider,
@@ -60,13 +60,16 @@ const {default: Select} = require('react-select')
 
 function linkFormatter(cell) {
     return (
-        <a href={cell[1]} _target="blank">
+        <a href={cell[1]} target="_blank" rel="noopener noreferrer">
             {cell[0]}
         </a>
     )
 }
 
 function dateTimeFormatter(date) {
+    if (date === undefined) {
+        return ''
+    }
     const mdate = Moment(date)
     if (mdate && mdate._isValid) {
         return Moment(mdate).format('DD/MM/YYYY à hh:mm') // '14/10/2019 à 07:01'
@@ -81,7 +84,7 @@ function csvDateTimeFormatter(cell) {
 function SelectService({onChange, options}) {
     return (
         <div>
-            <div className="field-title">Sélectionnez un service :</div>
+            <div className="field-title">Sélectionnez un service :</div>
             <Select
                 options={options}
                 isMulti={false}
@@ -89,7 +92,7 @@ function SelectService({onChange, options}) {
                 isSearchable={true}
                 placeholder="Sélectionnez un service"
                 noOptionsMessage={() => 'aucun serivce trouvé'}
-                onChange={ev => onChange(ev)}
+                onChange={(ev) => onChange(ev)}
             />
         </div>
     )
@@ -113,8 +116,11 @@ class FAMonitoringBord extends Component {
     }
 
     componentDidMount() {
-        jsonFetch('/faservices').then(services => {
-            const options = services.map(s => ({value: s.code, label: s.name}))
+        jsonFetch('/faservices').then((services) => {
+            const options = services.map((s) => ({
+                value: s.code,
+                label: s.name,
+            }))
             this.setState({options})
         })
     }
@@ -122,7 +128,7 @@ class FAMonitoringBord extends Component {
     updateSelectedService(option) {
         this.setState({data: null, selectedService: option})
         if (option !== null) {
-            jsonFetch('/faforservice?service=' + option.value).then(data =>
+            jsonFetch('/faforservice?service=' + option.value).then((data) =>
                 this.setState({data}),
             )
         }
@@ -193,6 +199,7 @@ class FAMonitoringBord extends Component {
             },
         ]
         const {ExportCSVButton} = CSVExport
+
         const columns = [
             {
                 dataField: 'eid',
@@ -205,7 +212,7 @@ class FAMonitoringBord extends Component {
                 dataField: 'url',
                 text: 'EADID',
                 formatter: linkFormatter,
-                csvFormatter: cell => `${cell[0]}`,
+                csvFormatter: (cell) => `${cell[0]}`,
                 sort: true,
             },
             {
@@ -221,13 +228,15 @@ class FAMonitoringBord extends Component {
             {
                 dataField: 'filename',
                 text: 'Nom du fichier',
+                formatter: linkFormatter,
+                csvFormatter: (cell) => `${cell[0]}`,
                 sort: true,
             },
             {
                 dataField: 'import',
                 text: "Type d'import",
                 sort: true,
-                formatter: cell => importSelectOptions[cell],
+                formatter: (cell) => importSelectOptions[cell],
                 filter: selectFilter({
                     options: importSelectOptions,
                     defaultValue: 0,
@@ -237,7 +246,7 @@ class FAMonitoringBord extends Component {
                 dataField: 'status',
                 text: 'Statut',
                 sort: true,
-                formatter: cell => statusSelectOptions[cell],
+                formatter: (cell) => statusSelectOptions[cell],
                 filter: selectFilter({
                     options: statusSelectOptions,
                     defaultValue: 0,
@@ -251,10 +260,25 @@ class FAMonitoringBord extends Component {
                 sort: true,
             },
             {
-                dataField: 'url',
-                csvText: 'URL',
-                hidden: true,
-                csvFormatter: cell => `${cell[1]}`,
+                dataField: 'modification_date',
+                text: 'Date de modification',
+                formatter: dateTimeFormatter,
+                csvFormatter: csvDateTimeFormatter,
+                sort: true,
+            },
+            {
+                dataField: 'harvest_date',
+                text: 'Date du dernier moissonnage',
+                formatter: dateTimeFormatter,
+                csvFormatter: csvDateTimeFormatter,
+                sort: true,
+            },
+            {
+                dataField: 'ape_ead',
+                text: 'Ape ead',
+                formatter: linkFormatter,
+                csvFormatter: (cell) => `${cell[0]}`,
+                sort: false,
             },
         ]
         const csvFilename =
@@ -264,25 +288,26 @@ class FAMonitoringBord extends Component {
             <PaginationProvider
                 pagination={paginationFactory(paginationOptions)}
             >
-                {pageprops => (
+                {(pageprops) => (
                     <div>
                         <PaginationTotalStandalone
                             {...pageprops.paginationProps}
                             paginationTotalRenderer={standaloneTotal}
                         />
                         <ToolkitProvider
-                            keyField="tabord"
+                            keyField="eid"
                             data={data}
                             columns={columns}
                             defaultSorted={defaultSorted}
                             search
+                            bootstrap4
                             exportCSV={{
                                 onlyExportFiltered: true,
                                 fileName: csvFilename,
                                 exportAll: false,
                             }}
                         >
-                            {tkprops => (
+                            {(tkprops) => (
                                 <div>
                                     <SearchBar
                                         {...tkprops.searchProps}
@@ -298,6 +323,7 @@ class FAMonitoringBord extends Component {
                                         defaultSorted={defaultSorted}
                                         {...pageprops.paginationTableProps}
                                         filter={filterFactory()}
+                                        filterPosition="top"
                                     />
                                 </div>
                             )}

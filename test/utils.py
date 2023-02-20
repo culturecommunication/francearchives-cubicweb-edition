@@ -32,6 +32,7 @@
 import os
 import os.path as osp
 import sys
+from pyramid.config import Configurator
 
 import rq
 import fakeredis
@@ -43,10 +44,12 @@ from cubicweb.devtools import (
     ApptestConfiguration,
     PostgresApptestConfiguration,
 )
-from cubicweb.pyramid.test import PyramidCWTest
+from cubicweb.pyramid.test import PyramidCWTest, TestApp
 from cubicweb_francearchives.cssimages import static_css_dir
 from cubicweb_francearchives.dataimport import usha1
 from cubicweb_frarchives_edition.rq import work
+
+from cubicweb.devtools.testlib import CubicWebTC
 
 
 HERE = osp.dirname(osp.abspath(__file__))
@@ -61,6 +64,24 @@ ApptestConfiguration.anonymous_credential = PostgresApptestConfiguration.anonymo
 )
 
 
+class TestAppNoCSRF(TestApp):
+    """Overloads TestApp to avoid csrf verification
+    not implemented in FranceArchives so far.
+    """
+
+    def post(
+        self,
+        route,
+        params=None,
+        do_not_grab_the_crsf_token=True,
+        do_not_inject_origin=True,
+        **kwargs,
+    ):
+        return super(TestAppNoCSRF, self).post(
+            route, params, do_not_grab_the_crsf_token, do_not_inject_origin, **kwargs
+        )
+
+
 class FrACubicConfigMixIn(object):
     @classmethod  # XXX could be turned into a regular method
     def init_config(cls, config):
@@ -68,6 +89,34 @@ class FrACubicConfigMixIn(object):
         config.anonymous_credential = ApptestConfiguration.anonymous_credential
         config.set_option("published-index-name", "portal-index-name")
         super(FrACubicConfigMixIn, cls).init_config(config)
+
+
+class FranceArchivesCMSTC(FrACubicConfigMixIn, PyramidCWTest, CubicWebTC):
+    settings = {
+        "cubicweb.bwcompat": False,
+        "cubicweb.auth.authtkt.session.secret": "top secret",
+        "pyramid.debug_notfound": True,
+        "pyramid.debug_routematch": True,
+        "cubicweb.session.secret": "stuff",
+        "cubicweb.auth.authtkt.persistent.secret": "stuff",
+        "francearchives.autoinclude": "no",
+    }
+
+    def setUp(self):
+        super(FranceArchivesCMSTC, self).setUp()
+        pyramid_config = Configurator(settings=self.settings)
+
+        pyramid_config.registry["cubicweb.repository"] = self.repo
+        pyramid_config.include("cubicweb.pyramid")
+
+        self.includeme(pyramid_config)
+        self.pyr_registry = pyramid_config.registry
+        self.webapp = TestAppNoCSRF(
+            pyramid_config.make_wsgi_app(),
+            extra_environ={"wsgi.url_scheme": "https"},
+            admin_login=self.admlogin,
+            admin_password=self.admpassword,
+        )
 
 
 def create_findingaid(cnx, name=None, with_file=False, service=None):
@@ -114,7 +163,6 @@ def create_default_commemoitem(cnx, authority=None):
         commemoration_year=2019,
         alphatitle="alphatitle",
         content="content",
-        collection_top=ce("CommemoCollection", title="collection", year=2016),
     )
 
 
@@ -146,6 +194,7 @@ class EsSerializableMixIn(object):
         self.kibana_ir_index_name = "unittest_document_siaf"
         self.kibana_services_index_name = "unittest_service_siaf"
         self.kibana_auth_index_name = "unittest_authority_siaf"
+        self.nomina_index_name = "unittest_index_name_nomina"
         self.config.global_set_option("index-name", self.index_name)
         self.config.global_set_option("published-index-name", self.published_index_name)
         self.config.global_set_option(
@@ -155,6 +204,7 @@ class EsSerializableMixIn(object):
         self.config.global_set_option("kibana-ir-index-name", self.kibana_ir_index_name)
         self.config.global_set_option("kibana-services-index-name", self.kibana_services_index_name)
         self.config.global_set_option("kibana-authorities-index-name", self.kibana_auth_index_name)
+        self.config.global_set_option("nomina-index-name", self.nomina_index_name)
         for name in ("published-staticdir-path", "staticdir-path"):
             path = self.datapath(name)
             self.config.global_set_option(name, path)
@@ -163,18 +213,10 @@ class EsSerializableMixIn(object):
                 os.makedirs(csspath)
 
 
-class TaskTC(FrACubicConfigMixIn, PyramidCWTest):
+class TaskTC(FranceArchivesCMSTC):
     """Task test cases base class."""
 
     configcls = PostgresApptestConfiguration
-    settings = {
-        "cubicweb.bwcompat": False,
-        "pyramid.debug_notfound": True,
-        "cubicweb.session.secret": "stuff",
-        "cubicweb.auth.authtkt.session.secret": "stuff",
-        "cubicweb.auth.authtkt.persistent.secret": "stuff",
-        "francearchives.autoinclude": "no",
-    }
 
     def setUp(self):
         """Set up job queue and configuration."""

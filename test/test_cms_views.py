@@ -32,24 +32,14 @@
 import fakeredis
 
 from cubicweb.devtools import PostgresApptestConfiguration
-from cubicweb.pyramid.test import PyramidCWTest
 
 import utils
 
 from pgfixtures import setup_module, teardown_module  # noqa
 
 
-class CMSEntitiesTest(utils.FrACubicConfigMixIn, PyramidCWTest):
+class CMSEntitiesTest(utils.FranceArchivesCMSTC):
     configcls = PostgresApptestConfiguration
-
-    settings = {
-        "cubicweb.bwcompat": False,
-        "cubicweb.auth.authtkt.session.secret": "top secret",
-        "pyramid.debug_notfound": True,
-        "cubicweb.session.secret": "stuff",
-        "cubicweb.auth.authtkt.persistent.secret": "stuff",
-        "francearchives.autoinclude": "no",
-    }
 
     def setUp(self):
         super(CMSEntitiesTest, self).setUp()
@@ -71,7 +61,13 @@ class CMSEntitiesTest(utils.FrACubicConfigMixIn, PyramidCWTest):
             "title": "metadata",
         }
         self.login()
-        res = self.webapp.post_json(url, data, status=201, headers={"accept": "application/json"})
+        res = self.webapp.post_json(
+            url,
+            data,
+            status=201,
+            do_not_grab_the_crsf_token=True,
+            headers={"accept": "application/json"},
+        )
         doc = res.json
         self.assertEqual(doc["title"], "metadata")
         with self.admin_access.cnx() as cnx:
@@ -102,7 +98,11 @@ class CMSEntitiesTest(utils.FrACubicConfigMixIn, PyramidCWTest):
         )
         self.login()
         self.webapp.post_json(
-            url, [{"value": index_eid}], status=201, headers={"accept": "application/json"}
+            url,
+            [{"value": index_eid}],
+            status=201,
+            do_not_grab_the_crsf_token=True,
+            headers={"accept": "application/json"},
         )
         with self.admin_access.cnx() as cnx:
             rset = cnx.execute(
@@ -223,7 +223,7 @@ class CMSEntitiesTest(utils.FrACubicConfigMixIn, PyramidCWTest):
                 "Service", name="Archives des Deux-Sèvres", code="FRAD054", category="foo"
             )
             service2 = cnx.create_entity(
-                "Service", name="Archives de versailles", code="Sevre", category="foo"
+                "Service", name="Archives de versailles", code="SEVRE", category="foo"
             )
             service3 = cnx.create_entity(
                 "Service",
@@ -247,6 +247,106 @@ class CMSEntitiesTest(utils.FrACubicConfigMixIn, PyramidCWTest):
             eids = [d["eid"] for d in res.json["data"]]
             self.assertEqual(set((service1.eid, service2.eid, service3.eid)), set(eids))
 
+    def test_available_basecontent(self):
+        """
+        Trying: search available contents(BaseContent, ExternRef or CommemorationItem)
+                for a manual selection of a related content suggestion.
+                The search is performed by postgres.
+        Expecting : find contents based on:
+                    - title
+                    - eid (for BaseContent and Commemora)
+                    - uuid (for ExternRef)
+        """
+        with self.admin_access.repo_cnx() as cnx:
+            article1 = cnx.create_entity("BaseContent", title="Mon titre")
+            article2 = cnx.create_entity("BaseContent", title="2e titre")
+            externref = cnx.create_entity("ExternRef", title="3e titre", reftype="Virtual_exhibit")
+            commemoitem = cnx.create_entity("CommemorationItem", title="commemo titre")
+            bc_eid = cnx.create_entity("BaseContent", title="article titre").eid
+            cnx.commit()
+            url = (
+                "/BaseContent/{}/relationships/related_content_suggestion/available-targets".format(
+                    bc_eid
+                )
+            )  # noqa
+            self.login()
+            # search for base content using eid
+            data = {
+                "eid": bc_eid,
+                "q": article1.eid,
+                "target_type": "BaseContent",
+                "rtype": "related_content_suggestion",
+            }
+            res = self.webapp.get(url, data, headers={"Accept": "application/json"})
+            eids = [d["eid"] for d in res.json["data"]]
+            self.assertEqual([article1.eid], eids)
+
+            # search for base content using title
+            data = {
+                "eid": bc_eid,
+                "q": "titre",
+                "target_type": "BaseContent",
+                "rtype": "related_content_suggestion",
+            }
+            res = self.webapp.get(url, data, headers={"Accept": "application/json"})
+            eids = [d["eid"] for d in res.json["data"]]
+            self.assertEqual([article2.eid, article1.eid], eids)
+
+            # externrefs are found based on uuid
+            data = {
+                "eid": bc_eid,
+                "q": externref.uuid,
+                "target_type": "ExternRef",
+                "rtype": "related_content_suggestion",
+            }
+            res = self.webapp.get(url, data, headers={"Accept": "application/json"})
+            eids = [d["eid"] for d in res.json["data"]]
+            self.assertEqual([externref.eid], eids)
+
+            # externrefs are found using their title
+            data = {
+                "eid": bc_eid,
+                "q": "titre",
+                "target_type": "ExternRef",
+                "rtype": "related_content_suggestion",
+            }
+            res = self.webapp.get(url, data, headers={"Accept": "application/json"})
+            eids = [d["eid"] for d in res.json["data"]]
+            self.assertEqual([externref.eid], eids)
+
+            # search for CommemorationItem using eid
+            data = {
+                "eid": bc_eid,
+                "q": commemoitem.eid,
+                "target_type": "CommemorationItem",
+                "rtype": "related_content_suggestion",
+            }
+            res = self.webapp.get(url, data, headers={"Accept": "application/json"})
+            eids = [d["eid"] for d in res.json["data"]]
+            self.assertEqual([commemoitem.eid], eids)
+
+            # search for CommemorationItem using title
+            data = {
+                "eid": bc_eid,
+                "q": "titre",
+                "target_type": "CommemorationItem",
+                "rtype": "related_content_suggestion",
+            }
+            res = self.webapp.get(url, data, headers={"Accept": "application/json"})
+            eids = [d["eid"] for d in res.json["data"]]
+            self.assertEqual([commemoitem.eid], eids)
+
+            # the article itself cannot be its own suggestion
+            data = {
+                "eid": bc_eid,
+                "q": bc_eid,
+                "target_type": "BaseContent",
+                "rtype": "related_content_suggestion",
+            }
+            res = self.webapp.get(url, data, headers={"Accept": "application/json"})
+            eids = [d["eid"] for d in res.json["data"]]
+            self.assertEqual(len(eids), 0)
+
     def test_add_pnia_subject_index(self):
         with self.admin_access.repo_cnx() as cnx:
             s1 = cnx.create_entity("SubjectAuthority", label="guerre")
@@ -256,7 +356,13 @@ class CMSEntitiesTest(utils.FrACubicConfigMixIn, PyramidCWTest):
             self.login()
             url = "/CommemorationItem/{}/relationships/related_authority/targets".format(ci_eid)
             data = [{"label": s.label, "value": s.eid} for s in [s1, s2]]
-            self.webapp.post_json(url, data, status=201, headers={"accept": "application/json"})
+            self.webapp.post_json(
+                url,
+                data,
+                status=201,
+                do_not_grab_the_crsf_token=True,
+                headers={"accept": "application/json"},
+            )
             query = "Any A WHERE X related_authority A, X eid %(x)s, A eid %(a)s"
             for eid in [s1.eid, s2.eid]:
                 rset = cnx.execute(query, {"a": eid, "x": ci_eid})
@@ -274,6 +380,7 @@ class CMSEntitiesTest(utils.FrACubicConfigMixIn, PyramidCWTest):
             "/section",
             {"target": s3.eid, "child": s1.eid, "newOrder": 0},
             status=200,
+            do_not_grab_the_crsf_token=True,
             headers={"accept": "application/json"},
         )
         with self.admin_access.cnx() as cnx:
@@ -284,7 +391,7 @@ class CMSEntitiesTest(utils.FrACubicConfigMixIn, PyramidCWTest):
     def test_move_section_on_itself(self):
         with self.admin_access.cnx() as cnx:
             ce = cnx.create_entity
-            s1 = ce("CommemoCollection", title="child", year=2000)
+            s1 = ce("Section", title="child")
             ce("Section", title="parent", children=s1)
             cnx.commit()
         self.login()
@@ -292,6 +399,7 @@ class CMSEntitiesTest(utils.FrACubicConfigMixIn, PyramidCWTest):
             "/section",
             {"target": s1.eid, "child": s1.eid, "newOrder": 0},
             status=400,
+            do_not_grab_the_crsf_token=True,
             headers={"accept": "application/json"},
         )
         self.assertIn("errors", resp.json_body)

@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OAI-PMH xmlns="http://www.openarchives.org/OAI/2.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd">
+  <responseDate>2021-12-06T09:32:59Z</responseDate>
+  <request verb="ListRecords" metadataPrefix="nomina" set="ad08_registres_matricules">http://archives.cd08.fr/arkotheque/oai-pmh-2/oai2.php</request>
+  <ListRecords>
+    <record>
+      <header>
+        <identifier>34</identifier>
+        <datestamp>2015-01-08T09:14:44Z</datestamp>
+        <setSpec>ad28_registres_matricules</setSpec>
+      </header>
+      <metadata>
+        <nomina:document xmlns:nomina="http://www.france-genealogie.fr/ns/nomina/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="genealogie1.3.xsd " id="34" uri="http://www.archives28.fr/ark:/66007/s0054c63a21de1d9/54e8ac05dec3e">
+          <nomina:type code="RM">Registre Matricule</nomina:type>
+          <nomina:personne>
+            <nomina:nom>Ratier</nomina:nom>
+            <nomina:prenoms>Isidore Louis Alexandre</nomina:prenoms>
+          </nomina:personne>
+          <nomina:localisation code="N">
+            <nomina:pays>France</nomina:pays>
+            <nomina:departement>Eure-et-Loir</nomina:departement>
+            <nomina:precision>Illiers</nomina:precision>
+          </nomina:localisation>
+          <nomina:localisation code="RM">
+            <nomina:pays code="FR">France</nomina:pays>
+            <nomina:departement code="28">Eure-et-Loir</nomina:departement>
+          </nomina:localisation>
+          <nomina:localisation code="R">
+            <nomina:departement>Eure-et-Loir</nomina:departement>
+            <nomina:precision>Epernon</nomina:precision>
+          </nomina:localisation>
+          <nomina:date code="N" annee="1872">1872</nomina:date>
+          <nomina:date code="RM" annee="1892">1892</nomina:date>
+          <nomina:complement>
+            <nomina:code>1 R 453</nomina:code>
+            <nomina:nro>21</nomina:nro>
+            <nomina:niveau>0</nomina:niveau>
+            <nomina:profession>Charretier</nomina:profession>
+          </nomina:complement>
+        </nomina:document>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>888</identifier>
+        <datestamp>2020-09-23T21:27:47Z</datestamp>
+        <setSpec>ad08_registres_matricules</setSpec>
+      </header>
+      <metadata>
+        <nomina:document xmlns:nomina="http://www.france-genealogie.fr/ns/nomina/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="genealogie1.3.xsd " id="888" uri="https://archives.cd08.fr/ark:/75583/s0053eb9b6047b1f/53eb9b604f5b9">
+          <nomina:type code="RM">Registre Matricule</nomina:type>
+          <nomina:personne>
+            <nomina:nom>Suquez</nomina:nom>
+            <nomina:prenoms>Léon</nomina:prenoms>
+            <nomina:prenoms>Gustave</nomina:prenoms>
+          </nomina:personne>
+          <nomina:personne>
+            <nomina:nom>Suquez</nomina:nom>
+            <nomina:prenoms>Jean</nomina:prenoms>
+            <nomina:prenoms>Gustave</nomina:prenoms>
+          </nomina:personne>
+          <nomina:localisation code="RM">
+            <nomina:pays code="FR">France</nomina:pays>
+            <nomina:departement>Ardennes</nomina:departement>
+            <nomina:precision>Mézières</nomina:precision>
+          </nomina:localisation>
+          <nomina:localisation code="N">
+            <nomina:departement>Ardennes</nomina:departement>
+            <nomina:precision>Renwez</nomina:precision>
+          </nomina:localisation>
+          <nomina:localisation code="R">
+            <nomina:departement>Ardennes</nomina:departement>
+            <nomina:precision>Château-Regnault-Bogny (Bogny-sur-Meuse)</nomina:precision>
+          </nomina:localisation>
+          <nomina:date code="RM" annee="1900">1900</nomina:date>
+          <nomina:date code="N" annee="1880">1880</nomina:date>
+          <nomina:complement numerise="true" autre="true">
+            <nomina:profession>ferronnier</nomina:profession>
+            <nomina:code>1R 155</nomina:code>
+            <nomina:nro>110</nomina:nro>
+          </nomina:complement>
+        </nomina:document>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>887</identifier>
+        <datestamp>2020-09-23T21:27:47Z</datestamp>
+        <setSpec>ad08_registres_matricules</setSpec>
+      </header>
+      <metadata>
+        <nomina:document xmlns:nomina="http://www.france-genealogie.fr/ns/nomina/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="genealogie1.3.xsd " id="887" uri="https://archives.cd08.fr/ark:/75583/s0053eb9b6047b1f/53eb9b604eede">
+          <nomina:type code="RM">Registre Matricule</nomina:type>
+          <nomina:personne>
+            <nomina:nom>Christel</nomina:nom>
+            <nomina:prenoms>Alcide Fernand</nomina:prenoms>
+          </nomina:personne>
+          <nomina:localisation code="RM">
+            <nomina:pays code="FR">France</nomina:pays>
+            <nomina:departement>Ardennes</nomina:departement>
+            <nomina:precision>Mézières</nomina:precision>
+          </nomina:localisation>
+          <nomina:localisation code="N">
+            <nomina:departement>Ardennes</nomina:departement>
+            <nomina:precision>Les Mazures</nomina:precision>
+          </nomina:localisation>
+          <nomina:date code="RM" annee="1900">1900</nomina:date>
+          <nomina:date code="N" annee="1880">1880</nomina:date>
+          <nomina:complement numerise="true" autre="true">
+            <nomina:profession>étudiant</nomina:profession>
+            <nomina:code>1R 155</nomina:code>
+            <nomina:nro>109</nomina:nro>
+          </nomina:complement>
+        </nomina:document>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>5</identifier>
+        <datestamp>2020-09-23T21:27:47Z</datestamp>
+        <setSpec>ad08_registres_matricules</setSpec>
+      </header>
+      <metadata>
+        <nomina:document xmlns:nomina="http://www.france-genealogie.fr/ns/nomina/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="genealogie1.3.xsd " id="5" uri="https://archives.cd08.fr/ark:/75583/s005328744149810/532874414b2bd">
+          <nomina:type code="RM">Registre Matricule</nomina:type>
+          <nomina:personne>
+            <nomina:nom>Mathieu</nomina:nom>
+            <nomina:prenoms>Jean Louis Auguste</nomina:prenoms>
+          </nomina:personne>
+          <nomina:localisation code="RM">
+            <nomina:pays code="FR">France</nomina:pays>
+            <nomina:departement>Ardennes</nomina:departement>
+            <nomina:precision>Mézières</nomina:precision>
+          </nomina:localisation>
+          <nomina:localisation code="N">
+            <nomina:departement>Ardennes</nomina:departement>
+            <nomina:precision>Gespunsart</nomina:precision>
+          </nomina:localisation>
+          <nomina:localisation code="R">
+            <nomina:departement>Ardennes</nomina:departement>
+            <nomina:precision>Gespunsart</nomina:precision>
+          </nomina:localisation>
+          <nomina:date code="RM" annee="1871">1871</nomina:date>
+          <nomina:date code="N" annee="1851">1851</nomina:date>
+          <nomina:complement numerise="true" autre="true">
+            <nomina:niveau>2</nomina:niveau>
+            <nomina:profession>charpentier</nomina:profession>
+            <nomina:code>1R 013</nomina:code>
+            <nomina:nro>53</nomina:nro>
+          </nomina:complement>
+        </nomina:document>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>24</identifier>
+        <datestamp>2020-09-23T21:27:47Z</datestamp>
+        <setSpec>ad08_registres_matricules</setSpec>
+      </header>
+      <metadata>
+        <nomina:document xmlns:nomina="http://www.france-genealogie.fr/ns/nomina/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="genealogie1.3.xsd " id="24" uri="https://archives.cd08.fr/ark:/75583/s0053e9158885130/53e915888dd59">
+          <nomina:type code="RM">Registre Matricule</nomina:type>
+          <nomina:personne>
+            <nomina:nom>Buzy</nomina:nom>
+            <nomina:prenoms>Léon Charles</nomina:prenoms>
+          </nomina:personne>
+          <nomina:localisation code="RM">
+            <nomina:pays code="FR">France</nomina:pays>
+            <nomina:departement>Ardennes</nomina:departement>
+            <nomina:precision>Mézières</nomina:precision>
+          </nomina:localisation>
+          <nomina:localisation code="N">
+            <nomina:departement>Ardennes</nomina:departement>
+            <nomina:precision>Puilly-et-Charbeaux</nomina:precision>
+          </nomina:localisation>
+          <nomina:localisation code="R">
+            <nomina:departement>Ardennes</nomina:departement>
+            <nomina:precision>Puilly-et-Charbeaux</nomina:precision>
+          </nomina:localisation>
+          <nomina:date code="RM" annee="1921">1921</nomina:date>
+          <nomina:date code="N" annee="1901">1901</nomina:date>
+          <nomina:complement numerise="true" autre="true">
+            <nomina:niveau>2</nomina:niveau>
+            <nomina:profession>charcutier</nomina:profession>
+            <nomina:code>1R 345</nomina:code>
+            <nomina:nro>17 </nomina:nro>
+          </nomina:complement>
+        </nomina:document>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>511</identifier>
+        <datestamp>2020-09-23T21:27:47Z</datestamp>
+        <setSpec>ad08_registres_matricules</setSpec>
+      </header>
+      <metadata>
+        <nomina:document xmlns:nomina="http://www.france-genealogie.fr/ns/nomina/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="genealogie1.3.xsd " id="511" uri="https://archives.cd08.fr/ark:/75583/s0053299517596b4/532995175e5c7">
+          <nomina:type code="RM">Registre Matricule</nomina:type>
+          <nomina:personne>
+            <nomina:nom>Croïet</nomina:nom>
+            <nomina:prenoms>Alexandre Théophile</nomina:prenoms>
+          </nomina:personne>
+          <nomina:localisation code="RM">
+            <nomina:pays code="FR">France</nomina:pays>
+            <nomina:departement>Ardennes</nomina:departement>
+            <nomina:precision>Mézières</nomina:precision>
+          </nomina:localisation>
+          <nomina:localisation code="N">
+            <nomina:departement>Ardennes</nomina:departement>
+            <nomina:precision>Gué-d'Hossus</nomina:precision>
+          </nomina:localisation>
+          <nomina:localisation code="R">
+            <nomina:departement>Ardennes</nomina:departement>
+            <nomina:precision>Charleville (Charleville-Mézières)</nomina:precision>
+          </nomina:localisation>
+          <nomina:date code="RM" annee="1873">1873</nomina:date>
+          <nomina:date code="N" annee="1853">1853</nomina:date>
+          <nomina:complement numerise="true" autre="true">
+            <nomina:niveau>3</nomina:niveau>
+            <nomina:profession>instituteur</nomina:profession>
+            <nomina:code>1R 018</nomina:code>
+            <nomina:nro>94</nomina:nro>
+          </nomina:complement>
+        </nomina:document>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>512</identifier>
+        <datestamp>2020-09-23T21:27:47Z</datestamp>
+        <setSpec>ad08_registres_matricules</setSpec>
+      </header>
+      <metadata>
+        <nomina:document xmlns:nomina="http://www.france-genealogie.fr/ns/nomina/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="genealogie1.3.xsd " id="512" uri="https://archives.cd08.fr/ark:/75583/s0053299517596b4/532995175e5c7">
+          <nomina:type code="RM">Registre Matricule</nomina:type>
+          <nomina:personne>
+            <nomina:nom>Renel</nomina:nom>
+            <nomina:prenoms>Jules Nicolas</nomina:prenoms>
+          </nomina:personne>
+          <nomina:localisation code="RM">
+            <nomina:pays code="FR">France</nomina:pays>
+            <nomina:departement>Ardennes</nomina:departement>
+            <nomina:precision>Mézières</nomina:precision>
+          </nomina:localisation>
+          <nomina:localisation code="N">
+            <nomina:departement>Ardennes</nomina:departement>
+            <nomina:precision>Issancourt-et-Rumel</nomina:precision>
+          </nomina:localisation>
+          <nomina:localisation code="R">
+            <nomina:departement>Ardennes</nomina:departement>
+            <nomina:precision>Issancourt-et-Rumel</nomina:precision>
+          </nomina:localisation>
+          <nomina:date code="RM" annee="1873">1873</nomina:date>
+          <nomina:date code="N" annee="1853">1853</nomina:date>
+          <nomina:complement numerise="true" autre="true">
+            <nomina:niveau>3</nomina:niveau>
+            <nomina:profession>cloutier</nomina:profession>
+            <nomina:code>1R 018</nomina:code>
+            <nomina:nro>95</nomina:nro>
+          </nomina:complement>
+        </nomina:document>
+      </metadata>
+    </record>
+    <record>
+      <header>
+        <identifier>5121</identifier>
+        <datestamp>2020-09-23T22:27:47Z</datestamp>
+        <setSpec>ad08_registres_matricules</setSpec>
+      </header>
+      <metadata>
+        <nomina:document xmlns:nomina="http://www.france-genealogie.fr/ns/nomina/1.0"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.france-genealogie.fr/ns/nomina/1.0 genealogie1.4.xsd"
+id="5121" uri="">
+          <nomina:personne>
+            <nomina:nom>MARGUERITAT</nomina:nom>
+            <nomina:prenoms>Jean</nomina:prenoms>
+          </nomina:personne>
+          <nomina:localisation code="RM">
+            <nomina:precision/>
+          </nomina:localisation>
+          <nomina:date annee="1868" code="D">1868</nomina:date>
+          <nomina:date annee="1880/12/11" code="M"/>
+          <nomina:date>18?4</nomina:date>
+          <nomina:date annee="1882">1882</nomina:date>
+        </nomina:document>
+      </metadata>
+    </record>
+  </ListRecords>
+</OAI-PMH>

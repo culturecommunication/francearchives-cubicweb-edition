@@ -33,12 +33,14 @@ import json
 
 # third party imports
 # CubicWeb specific imports
+from cubicweb_francearchives.testutils import S3BfssStorageTestMixin
+
 # library specific imports
 from pgfixtures import setup_module, teardown_module  # noqa
 from utils import TaskTC
 
 
-class DeleteFindingAidsTC(TaskTC):
+class DeleteFindingAidsTC(S3BfssStorageTestMixin, TaskTC):
     """Delete finding aids test cases."""
 
     def setup_database(self):

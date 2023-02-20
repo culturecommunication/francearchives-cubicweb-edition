@@ -28,6 +28,7 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
+
 from cubicweb.web.views.basetemplates import LogInTemplate
 
 from cubicweb_francearchives.views import JinjaViewMixin
@@ -66,7 +67,6 @@ class EditionMainTemplate(PniaMainTemplate):
                 req.add_js(js)
             for css in (
                 "react-widgets/react-widgets.css",
-                "react-select.min.css",
                 "cropper/cropper.css",
             ):
                 req.add_css(css)
@@ -84,7 +84,9 @@ class PniaLogin(JinjaViewMixin, LogInTemplate):
             "post_url": self._cw.base_url() + "login",
             "cssfiles": [self._cw.data_url("css/bootstrap.min.css")],
             "message": self._cw.message,
+            "_": self._cw._,
         }
+        context["forgotpwd_link"] = self._cw.build_url("forgottenpassword")
         self.call_template(**context)
 
 

@@ -39,27 +39,15 @@ from mock import patch
 from pytest import xfail
 
 from cubicweb import Binary, ValidationError
-from cubicweb.pyramid.test import PyramidCWTest
 
 from cubicweb_jsonschema.views import jsonschema_section
 
-from cubicweb_francearchives.testutils import HashMixIn
+from cubicweb_francearchives.testutils import S3BfssStorageTestMixin
 
 import utils
 
 
-class BaseTC(utils.FrACubicConfigMixIn, PyramidCWTest):
-
-    settings = {
-        "cubicweb.bwcompat": False,
-        "pyramid.debug_notfound": True,
-        "pyramid.debug_routematch": True,
-        "cubicweb.session.secret": "stuff",
-        "cubicweb.auth.authtkt.session.secret": "stuff",
-        "cubicweb.auth.authtkt.persistent.secret": "stuff",
-        "francearchives.autoinclude": "no",
-    }
-
+class BaseTC(S3BfssStorageTestMixin, utils.FranceArchivesCMSTC):
     def includeme(self, config):
         config.include("cubicweb_frarchives_edition.api")
         config.include("cubicweb_francearchives.pviews")
@@ -70,7 +58,7 @@ class BaseTC(utils.FrACubicConfigMixIn, PyramidCWTest):
         super(BaseTC, self).setUp()
 
 
-class RestApiJSONTest(HashMixIn, BaseTC):
+class RestApiJSONTest(BaseTC):
     def setUp(self):
         super(RestApiJSONTest, self).setUp()
         self.uicfg_backups = {}
@@ -94,7 +82,7 @@ class RestApiJSONTest(HashMixIn, BaseTC):
             user_account = cnx.create_entity("UserAccount", name="name")
             cnx.add_relation(blog_entry.eid, "has_creator", user_account.eid)
             cnx.commit()
-            url = "/blogentry/%d" % blog_entry.eid
+            url = "/blogentry/%d/" % blog_entry.eid
         self.login()
         res = self.webapp.get(url, headers={"accept": "application/json"})
         self.assertEqual(res.headers["content-type"], "application/json")
@@ -118,7 +106,11 @@ class RestApiJSONTest(HashMixIn, BaseTC):
         self.login()
 
         res = self.webapp.post_json(
-            "/cwgroup/", data, status=201, headers={"Accept": "application/json"}
+            "/cwgroup/",
+            data,
+            status=201,
+            do_not_grab_the_crsf_token=True,
+            headers={"Accept": "application/json"},
         )
         with self.admin_access.repo_cnx() as cnx:
             rset = cnx.find("CWGroup", name="tmp")
@@ -147,7 +139,11 @@ class RestApiJSONTest(HashMixIn, BaseTC):
         data = {}
         self.login()
         res = self.webapp.post_json(
-            "/cwuser/", data, status=400, headers={"Accept": "application/json"}
+            "/cwuser/",
+            data,
+            status=400,
+            do_not_grab_the_crsf_token=True,
+            headers={"Accept": "application/json"},
         )
         errors = res.json_body["errors"]
         expected = [
@@ -164,7 +160,11 @@ class RestApiJSONTest(HashMixIn, BaseTC):
             side_effect=ValidationError(None, {None: "unmapped"}),
         ):
             res = self.webapp.post_json(
-                "/cwuser/", {}, status=400, headers={"Accept": "application/json"}
+                "/cwuser/",
+                {},
+                status=400,
+                do_not_grab_the_crsf_token=True,
+                headers={"Accept": "application/json"},
             )
             errors = res.json_body["errors"]
             expected = [{"status": 422, "details": "unmapped"}]
@@ -178,6 +178,7 @@ class RestApiJSONTest(HashMixIn, BaseTC):
             "circ_id": "C1",
             "title": "the-circular",
             "status": "revoked",
+            "order": 1,
             "attachment": [
                 {
                     "data": "data:text/xml;name=test.xml;base64,{}".format(
@@ -190,7 +191,11 @@ class RestApiJSONTest(HashMixIn, BaseTC):
         self.uicfg_set(("Circular", "attachment", "File", "subject"), "inlined")
         self.login()
         resp = self.webapp.post_json(
-            "/Circular/", data, status=201, headers={"Accept": "application/json"}
+            "/Circular/",
+            data,
+            status=201,
+            do_not_grab_the_crsf_token=True,
+            headers={"Accept": "application/json"},
         )
         with self.admin_access.cnx() as cnx:
             rset = cnx.find("Circular")
@@ -209,7 +214,13 @@ class RestApiJSONTest(HashMixIn, BaseTC):
             "data": "data:text/plain;base64,{}".format(base64.b64encode(b"hello").decode("utf-8")),
         }
         self.login()
-        self.webapp.post_json("/File/", data, status=201, headers={"Accept": "application/json"})
+        self.webapp.post_json(
+            "/File/",
+            data,
+            status=201,
+            do_not_grab_the_crsf_token=True,
+            headers={"Accept": "application/json"},
+        )
         with self.admin_access.cnx() as cnx:
             f = cnx.find("File", title="toto.txt").one()
             self.assertEqual(f.data_name, "toto.txt")
@@ -221,7 +232,11 @@ class RestApiJSONTest(HashMixIn, BaseTC):
         }
         self.login()
         resp = self.webapp.post_json(
-            "/File/", data, status=201, headers={"Accept": "application/json"}
+            "/File/",
+            data,
+            status=201,
+            do_not_grab_the_crsf_token=True,
+            headers={"Accept": "application/json"},
         )
         with self.admin_access.cnx() as cnx:
             f = cnx.find("File", eid=resp.json_body["eid"]).one()
@@ -239,7 +254,11 @@ class RestApiJSONTest(HashMixIn, BaseTC):
         }
         self.login()
         resp = self.webapp.post_json(
-            "/File/", data, status=201, headers={"Accept": "application/json"}
+            "/File/",
+            data,
+            status=201,
+            do_not_grab_the_crsf_token=True,
+            headers={"Accept": "application/json"},
         )
         with self.admin_access.cnx() as cnx:
             f = cnx.find("File", eid=resp.json_body["eid"]).one()
@@ -259,7 +278,11 @@ class RestApiJSONTest(HashMixIn, BaseTC):
             with self.subTest(**data):
                 # Rely on "status=400" for test assertion.
                 self.webapp.post_json(
-                    "/Circular/", data, status=400, headers={"Accept": "application/json"}
+                    "/Circular/",
+                    data,
+                    status=400,
+                    do_not_grab_the_crsf_token=True,
+                    headers={"Accept": "application/json"},
                 )
 
     def test_post_json_file_upload_missing_name(self):
@@ -269,6 +292,7 @@ class RestApiJSONTest(HashMixIn, BaseTC):
             "circ_id": "C1",
             "title": "the-circular",
             "status": "revoked",
+            "order": 1,
             "attachment": [
                 {
                     "data": "data:text/plain;base64,{}".format(
@@ -280,7 +304,11 @@ class RestApiJSONTest(HashMixIn, BaseTC):
         self.login()
         with self.assertLogs("cubicweb.appobject", level="WARNING") as cm:
             self.webapp.post_json(
-                "/Circular/", data, status=201, headers={"Accept": "application/json"}
+                "/Circular/",
+                data,
+                status=201,
+                do_not_grab_the_crsf_token=True,
+                headers={"Accept": "application/json"},
             )
         expected_msg = "uploaded data-url field"
         self.assertTrue(
@@ -301,7 +329,11 @@ class RestApiJSONTest(HashMixIn, BaseTC):
         self.login()
         data = {"name": "new"}
         res = self.webapp.put_json(
-            "/cwgroup/tmp/", data, status=200, headers={"Accept": "application/json"}
+            "/cwgroup/tmp/",
+            data,
+            status=200,
+            do_not_grab_the_crsf_token=True,
+            headers={"Accept": "application/json"},
         )
         self.assertEqual(res.location, "https://localhost:80/cwgroup/tmp/")
         data = res.json
@@ -317,7 +349,11 @@ class RestApiJSONTest(HashMixIn, BaseTC):
         self.login()
         with patch("cubicweb.entity.Entity.cw_set", side_effect=Exception("Failed!")):
             res = self.webapp.put_json(
-                "/cwgroup/tmp/", {"name": "paf"}, status=400, headers={"Accept": "application/json"}
+                "/cwgroup/tmp/",
+                {"name": "paf"},
+                status=400,
+                do_not_grab_the_crsf_token=True,
+                headers={"Accept": "application/json"},
             )
             errors = res.json_body["errors"]
             expected = [{"status": 400, "details": "Failed!"}]
@@ -329,14 +365,13 @@ class RestApiJSONTest(HashMixIn, BaseTC):
         subtitle value on a CommemorationItem
         """
         with self.admin_access.repo_cnx() as cnx:
-            coll = cnx.create_entity("CommemoCollection", title="recueil 2010", year=2010)
             commemo = cnx.create_entity(
                 "CommemorationItem",
                 title="item1",
                 alphatitle="item1",
                 subtitle="subtitle",
                 commemoration_year=2010,
-                collection_top=coll,
+                order=1,
             )
             cnx.commit()
         self.login()
@@ -345,9 +380,13 @@ class RestApiJSONTest(HashMixIn, BaseTC):
             "alphatitle": "item1",
             "on_homepage_order": 0,
             "commemoration_year": 2011,
+            "summary_policy": "no_summary",
+            "order": 2,
         }
         url = "/commemorationitem/{}/".format(commemo.eid)
-        self.webapp.put_json(url, data, headers={"Accept": "application/json"})
+        self.webapp.put_json(
+            url, data, do_not_grab_the_crsf_token=True, headers={"Accept": "application/json"}
+        )
         with self.admin_access.repo_cnx() as cnx:
             commemo = cnx.find("CommemorationItem", eid=commemo.eid).one()
             self.assertEqual(commemo.title, "title2")
@@ -375,13 +414,13 @@ class RestApiJSONTest(HashMixIn, BaseTC):
 
     def test_delete_validationerror(self):
         with self.admin_access.cnx() as cnx:
-            section_eid = cnx.create_entity("TestSection", title="section").eid
+            section = cnx.create_entity("TestSection", title="section")
             article_eid = cnx.create_entity(
-                "TestBaseContent", in_section=section_eid, content="content", title="article"
+                "TestBaseContent", in_section=section.eid, content="content", title="article"
             ).eid
             cnx.commit()
         self.login()
-        res = self.webapp.delete("/TestSection/{}".format(section_eid), status=400)
+        res = self.webapp.delete("/{}/".format(section.rest_path()), status=400)
         errors = res.json_body["errors"]
         expected = [
             {
@@ -413,7 +452,11 @@ class RestApiJSONTest(HashMixIn, BaseTC):
             fobj = cnx.create_entity("File", data=Binary(b"data"), data_name="data")
             image = cnx.create_entity("Image", caption="image-caption", image_file=fobj)
             news_eid = cnx.create_entity(
-                "NewsContent", title="News", start_date=dt.date(2011, 1, 1), news_image=image
+                "NewsContent",
+                title="News",
+                start_date=dt.date(2011, 1, 1),
+                news_image=image,
+                order=1,
             ).eid
             cnx.commit()
         url = "/NewsContent/%s/news_image" % news_eid
@@ -442,9 +485,13 @@ class RestApiJSONTest(HashMixIn, BaseTC):
             "schema?role=creation&target_type=AgentAuthority"
         )
         self.login()
-        res = self.webapp.get(url, status=200, headers={"accept": "application/schema+json"})
+        res = self.webapp.get(
+            url,
+            status=200,
+            headers={"accept": "application/schema+json"},
+        )
         items_key = list(res.json["properties"])
-        self.assertCountEqual(items_key, ["label"])
+        self.assertCountEqual(items_key, ["label", "quality"])
 
     @skip("indices are being rewriting")
     def test_index_update(self):
@@ -471,23 +518,42 @@ class RestApiJSONTest(HashMixIn, BaseTC):
             cnx.commit()
         path = "/section/{}/relationships/children?" "target_type=BaseContent".format(sect)
         self.login()
-        data = {"title": "title", "summary_policy": "no_summary"}
-        res = self.webapp.post_json(path, data, status=201, headers={"accept": "application/json"})
+        data = {
+            "title": "title",
+            "summary_policy": "no_summary",
+            "content_type": "Article",
+            "order": 1,
+        }
+        res = self.webapp.post_json(
+            path,
+            data,
+            status=201,
+            do_not_grab_the_crsf_token=True,
+            headers={"accept": "application/json"},
+        )
         self.assertEqual(res.json["title"], "title")
 
     def test_section_relationship_schema(self):
         url = "/section/relationships/children/schema?role=creation&target_type=BaseContent"
         self.login()
-        res = self.webapp.get(url, status=200, headers={"accept": "application/schema+json"})
+        res = self.webapp.get(
+            url,
+            status=200,
+            headers={"accept": "application/schema+json"},
+        )
         items_key = list(res.json["properties"])
         self.assertCountEqual(
             items_key,
             [
                 "basecontent_service",
+                "related_content_suggestion",
                 "content",
+                "content_type",
                 "on_homepage",
+                "on_homepage_order",
                 "order",
                 "title",
+                "header",
                 "summary",
                 "summary_policy",
             ],
@@ -505,7 +571,13 @@ class RestApiJSONTest(HashMixIn, BaseTC):
             "name": "bob",
         }
         self.login()
-        res = self.webapp.post_json(url, data, status=201, headers={"accept": "application/json"})
+        res = self.webapp.post_json(
+            url,
+            data,
+            status=201,
+            do_not_grab_the_crsf_token=True,
+            headers={"accept": "application/json"},
+        )
         doc = res.json
         self.assertEqual(doc["name"], "bob")
         with self.admin_access.cnx() as cnx:
@@ -524,16 +596,26 @@ class RestApiJSONTest(HashMixIn, BaseTC):
         )
         self.login()
         data = {"title": "title", "language": "en"}
-        res = self.webapp.post_json(path, data, status=201, headers={"accept": "application/json"})
+        res = self.webapp.post_json(
+            path,
+            data,
+            status=201,
+            do_not_grab_the_crsf_token=True,
+            headers={"accept": "application/json"},
+        )
         self.assertEqual(res.json["title"], "title")
 
     def test_section_translation_of_schema(self):
         url = "/section/relationships/translation_of/schema?role=creation&target_type=SectionTranslation"  # noqa
         self.login()
-        res = self.webapp.get(url, status=200, headers={"accept": "application/schema+json"})
+        res = self.webapp.get(
+            url,
+            status=200,
+            headers={"accept": "application/schema+json"},
+        )
         items_key = list(res.json["properties"])
         self.assertCountEqual(
-            items_key, ["title", "content", "language", "subtitle", "short_description"]
+            items_key, ["title", "content", "language", "subtitle", "short_description", "header"]
         )
 
     def test_add_findingaid_service(self):
@@ -548,7 +630,13 @@ class RestApiJSONTest(HashMixIn, BaseTC):
             "category": "s1",
         }
         self.login()
-        res = self.webapp.post_json(url, data, status=201, headers={"accept": "application/json"})
+        res = self.webapp.post_json(
+            url,
+            data,
+            status=201,
+            do_not_grab_the_crsf_token=True,
+            headers={"accept": "application/json"},
+        )
         doc = res.json
         self.assertEqual(doc["category"], "s1")
         with self.admin_access.cnx() as cnx:
@@ -560,7 +648,11 @@ class RestApiJSONTest(HashMixIn, BaseTC):
         the entity schema.
         """
         url = "/rqtask/schema?role=creation"
-        res = self.webapp.get(url, status=200, headers={"accept": "application/schema+json"})
+        res = self.webapp.get(
+            url,
+            status=200,
+            headers={"accept": "application/schema+json"},
+        )
         properties_key = sorted(list(res.json["properties"]))
         self.assertCountEqual(properties_key, ["name", "title"])
 
@@ -569,7 +661,11 @@ class RestApiJSONTest(HashMixIn, BaseTC):
         the entity schema.
         """
         url = "/rqtask/schema?role=creation&schema_type=import_ead"
-        res = self.webapp.get(url, status=200, headers={"accept": "application/schema+json"})
+        res = self.webapp.get(
+            url,
+            status=200,
+            headers={"accept": "application/schema+json"},
+        )
         properties_key = sorted(list(res.json["properties"]))
         self.assertCountEqual(
             properties_key,
@@ -579,8 +675,6 @@ class RestApiJSONTest(HashMixIn, BaseTC):
                 "title",
                 "force-delete",
                 "service",
-                "should_normalize",
-                "context_service",
             ],
         )
 
@@ -589,7 +683,11 @@ class RestApiJSONTest(HashMixIn, BaseTC):
         the entity schema.
         """
         url = "/rqtask/schema?role=creation&schema_type=export_ape"
-        res = self.webapp.get(url, status=200, headers={"accept": "application/schema+json"})
+        res = self.webapp.get(
+            url,
+            status=200,
+            headers={"accept": "application/schema+json"},
+        )
         properties_key = sorted(list(res.json["properties"]))
         self.assertCountEqual(properties_key, ["services", "name", "title"])
 
@@ -598,7 +696,11 @@ class RestApiJSONTest(HashMixIn, BaseTC):
         target schema.
         """
         url = "/findingaid/relationships/service/schema?role=creation"
-        res = self.webapp.get(url, status=200, headers={"accept": "application/schema+json"})
+        res = self.webapp.get(
+            url,
+            status=200,
+            headers={"accept": "application/schema+json"},
+        )
         properties_key = list(res.json["properties"])
         self.assertIn("category", properties_key)
 
@@ -607,7 +709,11 @@ class RestApiJSONTest(HashMixIn, BaseTC):
         target schema on reverse side.
         """
         url = "/service/relationships/exref_service/schema/?role=creation"
-        res = self.webapp.get(url, status=200, headers={"accept": "application/schema+json"})
+        res = self.webapp.get(
+            url,
+            status=200,
+            headers={"accept": "application/schema+json"},
+        )
         self.assertEqual(res.json["title"], "ExternRef")
 
 
@@ -658,7 +764,13 @@ class WorkflowTests(BaseTC):
             "comment": "ready, go!",
         }
         self.login()
-        res = self.webapp.post_json(url, data, status=200, headers={"accept": "application/json"})
+        res = self.webapp.post_json(
+            url,
+            data,
+            status=200,
+            do_not_grab_the_crsf_token=True,
+            headers={"accept": "application/json"},
+        )
         with self.admin_access.cnx() as cnx:
             rset = cnx.find("TrInfo", comment=res.json["comment"])
             self.assertEqual(len(rset), 1)
@@ -671,13 +783,17 @@ class WorkflowTests(BaseTC):
             cnx.commit()
         self.login()
         url = "/findingaid/{0.eid}/transitions/schema/?role=creation".format(findingaid)
-        res = self.webapp.get(url, status=200, headers={"accept": "application/schema+json"})
+        res = self.webapp.get(
+            url,
+            status=200,
+            headers={"accept": "application/schema+json"},
+        )
         trinfo = res.json["definitions"]["TrInfo"]
         self.assertEqual(trinfo["properties"]["name"]["enum"], ["wft_cmsobject_publish"])
 
 
 class UISchemaViewTC(BaseTC):
-    def test_etype_uischema_view(self):
+    def test_basecontent_uischema_view(self):
         url = "/basecontent/uischema"
         res = self.webapp.get(url, status=200, headers={"accept": "application/json"})
         expected = {
@@ -685,17 +801,89 @@ class UISchemaViewTC(BaseTC):
             "content": {
                 "ui:widget": "wysiwygEditor",
             },
+            "related_content_suggestion": {
+                "ui:field": "autocompleteField",
+            },
             "summary": {"ui:widget": "wysiwygEditor"},
+            "header": {"ui:widget": "textarea"},
             "ui:order": [
+                "content_type",
                 "title",
                 "content",
                 "summary",
                 "summary_policy",
-                "on_homepage",
                 "order",
+                "header",
+                "on_homepage",
+                "on_homepage_order",
                 "basecontent_service",
+                "related_content_suggestion",
             ],
         }
+        self.assertEqual(res.json, expected)
+
+    def test_basecontenttranslation_uischema_view(self):
+        url = "/basecontenttranslation/uischema"
+        res = self.webapp.get(url, status=200, headers={"accept": "application/json"})
+        expected = {
+            "content": {"ui:widget": "wysiwygEditor"},
+            "summary": {"ui:widget": "wysiwygEditor"},
+            "header": {"ui:widget": "textarea"},
+            "language": {"ui:disabled": {}},
+            "ui:order": ["title", "content", "summary", "header", "language"],
+        }
+
+        self.assertEqual(res.json, expected)
+
+    def test_newscontent_uischema_view(self):
+        url = "/newscontent/uischema"
+        res = self.webapp.get(url, status=200, headers={"accept": "application/json"})
+        expected = {
+            "content": {"ui:widget": "wysiwygEditor"},
+            "start_date": {"ui:widget": "dateEditor"},
+            "stop_date": {"ui:widget": "dateEditor"},
+            "header": {"ui:widget": "textarea"},
+            "ui:order": [
+                "title",
+                "content",
+                "start_date",
+                "stop_date",
+                "order",
+                "header",
+                "on_homepage",
+                "on_homepage_order",
+            ],
+        }
+        self.assertEqual(res.json, expected)
+
+    def test_commemorationitem_uischema_view(self):
+        url = "/commemorationitem/uischema"
+        res = self.webapp.get(url, status=200, headers={"accept": "application/json"})
+        expected = {
+            "content": {"ui:widget": "wysiwygEditor"},
+            "header": {"ui:widget": "textarea"},
+            "summary": {"ui:widget": "wysiwygEditor"},
+            "related_content_suggestion": {
+                "ui:field": "autocompleteField",
+            },
+            "ui:order": [
+                "title",
+                "subtitle",
+                "alphatitle",
+                "content",
+                "summary",
+                "summary_policy",
+                "start_year",
+                "stop_year",
+                "commemoration_year",
+                "order",
+                "header",
+                "on_homepage",
+                "on_homepage_order",
+                "related_content_suggestion",
+            ],
+        }
+
         self.assertEqual(res.json, expected)
 
     def test_commemoitemtranslation_uischema_view(self):
@@ -703,10 +891,71 @@ class UISchemaViewTC(BaseTC):
         res = self.webapp.get(url, status=200, headers={"accept": "application/json"})
         expected = {
             "content": {"ui:widget": "wysiwygEditor"},
+            "header": {"ui:widget": "textarea"},
             "language": {"ui:disabled": {}},
-            "ui:order": ["title", "subtitle", "content", "language"],
+            "ui:order": ["title", "header", "subtitle", "content", "summary", "language"],
         }
 
+        self.assertEqual(res.json, expected)
+
+    def test_section_uischema_view(self):
+        url = "/section/uischema"
+        res = self.webapp.get(url, status=200, headers={"accept": "application/json"})
+        expected = {
+            "content": {"ui:widget": "wysiwygEditor"},
+            "short_description": {"ui:widget": "textarea"},
+            "header": {"ui:widget": "textarea"},
+        }
+        self.assertEqual(res.json, expected)
+
+    def test_sectiontranslation_uischema_view(self):
+        url = "/sectiontranslation/uischema"
+        res = self.webapp.get(url, status=200, headers={"accept": "application/json"})
+        expected = {
+            "content": {"ui:widget": "wysiwygEditor"},
+            "short_description": {"ui:widget": "textarea"},
+            "header": {"ui:widget": "textarea"},
+            "language": {"ui:disabled": {}},
+            "ui:order": ["title", "subtitle", "short_description", "content", "header", "language"],
+        }
+        self.assertEqual(res.json, expected)
+
+    def test_service_uischema_view(self):
+        url = "/service/uischema"
+        res = self.webapp.get(url, status=200, headers={"accept": "application/json"})
+        expected = {
+            "other": {
+                "ui:widget": "wysiwygEditor",
+            },
+            "ui:order": [
+                "category",
+                "name",
+                "name2",
+                "short_name",
+                "level",
+                "code",
+                "phone_number",
+                "email",
+                "address",
+                "mailing_address",
+                "zip_code",
+                "city",
+                "dpt_code",
+                "code_insee_commune",
+                "latitude",
+                "longitude",
+                "website_url",
+                "search_form_url",
+                "thumbnail_url",
+                "thumbnail_dest",
+                "iiif_extptr",
+                "annual_closure",
+                "opening_period",
+                "contact_name",
+                "other",
+                "service_social_network",
+            ],
+        }
         self.assertEqual(res.json, expected)
 
 

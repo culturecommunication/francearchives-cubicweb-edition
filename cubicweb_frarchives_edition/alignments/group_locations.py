@@ -66,11 +66,12 @@ NOW = datetime.now()
 CONTEXT_RE = re.compile(r"([^(]+)\(([^)]+)\)(\s*.*)")
 
 query = """
-SELECT array_agg(ARRAY[tmp.cw_label, tmp.cw_eid::text]), ext.cw_uri
+SELECT array_agg(ARRAY[tmp.cw_label, tmp.cw_eid::text, tmp.cw_quality::text]), ext.cw_uri
 FROM (
     SELECT
         loc.cw_label,
-        loc.cw_eid
+        loc.cw_eid,
+        loc.cw_quality
     FROM cw_locationauthority loc
     JOIN same_as_relation sar ON loc.cw_eid = sar.eid_from
     JOIN cw_externaluri ext ON sar.eid_to = ext.cw_eid
@@ -86,10 +87,6 @@ GROUP BY ext.cw_uri
 HAVING COUNT(ext.cw_uri) > 1;
 """
 
-
-countries = [
-    "france",
-]
 articles = ["la ", "le ", "les "]
 
 
@@ -108,12 +105,24 @@ def write_log(msg, log=None):
         print(msg)
 
 
+def process_quality(quality):
+    """
+    Quality from SQL requset is a string with either "false" or "true" value
+    """
+    if quality == "true":
+        return True
+    if quality == "false":
+        return False
+    raise Exception("Unknown value '%s' for quality" % quality)
+
+
 class Label(object):
     def __init__(
         self,
         cnx,
         label,
         eid,
+        quality,
         dpt,
         region,
         country,
@@ -124,44 +133,56 @@ class Label(object):
     ):
         self.eid = eid
         self.label = label
-        self.score = self.compute_score(dpt, region, country)
+        self.quality = quality
         self.encoded_label = label.encode("utf-8")
         self.simplified_label = simplified_label
         self.dpt_name = dpt_name
         self.region_name = region_name
         self.country_name = country_name
         url = "{}location".format(cnx.base_url())
+        self.dpt = dpt
+        self.region = region
+        self.country = country
+        self.score = self.compute_score()
         self.candidate_info = "{}{}{}".format(
             self.label, CANDIDATE_SEP, "{}/{}".format(url, self.eid)
         )
 
-    def compute_score(self, dpt, region, country):
+    def update_quality(self, quality):
+        """only for tests"""
+        self.qualify = process_quality(quality)
+        self.score = self.compute_score()
+
+    def compute_score(self):
         """
         Lables order
-        1/ department, country
-        2/ country, department
-        3/ department, region, country
-        4/ country, region, department
-        5/ other combinaisons avec country, region, department
-        6/ department
-        7/ region, country
-        8/ country, region
+        1/ qualified authority
+        2/ department, country
+        3/ country, department
+        4/ department, region, country
+        5/ country, region, department
+        6/ other combinaisons avec country, region, department
+        7/ department
+        8/ region, country
+        9/ country, region
         """
-        if dpt == 1 and country == 2:
+        if self.quality:
+            return 10
+        if self.dpt == 1 and self.country == 2:
             return 9
-        if country == 1 and dpt == 2:
+        if self.country == 1 and self.dpt == 2:
             return 8
-        if dpt == 1 and region == 2 and country == 3:
+        if self.dpt == 1 and self.region == 2 and self.country == 3:
             return 7
-        if country == 1 and region == 2 and dpt == 3:
+        if self.country == 1 and self.region == 2 and self.dpt == 3:
             return 6
-        if any((country, region, dpt)):
+        if any((self.country, self.region, self.dpt)):
             return 5
-        if dpt:
+        if self.dpt:
             return 4
-        if region == 1 and country == 2:
+        if self.region == 1 and self.country == 2:
             return 3
-        if country == 1 and region == 2:
+        if self.country == 1 and self.region == 2:
             return 2
         return 1
 
@@ -293,10 +314,11 @@ def compute_location_authorities_to_group(cnx, log=None):
     countries_to_group = defaultdict(list)
     rset = cnx.system_sql(query).fetchall()  # noqa
     write_log("found {} LocationAuthorities candidates to group".format(len(rset)), log)
+    countries = geodata.simplified_countries.values()
     for items, geonames_url in rset:
         to_be_grouped = []
         candidates = []
-        for auth_label, auth_eid in items:
+        for auth_label, auth_eid, auth_quality in items:
             m = CONTEXT_RE.search(auth_label)
             if not m:
                 process_countries(cnx, auth_label, auth_eid, countries_to_group)
@@ -350,6 +372,7 @@ def compute_location_authorities_to_group(cnx, log=None):
                         cnx,
                         auth_label,
                         auth_eid,
+                        process_quality(auth_quality),
                         dpt,
                         region,
                         country,

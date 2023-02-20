@@ -76,13 +76,13 @@ export class EntityTranslationEditor extends Component {
             getRelated(cw_etype, eid, 'translation_of'),
         ]).then(([schema, related]) => {
             const link = schema.links.find(
-                    l => l.rel === 'related.translation_of',
+                    (l) => l.rel === 'related.translation_of',
                 ),
                 etype = link.etype
             this.etype2href[link.etype] = link.targetSchema.$ref
             this.updateSelected(etype)
             const selectedTrad = related.find(
-                trad => trad.language === this.language,
+                (trad) => trad.language === this.language,
             )
             if (selectedTrad) {
                 this.setState({editMode: true, formData: selectedTrad})
@@ -107,7 +107,7 @@ export class EntityTranslationEditor extends Component {
                 formData.cw_etype,
                 formData.eid,
                 ev.formData,
-            ).then(doc => {
+            ).then((doc) => {
                 if (doc.errors && doc.errors.length) {
                     this.props.showErrors(doc.errors)
                 } else if (doc.absoluteUrl || doc.cwuri) {
@@ -121,7 +121,7 @@ export class EntityTranslationEditor extends Component {
                 'translation_of',
                 ev.formData,
                 this.state.etype,
-            ).then(doc => {
+            ).then((doc) => {
                 if (doc.errors && doc.errors.length) {
                     this.props.showErrors(doc.errors)
                 } else if (doc.absoluteUrl || doc.cwuri) {

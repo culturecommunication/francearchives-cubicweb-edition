@@ -27,7 +27,7 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-/* global CONSULTATION_BASE_URL */
+/* global CONSULTATION_BASE_URL, BASE_URL */
 const forEach = require('lodash').forEach
 
 const range = require('lodash').range
@@ -49,6 +49,7 @@ const {icon} = require('../components/fa')
 const ICON_REGISTRY = {
     section_image: 'picture-o',
     news_image: 'picture-o',
+    subject_image: 'picture-o',
     metadata: 'desktop',
 }
 
@@ -81,8 +82,7 @@ function AlertLink({forceShowPanel}) {
 exports.AlertLink = connect(null, {forceShowPanel: showPanel})(AlertLink)
 
 function ConsultationLink({uuid, etype, restpath}) {
-    // eslint-disable-next-line eqeqeq
-    if (window.CONSULTATION_BASE_URL == null) {
+    if (window.CONSULTATION_BASE_URL === null) {
         return ce(
             'i',
             null,
@@ -110,11 +110,8 @@ function ConsultationLink({uuid, etype, restpath}) {
             ce(
                 'span',
                 {className: 'action'},
-                ce(
-                    icon,
-                    {name: 'external-link-square'},
-                    ' Vers la consultation',
-                ),
+                ce(icon, {name: 'external-link-square'}),
+                ' Vers la consultation',
             ),
         ),
     )
@@ -146,8 +143,7 @@ exports.AddServiceLink = connect(null, {forceShowPanel: showPanel})(
 )
 
 function AddLink({eid, forceShowPanel}) {
-    // eslint-disable-next-line eqeqeq
-    if (eid == null) {
+    if (eid === null) {
         return ce(
             'i',
             null,
@@ -274,7 +270,7 @@ exports.EditServiceListLink = connect(null, {forceShowPanel: showPanel})(
 
 function addRelationLinks(elements, onClickFun, form, i) {
     let linkChildren
-    if (ICON_REGISTRY.hasOwnProperty(form.rtype)) {
+    if (Object.prototype.hasOwnProperty.call(ICON_REGISTRY, form.rtype)) {
         linkChildren = [
             ce(
                 'span',
@@ -310,7 +306,7 @@ function addRelationLinks(elements, onClickFun, form, i) {
 // Just keep in mind that there is no validation
 // on the validity of the index
 function rdefsForEtargets(form, intArray) {
-    return intArray.map(j => ({
+    return intArray.map((j) => ({
         fetchPossibleTargets: form.fetchPossibleTargets,
         multiple: form.multiple,
         rtype: form.rtype,
@@ -431,10 +427,22 @@ function AddFaqLink({forceShowPanel}) {
     )
 }
 
-exports.AddFaqLink = connect(null, {forceShowPanel: showPanel})(
-    AddFaqLink,
-)
+exports.AddFaqLink = connect(null, {forceShowPanel: showPanel})(AddFaqLink)
 
+function AddSiteLink({forceShowPanel}) {
+    return ce(
+        'h3',
+        null,
+        action({
+            url: 'add-sitelink',
+            label: 'Ajouter un lien de site',
+            iconName: 'link',
+            onClick: forceShowPanel,
+        }),
+    )
+}
+
+exports.AddSiteLink = connect(null, {forceShowPanel: showPanel})(AddSiteLink)
 
 function AddEntityTranslation({translations, forceShowPanel}) {
     const options = translations.translation_of.languages,
@@ -546,4 +554,57 @@ function GroupAuthLink({forceShowPanel}) {
 
 exports.GroupAuthLink = connect(null, {forceShowPanel: showPanel})(
     GroupAuthLink,
+)
+
+function SiteLinksLink() {
+    return ce(
+        'h3',
+        null,
+        ce(
+            'a',
+            {href: `${BASE_URL}sitelinks`},
+            ce(
+                'span',
+                {className: 'action'},
+                ce(icon, {name: 'link'}),
+                ' Gérer les liens du site',
+            ),
+        ),
+    )
+}
+
+exports.SiteLinksLink = SiteLinksLink
+
+function BlacklistedAuthoritiesLink({forceShowPanel}) {
+    return ce(
+        'h3',
+        null,
+        action({
+            url: 'black-auth',
+            label: 'Gestion des index bannis',
+            iconName: 'table',
+            onClick: forceShowPanel,
+        }),
+    )
+}
+
+exports.BlacklistedAuthoritiesLink = connect(null, {forceShowPanel: showPanel})(
+    BlacklistedAuthoritiesLink,
+)
+
+function SectionThemesLink({forceShowPanel}) {
+    return ce(
+        'h3',
+        null,
+        action({
+            url: 'section-themes',
+            label: 'Thèmes de la rubrique',
+            iconName: 'archive',
+            onClick: forceShowPanel,
+        }),
+    )
+}
+
+exports.SectionThemesLink = connect(null, {forceShowPanel: showPanel})(
+    SectionThemesLink,
 )

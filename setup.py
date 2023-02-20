@@ -34,9 +34,7 @@
 cubicweb_frarchives_edition/__pkginfo__.py file
 """
 
-from os.path import join, dirname, exists
-import os
-from setuptools.command.sdist import sdist as orig_sdist
+from os.path import join, dirname
 
 from setuptools import find_packages, setup
 
@@ -72,15 +70,6 @@ for entry in ("__depends__",):  # "__recommends__"):
 install_requires = ["{0} {1}".format(d, v and v or "").strip() for d, v in requires.items()]
 
 
-class sdist(orig_sdist):
-    def run(self):
-        if not os.environ.get("FRARCHIVES_NO_BUILD_DATA_FILES", False):
-            self.spawn(["npm", "install"])
-            os.environ["NODE_ENV"] = "production"
-            self.spawn(["npm", "run", "build"])
-        orig_sdist.run(self)
-
-
 setup(
     name=distname,
     version=version,
@@ -90,11 +79,14 @@ setup(
     author=author,
     author_email=author_email,
     url=web,
-    cmdclass={"sdist": sdist},
     classifiers=classifiers,
     packages=find_packages(exclude=["test"]),
     install_requires=install_requires,
     include_package_data=True,
-    entry_points={"cubicweb.cubes": ["frarchives_edition=cubicweb_frarchives_edition",],},
+    entry_points={
+        "cubicweb.cubes": [
+            "frarchives_edition=cubicweb_frarchives_edition",
+        ],
+    },
     zip_safe=False,
 )

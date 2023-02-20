@@ -41,6 +41,7 @@ from cubicweb.devtools.testlib import CubicWebTC
 
 # library specific imports
 from cubicweb_francearchives.views import STRING_SEP
+from cubicweb_frarchives_edition.alignments import get_externaluri_data
 from cubicweb_frarchives_edition.alignments.align import AgentAligner, AgentRecord
 from cubicweb_frarchives_edition.alignments.databnf import DataBnfDatabase
 from cubicweb_frarchives_edition.alignments.wikidata import WikidataDatabase
@@ -75,6 +76,25 @@ class AlignementUtilsTC(CubicWebTC):
         self.assertEqual("11909252", DATABNF_ARK_RE.search(uri).group(1))
         uri = "https://data.bnf.fr/fr/ark:/12148/cb13005429m"
         self.assertEqual("13005429", DATABNF_ARK_RE.search(uri).group(1))
+
+    def test_uri_source(self):
+        for source, extid, uri in (
+            ("databnf", "11907966", "https://data.bnf.fr/11907966/victor_hugo"),
+            ("databnf", "11907966", "https://data.bnf.fr/en/11907966/victor_hugo"),
+            ("databnf", "13005429", "https://data.bnf.fr/fr/ark:/12148/cb13005429m"),
+            ("databnf", "11921467", "http://data.bnf.fr/ark:/12148/cb11921467w"),
+            ("databnf", "13946072", "https://data.bnf.fr/ark:/12148/cb139460728"),
+            ("databnf", "13926902", "https://data.bnf.fr/ark:/12148/cb139269025"),
+            ("databnf", "39269025", "https://data.bnf.fr/ark:/12148/cb39269025q"),
+            ("wikidata", "Q158768", "https://www.wikidata.org/wiki/Q158768"),
+            ("wikidata", "Q131412", "http://www.wikidata.org/wiki/Q131412"),
+            ("fr.wikipedia.org", None, "https://fr.wikipedia.org/wiki/Edmond_Maire"),
+            ("geoname", "3033123", "https://www.geonames.org/3033123"),
+            ("geoname", "2986302", "http://www.geonames.org/2986302"),
+        ):
+            got_source, got_extid = get_externaluri_data(uri)
+            self.assertEqual(source, got_source)
+            self.assertEqual(extid, got_extid)
 
 
 class AlignmentTC(FrACubicConfigMixIn, CubicWebTC):
@@ -461,6 +481,7 @@ class AgentAlignerTC(AlignmentTC):
         Expecting: new ExternalUris and AgentInfos are created
         """
         with self.admin_access.cnx() as cnx:
+            self.assertFalse(cnx.find("ExternalUri"))
             agent_authority = cnx.create_entity("AgentAuthority")
             cnx.commit()
             record = AgentRecord(
@@ -496,10 +517,10 @@ class AgentAlignerTC(AlignmentTC):
             }
             aligner = AgentAligner(cnx)
             aligner.process_alignments(alignments)
-            agent_info = cnx.find_one_entity("AgentInfo")
+            agent_info = cnx.find("AgentInfo").one()
             self.assertEqual(agent_info.dates, dates)
             self.assertEqual(agent_info.description, record.description)
-            external_uri = cnx.find_one_entity("ExternalUri")
+            external_uri = cnx.find("ExternalUri").one()
             self.assertEqual(external_uri.label, record.extlabel)
 
     def test_process_date_wikidata(self):
@@ -581,7 +602,7 @@ class AgentAlignerTC(AlignmentTC):
             }
             aligner = AgentAligner(cnx)
             aligner.process_alignments(alignments)
-            agent_info = cnx.find_one_entity("AgentInfo")
+            agent_info = cnx.find("AgentInfo").one()
             self.assertEqual(agent_info.dates, dates)
 
     def test_isdate(self):
@@ -609,5 +630,5 @@ class AgentAlignerTC(AlignmentTC):
             alignments = {(agent_authority.eid, "https://www.wikidata.org/wiki/Q168707"): record}
             aligner = AgentAligner(cnx)
             aligner.process_alignments(alignments)
-            agent_info = cnx.find_one_entity("AgentInfo")
+            agent_info = cnx.find("AgentInfo").one()
             self.assertEqual(agent_info.dates, {})

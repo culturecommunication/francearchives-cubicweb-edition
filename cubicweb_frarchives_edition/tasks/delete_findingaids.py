@@ -39,14 +39,12 @@ from urllib3.exceptions import ProtocolError
 # CubicWeb specific imports
 # library specific imports
 from cubicweb_francearchives.dataimport.sqlutil import delete_from_filename
+from cubicweb_francearchives.storage import S3BfssStorageMixIn
+
 from cubicweb_frarchives_edition.rq import rqjob
 
 
 def log_results(log, deleted, ids, not_found, forbidden):
-    log.info(
-        "processed %s identifiers",
-        len(ids),
-    )
     if deleted:
         log.info("deleted %s FindingAids: %s", len(deleted), "; ".join(deleted))
     if not_found:
@@ -64,27 +62,26 @@ def log_results(log, deleted, ids, not_found, forbidden):
 
 
 @rqjob
-def delete_findingaids(cnx, filename):
+def delete_findingaids(cnx, filepath):
     """Delete FindingAids.
 
     :param Connection cnx: CubicWeb database connection
-    :param str filename: filename with 1 column: stable_id_or_eadid
+    :param filepath: filename of a temporary csv file with 1 column: stable_id_or_eadid
     """
     log = logging.getLogger("rq.task")
+    st = S3BfssStorageMixIn(log=log)
     try:
-        fp = open(filename)
-        ids = [row[0] for row in csv.reader(fp)]
-    except Exception:
-        log.error("unable to read stable ids from file, please check file contents")
+        with st.storage_read_file(filepath) as fp:
+            ids = [row[0] for row in csv.reader(fp)]
+    except Exception as err:
+        log.error(f'unable to read stable ids from "{filepath}", please check file contents: {err}')
         return
-    finally:
-        fp.close()
     if len(ids) <= 1:
         log.warning("empty list of stable ids / eadids")
         return
     # drop header
     ids = ids[1:]
-    log.info("delete %d FindingAids", len(ids))
+    log.info(f'found {len(ids)} identifiers to delete from "{filepath}"')
     not_found = []
     deleted = []
     forbidden = []
@@ -124,3 +121,5 @@ def delete_findingaids(cnx, filename):
                 "csv_id: {}, stable id: {}, filename: {})".format(irid, stable_id, filename or "")
             )
     log_results(log, deleted, ids, not_found, forbidden)
+    # delete the temporary file
+    st.storage_delete_file(filepath)

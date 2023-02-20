@@ -45,7 +45,7 @@ function AlertError({errors, onClose}) {
             ce(
                 'ul',
                 {className: 'list-unstyled'},
-                ...errors.map(err => ce('li', {}, err.details)),
+                ...errors.map((err) => ce('li', {}, err.details)),
             ),
         )
     } else {
@@ -59,9 +59,13 @@ class Alert extends Component {
         this.state = {show: true}
     }
 
+    show() {
+        this.setState({show: true})
+    }
+
     componentDidUpdate(prevProps) {
         if (prevProps !== this.props) {
-            this.setState({show: true})
+            this.show()
         }
     }
 

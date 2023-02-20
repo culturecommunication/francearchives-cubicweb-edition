@@ -1,103 +1,37 @@
-image: python:latest
+include:
+  - project: francearchives/infra
+    file: gitlab-ci/gitlab-ci.yml
+  - project: francearchives/infra
+    file: gitlab-ci/gitlab-ci-edition.yml
 
-stages:
-    - deps
-    - lint
-    - test
-    - qa
+deploy_livraisoncontinue:
+  environment:
+    url: https://livraisoncontinue-cms.francearchives.demo.logilab.fr
+  script:
+    - ./deploy.sh ../../../env.example
 
-cache:
-    paths:
-        - node_modules/
+image_build_antivirus:
+  stage: build
+  only:
+    - branch/integration
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor
+      --context $CI_PROJECT_DIR
+      --dockerfile $CI_PROJECT_DIR/Dockerfile.antivirus
+      --destination $CI_REGISTRY_IMAGE/antivirus:$CI_COMMIT_HG_SHORT_SHA
+      --destination $CI_REGISTRY_IMAGE/antivirus:latest
+  needs: []
 
-# see test/pgfixtures.py that needs these variables
-variables:
-    POSTGRES_HOST: localhost
-    POSTGRES_PORT: 5432
-    POSTGRES_USER: siaftest
-    POSTGRES_PASSWORD: siaftest
-
-flake8:
-    stage: lint
-    before_script:
-        - pip install tox
-    script: tox -e flake8
-    allow_failure: true
-black:
-    stage: lint
-    before_script:
-        - pip install tox
-    script: tox -e black
-    allow_failure: true
-dodgy:
-    stage: lint
-    before_script:
-        - pip install tox
-    script: tox -e dodgy
-    allow_failure: true
-check-manifest:
-    stage: lint
-    before_script:
-        - pip install tox
-    script: tox -e check-manifest
-    allow_failure: true
-
-py3:
-    stage: test
-    image: python
-    before_script:
-        # TODO - move this to an image
-        - apt update && apt -y install ruby-sass python3-dev npm poppler-utils
-        - pip install tox
-    services:
-        - name: dvainrub/postgres-plpython
-        - name: docker.elastic.co/elasticsearch/elasticsearch-oss:7.6.1
-          alias: elasticsearch
-          command: ['bin/elasticsearch', '-Ediscovery.type=single-node']
-        - name: redis
-    script:
-        - tox -e py37-gitlab-ci
-
-sonarqube:
-    stage: qa
-    image: newtmitch/sonar-scanner
-    only:
-        - branch/default
-    script:
-        - apt install -y python-setuptools
-        - sonar-scanner
-          --define sonar.scm.revision=${CI_COMMIT_REF_NAME##*/}
-          --define sonar.projectBaseDir=.
-          --define sonar.projectVersion=`python setup.py --version`
-          --define sonar.projectKey=${CI_PROJECT_PATH_SLUG}
-          --define sonar.projectName=${CI_PROJECT_TITLE}
-          --define sonar.links.homepage=${CI_PROJECT_URL}
-          --define sonar.scm.provider=hg
-          --define sonar.host.url=${SONAR_URL}
-
-js-deps:
-    stage: deps
-    image: node:latest
-    script:
-        - npm install
-    artifacts:
-        paths:
-            - node_modules/
-
-js-format:
-    stage: lint
-    image: node:latest
-    script:
-        - npm run format
-
-js-lint:
-    stage: lint
-    image: node:latest
-    script:
-        - npm run lint
-
-js-build:
-    stage: test
-    image: node:latest
-    script:
-        - npm run build
+image_build_livraisoncontinue:
+  script:
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor
+      --context $CI_PROJECT_DIR
+      --dockerfile $CI_PROJECT_DIR/Dockerfile
+      --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_HG_SHORT_SHA
+      --build-arg CONSULTATION_IMAGE=$CI_REGISTRY/francearchives/cubicweb-francearchives
+      --build-arg CONSULTATION_TAG=latest-integration

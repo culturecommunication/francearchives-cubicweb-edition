@@ -1,45 +1,35 @@
-FROM python:3.7-alpine AS build
-
-ARG GITLAB_TOKEN
-ARG SHA
-RUN apk add --no-cache npm curl
+FROM python:3.9-alpine AS temp
+RUN apk add --no-cache nodejs
+RUN apk add --no-cache npm # or use python:3.9 image
+RUN apk add build-base
 RUN npm install -g sass
-WORKDIR /src/francearchives
-RUN curl --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "https://forge.extranet.logilab.fr/api/v4/projects/380/repository/archive?sha=$SHA" | tar -xzf -
-RUN mv cubicweb-francearchives-* cubicweb-francearchives
-WORKDIR /src/francearchives/cubicweb-francearchives
-RUN python ./setup.py sdist
-
-WORKDIR /src/frarchives-edition
-
-COPY package.json .
-COPY package-lock.json .
-
 COPY . .
-RUN python ./setup.py sdist
 
-FROM logilab/cubicweb:latest
-USER root
+RUN npm ci
+ENV NODE_ENV="production"
+RUN npm run build
+RUN python setup.py sdist
 
-COPY --from=build \
-     /src/francearchives/cubicweb-francearchives/dist/cubicweb-francearchives-*.tar.gz \
-     /src/cubicweb-francearchives.tar.gz
-RUN pip install /src/cubicweb-francearchives.tar.gz
-
-COPY --from=build \
-     /src/frarchives-edition/dist/cubicweb-frarchives-edition-*.tar.gz \
-     /src/cubicweb-frarchives-edition.tar.gz
-RUN pip install /src/cubicweb-frarchives-edition.tar.gz
-RUN pip install pyramid-debugtoolbar pyramid-redis-sessions
-
+FROM francearchives/cubicweb-francearchives:2.21.4
+ENV CW_INSTANCE=instance
+COPY ./requirements.txt /requirements.txt
+RUN pip install --no-cache-dir -r /requirements.txt
+COPY --from=temp dist/cubicweb-frarchives-edition-*.tar.gz .
+# bump version due to incompatibility w/ 9.4.0
+# see https://github.com/linkchecker/linkchecker/tree/v10.0.0
+# and https://github.com/linkchecker/linkchecker/tree/v10.0.1 for details
+RUN pip install beautifulsoup4==4.8.0
+RUN pip install Linkchecker==10.0.1
+RUN pip install cubicweb-frarchives-edition-*.tar.gz
+RUN pip install pyramid-session-redis
+ENV PATH=".local/bin:$PATH"
 USER cubicweb
 ENV CUBE=frarchives_edition
-ENV CW_DB_NAME=${CUBE}
-ENV CW_ANONYMOUS_USER=anon
-ENV CW_ANONYMOUS_PASSWORD=anon
-RUN cubicweb-ctl create frarchives_edition instance --automatic --no-db-create
-# uncomment option so that cubicweb searches for it in the environment
-RUN sed -i "s/^#published-index-name=/published-index-name=/" /etc/cubicweb.d/instance/all-in-one.conf
-RUN sed -i "s/^#ead-services-dir=/ead-services-dir=/" /etc/cubicweb.d/instance/all-in-one.conf
-RUN sed -i "s/^#=eac-services-dir/=eac-services-dir/" /etc/cubicweb.d/instance/all-in-one.conf
-COPY pyramid.ini /etc/cubicweb.d/instance/pyramid.ini
+RUN docker-cubicweb-helper create-instance
+
+# FIXME https://forge.extranet.logilab.fr/cubicweb/cubicweb/-/issues/468
+RUN echo 'superuser-login=' >> /etc/cubicweb.d/instance/sources
+RUN echo 'superuser-password=' >> /etc/cubicweb.d/instance/sources
+USER root
+RUN rm /requirements.txt
+USER cubicweb

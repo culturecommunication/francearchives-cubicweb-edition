@@ -47,19 +47,23 @@ class PniaServiceKibanaIndexer(AbstractKibanaIndexer):
 
     mapping = {
         "properties": {
+            "alltext": {"type": "text"},
             "eid": {"type": "integer"},
             "cw_etype": {"type": "keyword"},
-            "code": {"type": "keyword"},
+            "code": {"type": "keyword", "copy_to": "alltext"},
             "level": {"type": "keyword"},
-            "title": {"type": "keyword"},
-            "name": {"type": "keyword"},
-            "name2": {"type": "keyword"},
-            "short_name": {"type": "keyword"},
+            "title": {"type": "keyword", "copy_to": "alltext"},
+            "name": {"type": "keyword", "copy_to": "alltext"},
+            "name2": {"type": "keyword", "copy_to": "alltext"},
+            "short_name": {"type": "keyword", "copy_to": "alltext"},
             "category": {"type": "keyword"},
             "search_form_url": {"type": "keyword"},
             "thumbnail_url": {"type": "keyword"},
             "viewer_url": {"type": "keyword"},
             "documents_count": {"type": "integer"},
+            "archives": {"type": "integer"},
+            "siteres": {"type": "integer"},
+            "nomina": {"type": "integer"},
             "urlpath": {"type": "keyword"},
         }
     }
@@ -94,11 +98,42 @@ class ServiceKibanaSerializable(AbstractKibanaSerializable):
             query, {"eid": self.entity.eid, "state": "wfs_cmsobject_published"}, build_descr=False
         )[0][0]
 
+    def siteref_documents_count(self):
+        """Get the list of linked CMS documents count
+
+        :returns: linked BaseContent and ExternRef count
+        :rtype: list
+        """
+        query = """Any COUNT(X) WITH X BEING (
+        (DISTINCT Any X WHERE X basecontent_service S, S eid %(eid)s, X is BaseContent
+          , X in_state ST, ST name %(state)s)
+        UNION
+        (DISTINCT Any X WHERE X exref_service S, S eid %(eid)s, X is ExternRef
+          , X in_state ST, ST name %(state)s)
+        )
+        """
+
+        return self._cw.execute(
+            query, {"eid": self.entity.eid, "state": "wfs_cmsobject_published"}, build_descr=False
+        )[0][0]
+
+    def nomina_documents_count(self):
+        """Get the list of linked NominaRecord documents count
+
+        :returns: linked NominaRecord count
+        :rtype: list
+        """
+        query = "Any COUNT(X) WHERE X service S, S eid %(eid)s, X is NominaRecord"
+        return self._cw.execute(query, {"eid": self.entity.eid}, build_descr=False)[0][0]
+
     def serialize(self, complete=True):
         entity = self.entity
         if complete:
             entity.complete()
         etype = entity.cw_etype
+        ir_count = self.ir_documents_count()
+        siteref_count = self.siteref_documents_count()
+        nomina_count = self.nomina_documents_count()
         return {
             "cw_etype": etype,
             "eid": entity.eid,
@@ -112,6 +147,9 @@ class ServiceKibanaSerializable(AbstractKibanaSerializable):
             "viewer_url": entity.thumbnail_dest,
             "title": entity.dc_title(),
             "code": entity.code,
-            "documents_count": self.ir_documents_count(),
+            "archives": ir_count,
+            "siteres": siteref_count,
+            "nomina": nomina_count,
+            "documents_count": ir_count + siteref_count,
             "urlpath": "{}/{}".format(entity.cw_etype.lower(), entity.eid),
         }

@@ -68,6 +68,7 @@ class subtasks(RelationDefinition):
     subject = "RqTask"
     object = "RqTask"
     cardinality = "*?"
+    composite = "subject"
 
 
 class oaiimport_task(RelationDefinition):
@@ -79,12 +80,6 @@ class oaiimport_task(RelationDefinition):
 class fatask_findingaid(RelationDefinition):
     subject = "RqTask"
     object = "FindingAid"
-    cardinality = "**"
-
-
-class fatask_person(RelationDefinition):
-    subject = "RqTask"
-    object = "Person"
     cardinality = "**"
 
 
@@ -131,8 +126,6 @@ def set_users_permissions(schema):
         "Category",
         "Circular",
         "Card",
-        "Person",
-        "CommemoCollection",
         "SocialNetwork",  # 'EmailAddress',
         "DigitizedVersion",
         "Map",
@@ -144,6 +137,7 @@ def set_users_permissions(schema):
         "BaseContentTranslation",
         "CommemorationItemTranslation",
         "FaqItemTranslation",
+        "NominaRecord",
     ]
     for etype in etypes:
         schema[etype].permissions.update(
@@ -169,7 +163,6 @@ class referenced_files(RelationDefinition):
         "Map",
         "Section",
         "CommemorationItem",
-        "CommemoCollection",
         "ExternRef",
         "BaseContent",
     ) + CMS_I18N_OBJECTS

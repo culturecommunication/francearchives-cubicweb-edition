@@ -29,24 +29,26 @@
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
 from inspect import isclass
-from copy import copy
 
 from elasticsearch import helpers as es_helpers
 
 from logilab.common.decorators import cachedproperty
 
 from cubicweb.predicates import is_instance, relation_possible, is_in_state
-from cubicweb.view import EntityAdapter
+from cubicweb.entity import EntityAdapter
 from cubicweb.server import Service
 
-from cubicweb_elasticsearch.es import get_connection
+from cubicweb_elasticsearch.es import get_connection, INDEXABLE_TYPES
 
 from cubicweb_francearchives import CMS_I18N_OBJECTS
 
 from cubicweb_francearchives.entities import sync as fa_sync
 from cubicweb_francearchives.dataimport import es_bulk_index
+from cubicweb_francearchives.views.search import ETYPES_MAP
 
 from cubicweb_frarchives_edition import VarnishPurgeMixin
+
+INDEXABLE_DOC_TYPES = INDEXABLE_TYPES + list(ETYPES_MAP.keys())
 
 
 def set_selectable_if_published(adapter):
@@ -64,6 +66,8 @@ class SyncService(VarnishPurgeMixin, Service):
         return {
             "elasticsearch-locations": self._cw.vreg.config["elasticsearch-locations"],
             "index-name": self._cw.vreg.config["index-name"],
+            "elasticsearch-verify-certs": self._cw.vreg.config["elasticsearch-verify-certs"],
+            "elasticsearch-ssl-show-warn": self._cw.vreg.config["elasticsearch-ssl-show-warn"],
         }
 
     @cachedproperty
@@ -71,22 +75,8 @@ class SyncService(VarnishPurgeMixin, Service):
         return {
             "elasticsearch-locations": self._cw.vreg.config["elasticsearch-locations"],
             "index-name": self._cw.vreg.config["published-index-name"],
-        }
-
-    @cachedproperty
-    def kibana_ir_es_params(self):
-        """kibana index for published FindingAids and FAComponents"""
-        return {
-            "elasticsearch-locations": self._cw.vreg.config["elasticsearch-locations"],
-            "index-name": self._cw.vreg.config["kibana-ir-index-name"],
-        }
-
-    @cachedproperty
-    def kibana_services_es_params(self):
-        """kibana index for published FindingAids and FAComponents"""
-        return {
-            "elasticsearch-locations": self._cw.vreg.config["elasticsearch-locations"],
-            "index-name": self._cw.vreg.config["kibana-services-index-name"],
+            "elasticsearch-verify-certs": self._cw.vreg.config["elasticsearch-verify-certs"],
+            "elasticsearch-ssl-show-warn": self._cw.vreg.config["elasticsearch-ssl-show-warn"],
         }
 
     @cachedproperty
@@ -96,16 +86,6 @@ class SyncService(VarnishPurgeMixin, Service):
     @cachedproperty
     def public_index_name(self):
         return self.public_es_params["index-name"] + "_all"
-
-    @cachedproperty
-    def kibana_ir_index_name(self):
-        if self._cw.vreg.config["enable-kibana-indexes"]:
-            return self.kibana_ir_es_params["index-name"]
-
-    @cachedproperty
-    def kibana_services_index_name(self):
-        if self._cw.vreg.config["enable-kibana-indexes"]:
-            return self.kibana_services_es_params["index-name"]
 
     @staticmethod
     def published_entity(entity):
@@ -130,11 +110,50 @@ class SyncService(VarnishPurgeMixin, Service):
                 elif op_type == "delete":
                     self.fs_sync_delete(entity)
                     self.es_sync_delete(entity)
+                elif op_type == "index-children":
+                    self.es_sync_children(entity)
             except Exception:
                 import traceback
 
                 traceback.print_exc()
-        self.purge_varnish(urls_to_purge)
+        self.purge_varnish(urls_to_purge, self._cw.vreg.config)
+
+    def es_sync_children(self, entity):
+        if not self.cms_es_params.get("elasticsearch-locations"):
+            self.error('no "elasticsearch-locations" config found')
+            return
+        es = get_connection(self.cms_es_params)
+        es_docs = self._reindex_children(es, self.cms_index_name, entity.eid)
+        es_bulk_index(es, es_docs, raise_on_error=True)
+        if self.published_entity(entity):
+            for index_name in (self.public_index_name,):
+                es_docs = self._reindex_children(es, index_name, entity.eid)
+                es_bulk_index(es, es_docs, raise_on_error=True)
+
+    def _reindex_children(self, es, index_name, ancestor_eid):
+        """reindex all docs whith ancestor = ancestor_eid stored in ES"""
+        if index_name:
+            for doc in es_helpers.scan(
+                es,
+                index=index_name,
+                query={"query": {"match": {"ancestors": ancestor_eid}}},
+            ):
+                if doc["_source"]["cw_etype"] not in INDEXABLE_DOC_TYPES:
+                    continue
+                try:
+                    entity = self._cw.entity_from_eid(doc["_source"]["eid"])
+                except Exception as err:
+                    self.error(f"[es] index Section {ancestor_eid}: {err}")
+                    continue
+                adaptor = entity.cw_adapt_to("IFullTextIndexSerializable")
+                if adaptor:
+                    yield {
+                        "_op_type": "index",
+                        "_index": index_name,
+                        "_type": "_doc",
+                        "_id": doc["_id"],
+                        "_source": adaptor.serialize(),
+                    }
 
     def es_sync_index(self, entity):
         if not self.cms_es_params.get("elasticsearch-locations"):
@@ -142,7 +161,7 @@ class SyncService(VarnishPurgeMixin, Service):
             return
         es = get_connection(self.cms_es_params)
         if entity.cw_etype == "FindingAid":
-            for index_name in self.public_index_name, self.kibana_ir_index_name:
+            for index_name in (self.public_index_name,):
                 if index_name:
                     es_helpers.reindex(
                         es,
@@ -160,13 +179,6 @@ class SyncService(VarnishPurgeMixin, Service):
                     target_index=self.public_index_name,
                     query={"query": {"match": {"eid": entity.eid}}},
                 )
-                if entity.cw_etype == "Service" and self.kibana_services_index_name:
-                    es_helpers.reindex(
-                        es,
-                        source_index=self.cms_index_name,
-                        target_index=self.kibana_services_index_name,
-                        query={"query": {"match": {"eid": entity.eid}}},
-                    )
 
     def fs_sync_index(self, entity):
         ifilesync = entity.cw_adapt_to("IFileSync")
@@ -210,10 +222,16 @@ class SyncService(VarnishPurgeMixin, Service):
         es = get_connection(self.cms_es_params)
         serializable = entity.cw_adapt_to("IFullTextIndexSerializable")
         if entity.cw_etype == "FindingAid":
-            for index_name in self.public_index_name, self.kibana_ir_index_name:
+            for index_name in (self.public_index_name,):
                 if index_name:
                     es_docs = self._delete_fa_documents(es, index_name, entity.stable_id)
                     es_bulk_index(es, es_docs, raise_on_error=False)
+        elif entity.cw_etype in ("AuthorityRecord",):
+            es.delete_by_query(
+                self.public_index_name,
+                doc_type=serializable.es_doc_type,
+                body={"query": {"match": {"eid": entity.eid}}},
+            )
         else:
             if entity.cw_etype in CMS_I18N_OBJECTS:
                 self.sync_translatables(es, entity)
@@ -221,12 +239,6 @@ class SyncService(VarnishPurgeMixin, Service):
                 es.delete(
                     self.public_index_name, doc_type=serializable.es_doc_type, id=serializable.es_id
                 )
-                if entity.cw_etype == "Service" and self.kibana_services_es_params:
-                    es.delete(
-                        self.kibana_services_index_name,
-                        doc_type=serializable.es_doc_type,
-                        id=serializable.es_id,
-                    )
 
     def fs_sync_delete(self, entity):
         ifilesync = entity.cw_adapt_to("IFileSync")
@@ -241,6 +253,9 @@ class SuggestSyncService(Service):
     def cms_es_params(self):
         return {
             "elasticsearch-locations": self._cw.vreg.config["elasticsearch-locations"],
+            "index-name": self._cw.vreg.config["index-name"],
+            "elasticsearch-verify-certs": self._cw.vreg.config["elasticsearch-verify-certs"],
+            "elasticsearch-ssl-show-warn": self._cw.vreg.config["elasticsearch-ssl-show-warn"],
         }
 
     @cachedproperty
@@ -259,15 +274,13 @@ class SuggestSyncService(Service):
         cms_docs, public_docs = [], []
         for entity in authorities:
             serializable = entity.cw_adapt_to("ISuggestIndexSerializable")
-            json = serializable.serialize()
-            if not json:
-                continue
-            for _docs, index_name, count in (
-                (cms_docs, self.cms_index_name, json["count"]),
-                (public_docs, self.public_index_name, serializable.published_docs()),
+            for _docs, index_name in (
+                (cms_docs, self.cms_index_name),
+                (public_docs, self.public_index_name),
             ):
-                json = copy(json)
-                json["count"] = count
+                json = serializable.serialize(published=index_name == self.public_index_name)
+                if not json:
+                    continue
                 _docs.append(
                     {
                         "_op_type": "index",
@@ -332,6 +345,7 @@ class ImageICompound(ICompoundAdapter):
             "news_image",
             "basecontent_image",
             "section_image",
+            "subject_image",
             "service_image",
             "map_image",
             "externref_image",

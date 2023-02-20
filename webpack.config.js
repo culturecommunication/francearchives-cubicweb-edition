@@ -1,22 +1,24 @@
-'use strict';
+'use strict'
 
+const path = require('path')
+const webpack = require('webpack')
 
-const path = require('path');
-const webpack = require('webpack');
-
-
-const config = module.exports = {
+const config = (module.exports = {
     context: path.join(__dirname, 'appjs'),
     entry: {
         cms: ['./cms'],
         'rq-table': ['./rq-table'],
+        edition: ['./edition'],
     },
     module: {
         rules: [
             {
                 test: /\.js$/,
                 exclude: /node_modules/,
-                loader: "babel-loader?cacheDirectory",
+                loader: 'babel-loader',
+                options: {
+                    cacheDirectory: true,
+                },
             },
         ],
     },
@@ -30,23 +32,23 @@ const config = module.exports = {
         },
     },
     plugins: [
-        new webpack.IgnorePlugin(/^(buffertools)$/), // unwanted "deeper" dependency
+        new webpack.IgnorePlugin({
+            resourceRegExp: /^(buffertools)$/,
+        }), // unwanted "deeper" dependency
         new webpack.DllReferencePlugin({
-            context: '.',
+            context: __dirname,
             manifest: require('./vendor-manifest.json'),
         }),
-    ]
-};
-
-
+    ],
+})
 
 if (process.env.NODE_ENV === 'production') {
     // install polyfills for production
     config.plugins.push(
         new webpack.DefinePlugin({
-            "process.env": {
+            'process.env': {
                 NODE_ENV: JSON.stringify('production'),
             },
-        })
-    );
+        }),
+    )
 }

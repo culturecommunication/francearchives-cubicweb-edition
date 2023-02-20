@@ -33,14 +33,13 @@ const {Component} = require('react'),
     PropTypes = require('prop-types')
 
 const {
-        default: {getEntity, deleteEntity},
-    } = require('../api'),
-    {spinner} = require('../components/fa')
+    default: {getEntity, deleteEntity},
+} = require('../api')
 const {parse} = require('query-string')
 
 function renderValidationError(error) {
     let attrname
-    if (error.hasOwnProperty('source')) {
+    if (Object.prototype.hasOwnProperty.call(error, 'source')) {
         attrname = error.source.pointer
     }
     return [attrname, error.details || error.title].join(': ')
@@ -69,7 +68,7 @@ class DeleteForm extends Component {
     }
 
     fetchData(eid, cw_etype) {
-        getEntity(cw_etype, eid).then(entity =>
+        getEntity(cw_etype, eid).then((entity) =>
             this.setState({entityToDelete: entity, loading: false}),
         )
     }
@@ -84,7 +83,7 @@ class DeleteForm extends Component {
     deleteEntity() {
         const {cw_etype, eid} = this.state.entityToDelete
         this.setState({deleteting: true})
-        deleteEntity(cw_etype, eid).then(res => {
+        deleteEntity(cw_etype, eid).then((res) => {
             if (res.errors && res.errors.length) {
                 this.setState({errors: res.errors})
                 return
@@ -100,7 +99,7 @@ class DeleteForm extends Component {
             return <spinner />
         }
         if (this.state.errors !== null) {
-            const errors = this.state.errors.map(error => (
+            const errors = this.state.errors.map((error) => (
                 <div key={error} className="alert alert-danger">
                     {renderValidationError(error)}
                 </div>

@@ -35,3 +35,4 @@ def includeme(config):
     config.include("..api")
     config.include(".pviews")
     config.include(".forms")
+    config.include(".forgotpwd")

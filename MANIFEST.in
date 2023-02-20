@@ -1,4 +1,4 @@
-recursive-include cubicweb_frarchives_edition *.py *.json *.eot *.svg *.ttf *.sql *.map *.woff *.woff2 *.js *.css *.po *.jinja2 *.pt
+recursive-include cubicweb_frarchives_edition *.py *.json *.eot *.svg *.ttf *.sql *.map *.woff *.woff2 *.js *.css *.po *.pot *.jinja2 *.pt
 recursive-include doc *.rst
 include frarchives_edition.jpg
 include LICENCE.txt Licence_CeCILL-C_V1-en.txt
@@ -7,7 +7,8 @@ include package.json
 include *.js
 include pyproject.toml
 recursive-include sphinx *.rst *.bat *.py Makefile
-recursive-include test *.csv *.py *.jpg *.pdf *.txt *.xml *.rst *.html
+recursive-include test *.csv *.py *.jpg *.pdf *.txt *.xml *.rst *.html *.png
+recursive-include cubicweb_frarchives_edition/scripts *.ipynb
 include test/data/bootstrap_cubes
 prune appjs
 prune debian
@@ -20,9 +21,15 @@ exclude .prettierrc
 exclude .gitlab-ci.yml
 exclude Makefile
 exclude dev-requirements.txt
+exclude requirements.txt
 exclude gitfilter
 exclude tox.ini
 exclude Dockerfile
+exclude Dockerfile.antivirus
+exclude entrypoint.antivirus.sh
 exclude .dockerignore
 exclude Makefile.docker
 exclude pyramid.ini
+exclude deploy.sh
+exclude env.example
+exclude .yamllint

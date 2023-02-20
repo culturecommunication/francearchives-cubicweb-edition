@@ -35,13 +35,11 @@ from cubicweb_francearchives import CMS_I18N_OBJECTS
 from cubicweb_jsonschema.views import jsonschema_section
 
 
-jsonschema_section.tag_object_of(("*", "imported_findingaid", "FindingAid"), "hidden")
 jsonschema_section.tag_subject_of(("FindingAid", "findingaid_support", "*"), "inlined")
 
 for rtype in ("fa_header", "did", "service", "findingaid_support"):
     jsonschema_section.tag_subject_of(("FindingAid", rtype, "*"), "hidden")
 
-jsonschema_section.tag_object_of(("*", "import_file", "File"), "hidden")
 jsonschema_section.tag_object_of(("*", "image_file", "File"), "hidden")
 for rel in (
     "findingaid_support",
@@ -60,6 +58,7 @@ for rel in (
     "service_image",
     "news_image",
     "externref_image",
+    "subject_image",
 ):
     jsonschema_section.tag_object_of(("*", rel, "Image"), "hidden")
 
@@ -75,6 +74,10 @@ jsonschema_section.tag_subject_of(("*", "output_file", "*"), "hidden")
 jsonschema_section.tag_object_of(("*", "output_file", "*"), "hidden")
 
 jsonschema_section.tag_subject_of(("Service", "service_social_network", "*"), "inlined")
+jsonschema_section.tag_subject_of(("OAIRepository", "should_normalize", "*"), "hidden")
+jsonschema_section.tag_subject_of(("OAIRepository", "context_service", "*"), "hidden")
+jsonschema_section.tag_subject_of(("RqTask", "subtasks", "RqTask"), "hidden")
+jsonschema_section.tag_object_of(("RqTask", "subtasks", "RqTask"), "hidden")
 
 for subj in (
     CMS_OBJECTS
@@ -83,7 +86,6 @@ for subj in (
         "Metadata",
         "Link",
         "File",
-        "CommemoDate",
         "Image",
         "CssImage",
         "Category",
@@ -102,13 +104,12 @@ for subj in CMS_I18N_OBJECTS:
 jsonschema_section.tag_subject_of(("BaseContent", "description", "*"), "hidden")
 jsonschema_section.tag_subject_of(("BaseContent", "keywords", "*"), "hidden")
 jsonschema_section.tag_subject_of(("BaseContent", "basecontent_service", "*"), "inlined")
+jsonschema_section.tag_subject_of(("*", "related_content_suggestion", "*"), "inlined")
 jsonschema_section.tag_object_of(("*", "children", "*"), "hidden")
-
-jsonschema_section.tag_subject_of(("CommemorationItem", "collection_top", "*"), "hidden")
 
 jsonschema_section.tag_subject_of(("Metadata", "description", "*"), "inlined")
 jsonschema_section.tag_subject_of(("CWUser", "last_login_time", "*"), "hidden")
-jsonschema_section.tag_subject_of(("CWUser", "use_email", "*"), "hidden")
+jsonschema_section.tag_subject_of(("CWUser", "use_email", "*"), "inlined")
 
 for attr in ("status", "log", "enqueued_at", "started_at", "ended_at"):
     jsonschema_section.tag_subject_of(("RqTask", attr, "*"), "hidden")
@@ -129,3 +130,8 @@ for attr in ("birthyear", "deathyear"):
 
 for attr in ("sort_letter", "anchor"):
     jsonschema_section.tag_subject_of(("GlossaryTerm", attr, "*"), "hidden")
+
+jsonschema_section.tag_subject_of(("CommemorationItem", "commemo_dates", "CommemoDate"), "hidden")
+
+jsonschema_section.tag_subject_of(("Section", "section_themes", "*"), "hidden")
+jsonschema_section.tag_subject_of(("*", "grouped_with", "*"), "hidden")

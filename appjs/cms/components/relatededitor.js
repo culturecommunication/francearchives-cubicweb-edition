@@ -54,22 +54,25 @@ const {
 } = require('../api')
 const {buildFormData} = require('../utils')
 
-const Header = ({entityTitle, title, onAddClick}) => (
+const Header = ({entityTitle, title, url, onAddClick}) => (
     <div>
         <h1>
-            "{entityTitle}": {title}
+            <b>{title}</b> pour{' '}
+            <a target="_blank" href={url} rel="noopener noreferrer">
+                {entityTitle}
+            </a>
         </h1>
         <div className="cms_add_link">
             <button className="btn btn-default" onClick={onAddClick}>
-                Cliquer ici
+                Ajouter une nouvelle entité
             </button>{' '}
-            pour ajouter une nouvelle entité sous les formulaires existants
         </div>
     </div>
 )
 Header.propTypes = {
     entityTitle: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
+    url: PropTypes.string.isRequired,
     onAddClick: PropTypes.func.isRequired,
 }
 exports.Header = Header
@@ -151,7 +154,7 @@ class EntityRelatedEditor extends Component {
                 targetType: targetType,
             }),
         ]).then(([schema, uiSchema, related]) => {
-            const targets = related.map(r => ({
+            const targets = related.map((r) => ({
                 value: r.eid,
                 label: r.dc_title,
             }))
@@ -201,51 +204,42 @@ class EntityRelatedEditor extends Component {
         return ce(
             'div',
             {className: 'panel panel-default', key: e.eid},
-            ce(
-                'div',
-                {className: 'panel panel-heading'},
-                ce('div', {className: 'panel-title'}, e.dc_title),
-            ),
-            ce(
-                'div',
-                {className: 'panel-body'},
-                schema
-                    ? ce(
-                          CmsForm,
-                          {
-                              schema,
-                              uiSchema,
-                              onCancel: this.formRedirects.onCancel,
-                              formData: formData,
-                              formContext: {cw_etype: e.cw_etype, eid: e.eid},
-                              FieldTemplate: CustomFieldTemplateConnected,
-                              onSubmit: this.onSubmit.bind(this, e, false),
-                          },
+            schema
+                ? ce(
+                      CmsForm,
+                      {
+                          schema,
+                          uiSchema,
+                          onCancel: this.formRedirects.onCancel,
+                          formData: formData,
+                          formContext: {cw_etype: e.cw_etype, eid: e.eid},
+                          FieldTemplate: CustomFieldTemplateConnected,
+                          onSubmit: this.onSubmit.bind(this, e, false),
+                      },
+                      ce(
+                          'div',
+                          {className: 'btn-group'},
                           ce(
-                              'div',
-                              {className: 'btn-group'},
-                              ce(
-                                  'button',
-                                  {
-                                      type: 'button',
-                                      onClick: () => document.location.reload(),
-                                      className: 'btn btn-default',
-                                  },
-                                  'annuler',
-                              ),
-                              ce(
-                                  'button',
-                                  {
-                                      type: 'submit',
-                                      className: 'btn btn-primary',
-                                  },
-                                  'enregistrer',
-                              ),
+                              'button',
+                              {
+                                  type: 'button',
+                                  onClick: () => document.location.reload(),
+                                  className: 'btn btn-default',
+                              },
+                              'annuler',
                           ),
-                          ...this.entityFormOtherButtons(e),
-                      )
-                    : ce(spinner),
-            ),
+                          ce(
+                              'button',
+                              {
+                                  type: 'submit',
+                                  className: 'btn btn-primary',
+                              },
+                              'enregistrer',
+                          ),
+                      ),
+                      ...this.entityFormOtherButtons(e),
+                  )
+                : ce(spinner),
         )
     }
 
@@ -271,11 +265,7 @@ class EntityRelatedEditor extends Component {
             FieldTemplate: CustomFieldTemplateConnected,
             onSubmit: this.onSubmit.bind(this, this.entity, true),
         })
-        return ce(
-            'div',
-            {className: 'panel panel-default'},
-            ce('div', {className: 'panel-body'}, body),
-        )
+        return body
     }
 
     onChangeTargets(value) {
@@ -294,7 +284,7 @@ class EntityRelatedEditor extends Component {
                 rtype,
                 entity.eid,
                 input,
-            ).then(d => d.map(e => ({label: e.title, value: e.eid})))
+            ).then((d) => d.map((e) => ({label: e.title, value: e.eid})))
         }
         return ce(
             'div',
@@ -341,7 +331,7 @@ class EntityRelatedEditor extends Component {
         if (targetType === null) {
             relatedList = related
         } else {
-            relatedList = related.filter(e => e.cw_etype === targetType)
+            relatedList = related.filter((e) => e.cw_etype === targetType)
         }
         return ce(
             'div',
@@ -354,11 +344,13 @@ class EntityRelatedEditor extends Component {
 
     displayFormHeader() {
         const {title} = this.state,
-            entityTitle = this.entity.dc_title
+            entityTitle = this.entity.dc_title,
+            entityUrl = `${window.BASE_URL}${this.entity.rest_path}`
         return (
             <Header
                 entityTitle={entityTitle}
                 title={title}
+                url={entityUrl}
                 onAddClick={() => this.setState({displayCreationForm: true})}
             />
         )
@@ -381,8 +373,8 @@ class EntityRelatedEditor extends Component {
             'div',
             null,
             this.displayFormHeader(),
-            this.displayRelatedEntities(),
             creationForm,
+            this.displayRelatedEntities(),
         )
     }
 }

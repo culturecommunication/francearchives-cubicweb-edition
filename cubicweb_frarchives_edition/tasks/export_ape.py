@@ -28,18 +28,19 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
+import datetime
 import logging
 import os.path as osp
 
 import rq
-
 
 from cubicweb_francearchives.dataimport.scripts.generate_ape_ead import (
     generate_ape_ead_xml_from_eids,
     generate_ape_ead_other_sources_from_eids,
 )
 from cubicweb_frarchives_edition.rq import update_progress, rqjob
-from cubicweb_frarchives_edition.tasks.utils import zip_files, serve_zip
+from cubicweb_frarchives_edition.tasks.utils import serve_zip
+from cubicweb_francearchives.storage import S3BfssStorageMixIn
 
 
 def retrieve_ape(cnx, service_code, ape_files, arcnames):
@@ -57,29 +58,32 @@ def retrieve_ape(cnx, service_code, ape_files, arcnames):
     rset = cnx.find("Service", code=service_code)
     xml_rset = cnx.execute(
         "Any X, N, SI, FSPATH(D), NULL, CS "
-        "WHERE X findingaid_support F, "
+        "WHERE X is FindingAid, X findingaid_support F, "
         "X stable_id SI, X name N,  F data D, "
         "X service S, S code CS, "
+        "X in_state ST, ST name %(st)s, "
         'NOT EXISTS(X ape_ead_file AF), F data_format "application/xml", '
         "X service S, S code %(c)s",
-        {"c": service_code},
+        {"c": service_code, "st": "wfs_cmsobject_published"},
     )
     other_fas = cnx.execute(
         """
-      (Any X, XID WHERE X eadid XID,
+      (Any X, XID WHERE X is FindingAid, X eadid XID,
+       X in_state ST, ST name %(st)s,
        X service S, S code %(c)s,
        NOT EXISTS(X findingaid_support F), NOT EXISTS(X ape_ead_file AF)
     )
     UNION
-      (Any X, XID WHERE X eadid XID,
+      (Any X, XID WHERE X is FindingAid, X eadid XID,
+       X in_state ST, ST name %(st)s,
        X service S, S code %(c)s,
        NOT EXISTS(X ape_ead_file AF),
        X findingaid_support F, NOT F data_format "application/xml")
     """,
-        {"c": service_code},
+        {"c": service_code, "st": "wfs_cmsobject_published"},
     )
     if xml_rset:
-        for (fa_eid, fa_name, fa_stable_id, fspath, ape_ead_fspath, service_code) in xml_rset:
+        for fa_eid, fa_name, fa_stable_id, fspath, ape_ead_fspath, service_code in xml_rset:
             try:
                 generate_ape_ead_xml_from_eids(cnx, [str(fa_eid)])
             except Exception:
@@ -93,16 +97,15 @@ def retrieve_ape(cnx, service_code, ape_files, arcnames):
                 log.exception("failed to export ape dump for fa #%s", fa.eid)
                 continue
     rset = cnx.execute(
-        "Any X, SI, FSPATH(D) WHERE X ape_ead_file F, X stable_id SI, F data D, "
-        "X service S, S code %(c)s",
-        {"c": service_code},
+        """Any X, SI, FSPATH(D)
+           WHERE X is FindingAid, X in_state ST, ST name %(st)s,
+           X ape_ead_file F, X stable_id SI, F data D,
+           X service S, S code %(c)s""",
+        {"c": service_code, "st": "wfs_cmsobject_published"},
     )
     if rset:
         for fa_eid, fa_stable_id, fspath in rset:
             fspath = fspath.getvalue().decode("utf-8")
-            if not (osp.exists(fspath) and osp.isfile(fspath)):
-                log.warning("file does not exists %r (#%s)", fspath, fa_eid)
-                continue
             ape_files.append(fspath)
             arcnames.append(osp.join(service_code, osp.basename(fspath)))
     else:
@@ -119,7 +122,8 @@ def export_ape(cnx, service_codes):
             row[0]
             for row in cnx.execute(
                 """DISTINCT Any C WHERE X is Service, X code C, NOT X code NULL,
-                F service X, F is FindingAid"""
+                F service X, F is FindingAid, F in_state ST, ST name %(st)s""",
+                {"st": "wfs_cmsobject_published"},
             )
         ]
     step = 1.0 / len(service_codes)
@@ -131,14 +135,15 @@ def export_ape(cnx, service_codes):
         progress = update_progress(job, progress + step)
     # group all ape files in zip archive
     appfiles_dir = cnx.vreg.config["appfiles-dir"]
-    zippath = osp.join(appfiles_dir, "ape_%s.zip" % job.id)
+    date = datetime.datetime.now().strftime("%Y%m%d")
+    zippath = osp.join(appfiles_dir, f"ape_{date}_{job.id}.zip")
     if not arcnames:
         log.info(
             "No files found for {service_codes}".format(service_codes=", ".join(service_codes))
         )
         return
     files = list(zip(ape_files, arcnames))
-    zip_files(files, archive=zippath)
+    S3BfssStorageMixIn(log=log).storage_create_zipfiles(files, zippath)
     # compute url and move archive so that nginx can serve it
     serve_zip(cnx, int(job.id), osp.basename(zippath), zippath)
     cnx.commit()

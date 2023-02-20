@@ -47,12 +47,15 @@ const Editor = require('./containers/editor'),
     {SearchCWUsers, AddCWUserForm} = require('./containers/cwusers'),
     {AddGlossaryTermForm} = require('./containers/glossary'),
     {AddFaqForm} = require('./containers/faq'),
+    {AddSiteLinkForm} = require('./containers/sitelink'),
     {PublishTask, AddFATask} = require('./containers/fatask'),
     {EditAuthority} = require('./containers/editindex'),
     {EditSameAs} = require('./containers/editsameas'),
     {GroupAuthority} = require('./containers/groupauthority'),
     {SearchFaTasks} = require('./containers/alltasks'),
-    {FAMonitoringBord} = require('./containers/fabord')
+    {FAMonitoringBord} = require('./containers/fabord'),
+    {BlacklistedAuthorities} = require('./containers/blacklisted'),
+    {SectionThemes} = require('./containers/sectionthemes')
 
 function renderAutoritiesRelatedEditor(props, targetType) {
     return ce(IndexEntityRelatedEditor, {
@@ -82,16 +85,17 @@ const routes = ce(
     ce(Route, {path: '/editrelated', component: EntityRelatedEditor}),
     ce(Route, {
         path: '/editlocationauthority',
-        render: props =>
+        render: (props) =>
             renderAutoritiesRelatedEditor(props, 'LocationAuthority'),
     }),
     ce(Route, {
         path: '/editagentauthority',
-        render: props => renderAutoritiesRelatedEditor(props, 'AgentAuthority'),
+        render: (props) =>
+            renderAutoritiesRelatedEditor(props, 'AgentAuthority'),
     }),
     ce(Route, {
         path: '/editsubjectauthority',
-        render: props =>
+        render: (props) =>
             renderAutoritiesRelatedEditor(props, 'SubjectAuthority'),
     }),
     ce(Route, {path: '/translate_:language', render: renderTranslationEditor}),
@@ -101,6 +105,7 @@ const routes = ce(
     ce(Route, {path: '/cwusers', component: SearchCWUsers}),
     ce(Route, {path: '/add-glossaryterm', component: AddGlossaryTermForm}),
     ce(Route, {path: '/add-faq', component: AddFaqForm}),
+    ce(Route, {path: '/add-sitelink', component: AddSiteLinkForm}),
     ce(Route, {path: '/homepage-metadata', component: HomePageMetadata}),
     ce(Route, {path: '/publish-task', component: PublishTask}),
     ce(Route, {path: '/fa-tasks', component: SearchFaTasks}),
@@ -108,6 +113,9 @@ const routes = ce(
     ce(Route, {path: '/edit-index', component: EditAuthority}),
     ce(Route, {path: '/sameas', component: EditSameAs}),
     ce(Route, {path: '/group-auth', component: GroupAuthority}),
+    ce(Route, {path: '/black-auth', component: BlacklistedAuthorities}),
     ce(Route, {path: '/cssimage', component: CssImageEntityRelatedEditor}),
+    ce(Route, {path: '/section-themes', component: SectionThemes}),
 )
+
 module.exports = routes

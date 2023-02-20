@@ -1,0 +1,35 @@
+{% if message_error %}
+<div class="alert alert-danger">
+   <div class="form-message-content-error">{{ message_error }}</div>
+ </div>
+{% endif %}
+ <div class="mb-4 col-lg-8">
+   <label class="form-label" for="use_email">
+     <span class="required" title="{{ required_info }}">*</span>
+     {{ email_label }}
+   </label>
+   {% if forgotpwd_email_error %}
+   <span id="cel_email" class="error text-danger">{{ email_error }}</span>
+   {% endif %}
+   <input name="use_email" id="use_email" class="form-control" type="text" autocomplete="email"
+          {% if forgotpwd_email_error %}aria-describedby="cel_email" aria-invalid="true"{% endif %}
+          pattern="^[_A-Za-z0-9-\+-]+(\.[_A-Za-z0-9-\+-]+)*@[A-Za-z0-9-]+(\.[A-Za-z0-9-\+-]+)*(\.[A-Za-z]{2,})$"
+          oninvalid="setCustomValidity('{{ email_error }}')"
+          oninput="setCustomValidity('')"
+          required="required" value="{{ email_value }}" />
+ </div>
+ <div class="mb-4 col-lg-8">
+   <label class="form-label" for="captcha">
+     <span class="required" title="{{ required_info }}">*</span>
+     {{ captcha_label }}
+   </label>
+   {% if forgotpwd_captcha_error %}
+      <span id="cel_captcha" class="error text-danger"> {{ forgotpwd_captcha_error }}</span>
+   {% endif %}
+   <div class="captcha mb-2">
+     <img alt="captcha" src="{{ captcha_src }}">
+   </div>
+   <input class="form-control" id="captcha" name="captcha" value="{{ captcha_value }}" autocomplete="off" type="text" required="required" />
+   <div id="captcha_help" class="form-text">{{ captcha_help }}</div>
+ </div>
+ <button class="btn btn-primary" name="submit" type="submit">{{ submit_value }}</button>

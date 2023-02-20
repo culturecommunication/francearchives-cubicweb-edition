@@ -137,6 +137,8 @@ class PniaDocumentsKibanaIndexer(AbstractKibanaIndexer):
         return {
             "elasticsearch-locations": self._cw.vreg.config["elasticsearch-locations"],
             "index-name": self._cw.vreg.config["published-index-name"],
+            "elasticsearch-verify-certs": self._cw.vreg.config["elasticsearch-verify-certs"],
+            "elasticsearch-ssl-show-warn": self._cw.vreg.config["elasticsearch-ssl-show-warn"],
         }
 
     @cachedproperty

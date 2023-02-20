@@ -1,14 +1,12 @@
 {% extends "maintemplate.jinja2" %}
 
 {% block login %}
-
-  <span class="login">
-    {{ user }}<i class="fa fa-user"></i>
-    <a href="{{ base_url }}/{{ "login" if isanon else "logout" }}?postlogin_path={{ current_url | e }}">
-      <i class="fa fa-{{ "sign-in" if isanon else "sign-out" }}"></i>
+  <li id="login-link">
+    <a href="{{ base_url }}/{{ "login" if isanon else "logout" }}?postlogin_path={{ current_url | e }}" title="{{ _('i18n_login_popup') }}">
+      <span>{{ user }}</span>
+      <i aria-hidden="true" class="fa fa-{{ "sign-in" if isanon else "sign-out" }}"></i>
     </a>
-  </span>
-
+  </li>
 {% endblock %}
 
 {% block adminpanel %}

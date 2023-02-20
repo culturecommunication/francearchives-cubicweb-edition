@@ -68,7 +68,7 @@ export function buildFormData(entity, schema) {
                     `missing definition for ${targetType} referenced in ${key}`,
                 )
             }
-            formData[key] = target.map(tgt => buildFormData(tgt, schema))
+            formData[key] = target.map((tgt) => buildFormData(tgt, schema))
         } else {
             formData[key] = target
         }

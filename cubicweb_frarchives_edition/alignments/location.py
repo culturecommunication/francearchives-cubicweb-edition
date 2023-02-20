@@ -28,9 +28,12 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
+from collections import defaultdict
+import logging
 
 import os.path as osp
 import difflib
+from psycopg2.extras import execute_values
 
 from nazca.utils.normalize import NormalizerPipeline, SimplifyNormalizer
 from nazca.utils.distances import BaseProcessing
@@ -107,8 +110,13 @@ class Geodata(object):
         if force:
             self.cnx.system_sql("DROP TABLE IF EXISTS geodata")
         sql = """CREATE TABLE IF NOT EXISTS geodata AS (
-            SELECT geonameid,name,fclass,fcode,country_code,
-            admin1_code,admin2_code,admin4_code FROM geonames
+            SELECT geonames.geonameid,coalesce(altnames.alternate_name, name) as name,
+                   fclass,fcode,country_code, admin1_code,admin2_code,admin4_code
+            FROM geonames
+            LEFT JOIN (SELECT geonameid, alternate_name
+                       from geonames_altnames WHERE rank='1' AND isolanguage='fr')
+                       as altnames
+                 ON altnames.geonameid=geonames.geonameid
             WHERE country_code IN ({placeholder})
             AND fclass IN ('A','P')
             )""".format(
@@ -129,6 +137,7 @@ class Geodata(object):
         self._simplified_historic_regions = {}
         self._countries = {}
         self._simplified_countries = {}
+        self._simplified_altcountries_codes = {}
 
     @property
     def cities(self):
@@ -138,8 +147,11 @@ class Geodata(object):
             # in our case, only Val-Couesnon (ADM4) and
             # Saint-Ouen-la-Rouërie (ADM4H) share admin4_code
             rows = self.cnx.system_sql(
-                """SELECT name,admin4_code FROM geodata
+                """SELECT COALESCE(alternate_name, name), admin4_code
+                FROM geodata
+                LEFT OUTER JOIN geonames_altnames USING (geonameid)
                 WHERE fclass='A' AND fcode IN ('ADM4','ADM4H')
+                AND (rank IS NULL OR rank=1)
                 """
             )
             self._cities = {code: name for (name, code) in rows}
@@ -157,9 +169,18 @@ class Geodata(object):
         """Map of departments."""
         if not self._departments:
             rows = self.cnx.system_sql(
-                r"""SELECT admin2_code,
-                REGEXP_REPLACE(name, E'Département (de l\'|de la |du |des |d\'|de )', '')
-                FROM geodata WHERE fclass='A' AND fcode='ADM2'"""
+                r"""
+                SELECT admin2_code,
+                REGEXP_REPLACE(
+                    COALESCE(alternate_name, name),
+                    E'Département (de l\'|de la |du |des |d\'|de )',
+                    ''
+                )
+                FROM geodata
+                LEFT OUTER JOIN geonames_altnames USING (geonameid)
+                WHERE fclass='A' AND fcode='ADM2'
+                AND (rank IS NULL OR rank=1)
+                """
             )
             self._departments = {code: name for (code, name) in rows}
             self._departments.update(self.METROPOLIS)
@@ -255,6 +276,25 @@ class Geodata(object):
             }
         return self._simplified_countries
 
+    @property
+    def simplified_altcountries_codes(self):
+        """Map of simplified countries names in French with all alterantive names."""
+        if not self._simplified_altcountries_codes:
+            rows = self.cnx.system_sql(
+                """SELECT coalesce(temp.alternate_name, geonames.name) as name,geonames.country_code
+                FROM (
+                    SELECT geonameid,alternate_name
+                    FROM geonames_altnames WHERE isolanguage='fr'
+                    ORDER BY geonameid,alternate_name
+                ) AS temp
+                JOIN geonames ON temp.geonameid=geonames.geonameid
+                WHERE (fcode='PCL' OR fcode='PCLI');"""
+            )
+            self._simplified_altcountries_codes = {
+                simplify(alternate_name): code for (alternate_name, code) in rows
+            }
+        return self._simplified_altcountries_codes
+
 
 def create_geonames_label(name, admin1, admin2, geodata):
     """Create GeoNames label.
@@ -269,7 +309,7 @@ def create_geonames_label(name, admin1, admin2, geodata):
     """
     info = (geodata.regions.get(admin1), geodata.departments.get(admin2))
     if any(info):
-        return "{name} ({info})".format(name=name, info=",".join(item for item in info if item))
+        return "{name} ({info})".format(name=name, info=", ".join(item for item in info if item))
     else:
         return name
 
@@ -309,7 +349,7 @@ def build_countries_geoname_set(cnx, isolanguage="fr"):
     :rtype: list
     """
     rows = cnx.system_sql(
-        """SELECT temp.alternate_name,geonames.geonameid,
+        """SELECT geonames.country_code, temp.alternate_name,geonames.geonameid,
         geonames.name,geonames.latitude,geonames.longitude
         FROM (
             SELECT DISTINCT ON(geonameid) geonameid,alternate_name
@@ -319,8 +359,8 @@ def build_countries_geoname_set(cnx, isolanguage="fr"):
         WHERE (fcode='PCL' OR fcode='PCLI')""",
         {"isolanguage": isolanguage},
     )
-    return [
-        [
+    return {
+        country_code: [
             geonameid,
             name,
             (None, None, simplify(altname), None),
@@ -330,8 +370,141 @@ def build_countries_geoname_set(cnx, isolanguage="fr"):
             latitude,
             longitude,
         ]
-        for altname, geonameid, name, latitude, longitude in rows
-    ]
+        for country_code, altname, geonameid, name, latitude, longitude in rows
+    }
+
+
+def alignment_geo_foreign_countries_cities(cnx, geodata, records, log=None, isolanguage="fr"):
+    """Build aligned pairs for cities of other countries than France
+    :param Connection cnx: CubicWeb database connection
+    :param Geodata geodata: Geodata manager
+    :param list records: records_countries
+    :param log: Logger
+    :param str isolanguage: language
+
+    :returns: pniarecord, geonamerecord, distance
+    :rtype: list, list, float
+    """
+    if not log:
+        log = logging.getLogger("rq.task")
+    data = defaultdict(set)
+    codes = geodata.simplified_altcountries_codes
+    indexed_pnia_records = defaultdict(list)
+    country_only = []
+    # compute data with foreign cities and countries
+    for record in records:
+        if record[1][1]:
+            country_code = codes[record[1][2]]
+            data[country_code].add(record[1][1])
+            indexed_pnia_records[(record[1][1], country_code)].append(record)
+        else:
+            country_only.append(record)
+    # first try to find cities in geonames_altnames
+    # NORMALIZE_ENTRY slows down the execution. We could add a column to
+    # geonames_altname to speed it up
+    # XXX should we LEFT JOIN
+    altnames_query = """
+    SELECT DISTINCT ON(altnames.geonameid) altnames.alternate_name,geonames.geonameid,
+           geonames.name, geonames.latitude, geonames.longitude, admin1_code,
+           admin2_code
+    FROM geonames
+    JOIN geonames_altnames as altnames ON altnames.geonameid=geonames.geonameid
+    WHERE altnames.isolanguage='fr' AND fclass='P'
+          AND NORMALIZE_ENTRY(altnames.alternate_name) IN (%s)
+          AND geonames.country_code='{code}';
+    """
+    cursor = cnx.cnxset.cu
+    results = []
+    for country_code, cities in data.items():
+        country = geodata.countries[country_code]
+        log.debug("Align %s for %s (%s normalized cities)", country, cities, len(cities))
+        execute_values(
+            cursor, altnames_query.format(code=country_code), [(city,) for city in cities]
+        )
+        res = cursor.fetchall()
+        for altname, geonameid, name, latitude, longitude, admin1_code, admin2_code in res:
+            if len([r for r in res if r[0] == altname]) > 1:
+                log.warning(
+                    'Multiple records found for "%s, %s". Do not align to the city.',
+                    altname,
+                    country,
+                )
+                continue
+            geonamerecord = [
+                geonameid,
+                altname,  # or name ?
+                (None, simplify(altname), country_code, None),
+                "",
+                f"{altname} ({country})",  # geonames label, add  {admin1_code} {admin2_code} ?
+                f"{altname} ({country})",  # comp string
+                latitude,
+                longitude,
+            ]
+            try:
+                pniarecords = indexed_pnia_records.pop((simplify(altname), country_code))
+                for pniarecord in pniarecords:
+                    results.append((pniarecord, geonamerecord, 0))
+            except Exception as ex:
+                log.error(
+                    "%s is not found in indexed_pnia_records %s",
+                    ex,
+                    sorted(indexed_pnia_records.keys()),
+                )
+    # then try to align remaining cities with geonames table
+    if indexed_pnia_records:
+        qeonames_query = """
+        SELECT DISTINCT ON(geonameid) geonameid, name, latitude, longitude
+        FROM geonames
+        WHERE fclass='P' AND name IN (%s) AND country_code='{code}';
+        """
+        geoname = build_countries_geoname_set(cnx)
+        for (city, country_code), pniarecords in indexed_pnia_records.copy().items():
+            cities = list(set([p[0] for p in pniarecords if p[0]]))
+            country = geodata.countries[country_code]
+            log.debug("Align %s %s for (%s cities exactly)", country, cities, len(cities))
+            if cities:
+                execute_values(
+                    cursor, qeonames_query.format(code=country_code), [(city,) for city in cities]
+                )
+                res = cursor.fetchall()
+                if len(res) == 1:
+                    geonameid, gname, latitude, longitude = res[0]
+                    country = geodata.countries[country_code]
+                    geonamerecord = [
+                        geonameid,
+                        gname,
+                        (None, None, simplify(gname), country_code, None),
+                        "",
+                        f"{gname} ({country})",
+                        f"{gname} ({country})",
+                        latitude,
+                        longitude,
+                    ]
+                    for pniarecord in pniarecords:
+                        results.append((pniarecord, geonamerecord, 0))
+                    indexed_pnia_records.pop((city, country_code))
+                elif len(res):
+                    log.warning(
+                        'Multiple records found for "%s, %s": %s. Do not align to the city.',
+                        cities,
+                        country,
+                        res,
+                    )
+    # countries without cities must be aligned to the country
+    for pniarecord in country_only:
+        country_code = codes[pniarecord[1][2]]
+        indexed_pnia_records[(None, country_code)].append(pniarecord)
+    # finally align remaining records to the country
+    if indexed_pnia_records:
+        geoname = build_countries_geoname_set(cnx)
+        for (_, country_code), pniarecords in indexed_pnia_records.copy().items():
+            geonamerecord = geoname.get(country_code, None)
+            if geonamerecord:
+                for pniarecord in pniarecords:
+                    results.append((pniarecord, geonamerecord, 0.7))
+                indexed_pnia_records.pop((_, country_code))
+    log.debug(f"\n-> {len(indexed_pnia_records)} non-aligned records remained \n")
+    return results
 
 
 def build_geoname_set(cnx, geodata, dpt_code=None):
@@ -354,6 +527,7 @@ def build_geoname_set(cnx, geodata, dpt_code=None):
         FROM geonames
         WHERE country_code IN ({placeholder}) AND fclass IN ('A', 'P')
         """
+    # TODO take account of alternative cities names from geonames_altnames table
     dpt = dpt_code
     if dpt is not None:
         placeholder = "%s"
@@ -364,9 +538,9 @@ def build_geoname_set(cnx, geodata, dpt_code=None):
         placeholder = ",".join("%s" for _ in range(len(geodata.OVERSEAS_DEPARTMENTS) + 1))
         args = ["FR"] + list(geodata.OVERSEAS_DEPARTMENTS.values())
         q = q.format(placeholder=placeholder)
+    # cities with fclass 'P' over 'A' because of ORDER BY fclass and tmp.rank = 1 restriction
     q += ") as tmp WHERE tmp.rank = 1"
     rows = cnx.system_sql(q, args).fetchall()
-    # TODO replace list of cities by list of localized cities
     geoname_set = []
     for id, name, ad1, ad2, ad4, fclass, latitude, longitude in rows:
         dpt, city, country = None, None, None
@@ -402,17 +576,17 @@ def dpt_city_block_cb(record):
     return dpt, city
 
 
-def country_block_cb(record):
-    _, _, country, _ = record
-    return country
-
-
 def fclass_block_cb(record):
     _, _, _, fclass = record
     return fclass
 
 
-def alignment_geo_data(refset, targetset=None):
+def alignment_geo_data(
+    refset,
+    targetset=None,
+    minhashing_threshold=0.4,
+    repeatable=False,
+):
     """Align two sets of records.
 
     :param refset: set of reference data (based on imported FindingAid(s))
@@ -440,24 +614,44 @@ def alignment_geo_data(refset, targetset=None):
     city_dpt_aligner.register_ref_normalizer(place_normalizer_ref)
     city_dpt_aligner.register_target_normalizer(place_normalizer_target)
     blocking_1 = KeyBlocking(1, 2, ignore_none=True, callback=dpt_city_block_cb)
-    blocking_2 = MinHashingBlocking(0, 1, threshold=0.4)
-    city_dpt_blocking = PipelineBlocking((blocking_1, blocking_2), collect_stats=True)
+    if minhashing_threshold < 1.0:
+        blocking_2 = MinHashingBlocking(0, 1, threshold=minhashing_threshold, repeatable=repeatable)
+        blockings = (blocking_1, blocking_2)
+    else:
+        blockings = (blocking_1,)
+
+    city_dpt_blocking = PipelineBlocking(blockings)
     city_dpt_aligner.register_blocking(city_dpt_blocking)
     # Define aligner 2 - Align using france departements
     dpt_aligner = BaseAligner(threshold=0.2, processings=(processing,))
     dpt_aligner.register_ref_normalizer(place_normalizer_ref)
     dpt_aligner.register_target_normalizer(place_normalizer_target)
     blocking_1 = KeyBlocking(1, 2, ignore_none=True, callback=dpt_block_cb)
-    blocking_2 = MinHashingBlocking(0, 1, threshold=0.4)
-    dpt_blocking = PipelineBlocking((blocking_1, blocking_2), collect_stats=True)
+    if minhashing_threshold < 1.0:
+        blocking_2 = MinHashingBlocking(0, 1, threshold=minhashing_threshold, repeatable=repeatable)
+        blockings = (blocking_1, blocking_2)
+    else:
+        blockings = (blocking_1,)
+
+    dpt_blocking = PipelineBlocking(blockings)
     dpt_aligner.register_blocking(dpt_blocking)
     # Define aligner 4 - Align remaining data
     ngram_aligner = BaseAligner(threshold=0.2, processings=(processing,))
     ngram_aligner.register_ref_normalizer(place_normalizer_ref)
     ngram_aligner.register_target_normalizer(place_normalizer_target)
     blocking_1 = NGramBlocking(6, 5, ngram_size=3, depth=1)
-    blocking_2 = MinHashingBlocking(6, 5, threshold=0.4)
-    no_countries_blocking = PipelineBlocking((blocking_1, blocking_2), collect_stats=True)
+    if minhashing_threshold < 1.0:
+        blocking_2 = MinHashingBlocking(
+            6,
+            5,
+            threshold=minhashing_threshold,
+            repeatable=repeatable,
+        )
+        blockings = (blocking_1, blocking_2)
+    else:
+        blockings = (blocking_1,)
+
+    no_countries_blocking = PipelineBlocking(blockings)
     ngram_aligner.register_blocking(no_countries_blocking)
     # Launch the pipeline
     return PipelineAligner((city_dpt_aligner, dpt_aligner, ngram_aligner)).get_aligned_pairs(
@@ -465,22 +659,7 @@ def alignment_geo_data(refset, targetset=None):
     )
 
 
-def alignment_geo_data_countryonly(refset, targetset):
-    """Align two sets of records."""
-    place_normalizer_ref = NormalizerPipeline((SimplifyNormalizer(attr_index=0),))
-    place_normalizer_target = NormalizerPipeline((SimplifyNormalizer(attr_index=1),))
-    # Define aligner 3 - Align using countries
-    country_processing = BaseProcessing(distance_callback=lambda x, y: 0.0)
-    country_aligner = BaseAligner(threshold=0.2, processings=(country_processing,))
-    country_aligner.register_ref_normalizer(place_normalizer_ref)
-    country_aligner.register_target_normalizer(place_normalizer_target)
-    blocking_1 = KeyBlocking(1, 2, ignore_none=True, callback=country_block_cb)
-    country_aligner.register_blocking(blocking_1)
-
-    return country_aligner.get_aligned_pairs(refset, targetset)
-
-
-def alignment_geo_data_topographic(refset, targetset):
+def alignment_geo_data_topographic(refset, targetset, minhashing_threshold=0.4, repeatable=False):
     """Align two sets of records."""
     place_normalizer_ref = NormalizerPipeline((SimplifyNormalizer(attr_index=(0, 6)),))
     place_normalizer_target = NormalizerPipeline((SimplifyNormalizer(attr_index=1),))
@@ -493,7 +672,7 @@ def alignment_geo_data_topographic(refset, targetset):
     aligner.register_target_normalizer(place_normalizer_target)
     blocking1 = KeyBlocking(1, 2, ignore_none=True, callback=dpt_block_cb)
     blocking2 = KeyBlocking(1, 2, ignore_none=False, callback=fclass_block_cb)
-    blocking = PipelineBlocking((blocking1, blocking2), collect_stats=True)
+    blocking = PipelineBlocking((blocking1, blocking2))
     aligner.register_blocking(blocking)
     # Define aligner 6 - Align using topographic features (unmodified) and department
     unmodified_processing = BaseProcessing(
@@ -504,23 +683,31 @@ def alignment_geo_data_topographic(refset, targetset):
     unmodified_aligner.register_target_normalizer(place_normalizer_target)
     blocking1 = KeyBlocking(1, 2, ignore_none=True, callback=dpt_block_cb)
     blocking2 = KeyBlocking(1, 2, ignore_none=False, callback=fclass_block_cb)
-    unmodified_blocking = PipelineBlocking((blocking1, blocking2), collect_stats=True)
+    unmodified_blocking = PipelineBlocking((blocking1, blocking2))
     unmodified_aligner.register_blocking(unmodified_blocking)
     # Define aligner 7 - Align using topographic features (prefixed) without department
     aligner_no_dpt = BaseAligner(threshold=0.1, processings=(processing,))
     aligner_no_dpt.register_ref_normalizer(place_normalizer_ref)
     aligner_no_dpt.register_target_normalizer(place_normalizer_target)
     blocking1 = KeyBlocking(1, 2, ignore_none=False, callback=fclass_block_cb)
-    blocking2 = MinHashingBlocking(6, 1, threshold=0.4)
-    blocking_no_dpt = PipelineBlocking((blocking1, blocking2), collect_stats=True)
+    if minhashing_threshold < 1.0:
+        blocking_2 = MinHashingBlocking(6, 1, threshold=minhashing_threshold, repeatable=repeatable)
+        blockings = (blocking1, blocking_2)
+    else:
+        blockings = (blocking1,)
+    blocking_no_dpt = PipelineBlocking(blockings)
     aligner_no_dpt.register_blocking(blocking_no_dpt)
     # Define aligner 8 - Align using topographic features (unmodified) without department
     unmod_aligner_no_dpt = BaseAligner(threshold=0.1, processings=(unmodified_processing,))
     unmod_aligner_no_dpt.register_ref_normalizer(place_normalizer_ref)
     unmod_aligner_no_dpt.register_target_normalizer(place_normalizer_target)
     blocking1 = KeyBlocking(1, 2, ignore_none=False, callback=fclass_block_cb)
-    blocking2 = MinHashingBlocking(0, 1, threshold=0.4)
-    blocking_unmod_no_dpt = PipelineBlocking((blocking1, blocking2), collect_stats=True)
+    if minhashing_threshold < 1.0:
+        blocking_2 = MinHashingBlocking(0, 1, threshold=minhashing_threshold)
+        blockings = (blocking1, blocking_2)
+    else:
+        blockings = (blocking1,)
+    blocking_unmod_no_dpt = PipelineBlocking(blockings)
     unmod_aligner_no_dpt.register_blocking(blocking_unmod_no_dpt)
     return PipelineAligner(
         (aligner, unmodified_aligner, aligner_no_dpt, unmod_aligner_no_dpt)

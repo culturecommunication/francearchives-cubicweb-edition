@@ -5,7 +5,8 @@
 
 #admin-panel {
   position: fixed;
-  z-index: 1000;
+  top: 0;
+  z-index: 1020;
   overflow-y: auto;
   background-color: #eee;
   height: 100%;
@@ -27,17 +28,38 @@
   background-image: linear-gradient(to right, #ccc, #333, #ccc);
 }
 
+#admin-panel h1,
+#admin-panel h2,
+#admin-panel h3,
+#admin-panel h4,
+#admin-panel h5 {
+  font-weight: 400;
+}
+
+#admin-panel legend#root__title,
+#admin-panel h1 {
+  margin-top: 0.5rem;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+legend#root__title,
 #admin-panel h1 a {
-  color: #666666;
+  color: #0d4e96;
 }
 
 #admin-panel h2 {
   font-size: 20px;
+  font-size: 1.4rem;
 }
 
 #admin-panel h3 {
   font-size: 18px;
   color: #0d4e96;
+}
+
+#admin-panel .red {
+  color: #d51622;
 }
 
 #admin-panel form h3 {
@@ -48,6 +70,15 @@
   width: 300px;
 }
 
+#admin-panel form.rjsf {
+  padding: 1em 2em;
+  margin: 1em 0;
+  border: 1px solid #ced4da;
+}
+
+#admin-panel .form-control {
+  border: 1px solid #ced4da;
+}
 
 /* select all children of body except #admin-panel */
 body #admin-panel ~ * {
@@ -80,6 +111,43 @@ body #admin-panel ~ #toTopBtn {
   padding-left: 1em;
 }
 
+#admin-panel #mainpanel h3 {
+  padding-left: 0;
+}
+
+
+@media (min-width: 600px) {
+  .buttons-container {
+    border-top: 0;
+  }
+  .buttons-container li a{
+    padding: 3px 0.5rem;
+  }
+
+  body #admin-panel ~ * > #foreground-navtools {
+    margin-bottom: 4rem;
+  }
+}
+
+@media (min-width: 992px) {
+  .buttons-container {
+    padding-top: 10px;
+  }
+
+  .buttons-container li a{
+    padding: 0.3em 1rem;
+  }
+
+  body #admin-panel ~ * > #foreground-navtools {
+    margin-bottom: 0;
+  }
+}
+
+#login-link span {
+  font-family: 'lovelo';
+  vertical-align: top;
+}
+
 #toolbar {
   padding: 0px 10px;
   height: 100%;
@@ -105,10 +173,6 @@ body #admin-panel ~ #toTopBtn {
   display: block;
 }
 
-.login {
-  line-height: 3.125em;  /* come from francearchive #main-menu */
-  margin-right: 1em;
-}
 
 .fa-scale:hover {
   font-size: 1.3em;
@@ -205,11 +269,6 @@ progress:not([value]) {
   font-size: 10em;
 }
 
-
-div.cms_add_link {
-  font-size: 1.9em;
-}
-
 .url_link i.fa {
   padding-left: 0;
 }
@@ -238,17 +297,76 @@ div.cms_add_link {
   background-color: #fff;
 }
 
+#admin-panel .react-bootstrap-table .table-striped>tbody>tr:nth-of-type(odd) {
+  --bs-table-accent-bg: #f5f5f5;
+}
+
+#admin-panel a.react-bootstrap-table-pagination-list-hidden {
+    display: none;
+}
+
+#admin-panel .form-control {
+  font-size: inherit;
+}
+
+.react-bootstrap-table table { table-layout: auto !important; }
+
+
 #admin-panel span.react-bootstrap-table-pagination-total {
   display: inline-block;
   margin-left: 1em;
   color: #0d4e96;
 }
 
-#admin-panel label.search-label {
+#admin-panel label,
+ label.search-label {
   display: block;
   max-width: 100%;
   margin-bottom: 5px;
   font-weight: 700;
+}
+
+
+#admin-panel .checkbox label,
+#admin-panel  .radio label {
+  font-weight: 400;
+}
+
+.checkbox input[type=checkbox]+span,
+.checkbox-inline input[type=checkbox]+span,
+.radio input[type=radio]+span,
+.radio-inline input[type=radio]+span {
+  margin-left: 0.3rem;
+}
+
+#admin-panel .form-group {
+  margin-bottom: 15px;
+}
+
+#admin-panel .btn {
+  border-radius: 5px;
+}
+
+#admin-panel .btn-default {
+  color: #333;
+  background-color: #fff;
+  border-color: #ccc;
+}
+
+
+#admin-panel .btn-primary {
+  background-color:#09669d;
+  color: #fff;
+}
+
+
+div.cms_add_link {
+  font-size: 1.9em;
+}
+
+#admin-panel div.cms_add_link button{
+  background-color: #09669d;
+  color: #fff;
 }
 
 hr {
@@ -262,11 +380,35 @@ hr {
   text-align: left;
   font-size: 1.3em;
   color: #0d4e96;
-  margin: 1em 0;to
+  margin: 1em 0;
 }
 
 #admin-panel .btn-group button {
   margin-right: 0.5em;
+}
+
+#admin-panel .caret {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  vertical-align: middle;
+  border-top: 4px dashed;
+  border-top: 4px solid\9;
+  border-right: 4px solid transparent;
+  border-left: 4px solid transparent;
+}
+
+#admin-panel legend {
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin-bottom: 20px;
+  font-size: 21px;
+  line-height: inherit;
+  color: #333;
+  border: 0;
+  border-bottom: 1px solid #e5e5e5;
 }
 
  /* Dropdown Button */
@@ -278,12 +420,6 @@ hr {
   padding: 0;
 }
 
-/* The container <div> - needed to position the dropdown content */
-.dropdown {
-  position: relative;
-  display: block;
-  width: 100%;
-}
 
 /* Dropdown Content (Hidden by Default) */
 .dropdown-content {
@@ -310,4 +446,46 @@ hr {
 
 #translation-form legend#root__title{
   display: none;
+}
+
+ul.sitelink_context__items {
+  list-style-type: none;
+  margin: 0 15px;
+  padding: 0;
+  justify-content: center;
+}
+
+li.sitelink_context__item {
+  margin: 0 15px;
+}
+
+li.sitelink_context__item span{
+  display: block;
+  margin-left: 1em;
+}
+
+#admin-panel .field textarea {
+  min-height: 150px;
+}
+
+.text-red {
+  color: red;
+}
+
+i.glyphicon { display: none; }
+.btn-add::after { content: '+'; }
+.array-item-remove::after { content: '×'; }
+
+.togglePassword {
+  border-left: none;
+}
+
+.togglePassword i.fa {
+  padding: 0;
+  margin: 0.5rem 0;
+}
+
+/* Mirador */
+.MuiAppBar-root {
+  z-index: 1000!important;
 }

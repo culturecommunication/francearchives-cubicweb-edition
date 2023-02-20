@@ -58,23 +58,42 @@ class GeonamesAlignTaskBaseTC(FrACubicConfigMixIn, CubicWebTC):
         with self.admin_access.cnx() as cnx:
             sqlcursor = cnx.cnxset.cu
             # populated place features
-            sql = """INSERT INTO geonames (geonameid,name,admin4_code,country_code,fclass,fcode)
-            VALUES (%s,%s,%s,'FR','P',%s)"""
+            sql = """INSERT INTO geonames (geonameid,name,country_code,admin4_code,fclass,fcode)
+            VALUES (%s,%s,%s,%s,%s,%s)"""
             ppl = [
-                ("2988507", "Paris", "", "PPLC"),
-                ("2972328", "Toulon", "83137", "PPL"),
-                ("3000378", "Les Marrons", "05153", "PPL"),
-                ("2977998", "Saint-Michel-de-Chaillol", "05153", "PPL"),
-                ("3004994", "Le Breuil", "78265", "PPL"),
-                ("3004993", "Le Breuil", "51085", "PPL"),
-                ("3005001", "Le Breuil", "71059", "PPL"),
-                ("3005010", "Le Breuil", "69026", "PPL"),
-                ("2994172", "Mesvres", "71297", "PPL"),
-                ("2970761", "Vanves", "92075", "PPL"),
-                ("3015894", "Givry", "71221", "PPL"),
-                ("3037394", "Anzy-le-Duc", "71011", "PPL"),
-                ("3031090", "Bourbon-Lancy", "71047", "PPL"),
-                ("2986468", "Poligny", "05104", "PPL"),
+                ("2988507", "Paris", "FR", "", "P", "PPLC"),
+                ("2972328", "Toulon", "FR", "83137", "P", "PPL"),
+                ("3000378", "Les Marrons", "FR", "05153", "P", "PPL"),
+                ("2977998", "Saint-Michel-de-Chaillol", "FR", "05153", "P", "PPL"),
+                ("3004994", "Le Breuil", "FR", "78265", "P", "PPL"),
+                ("3004993", "Le Breuil", "FR", "51085", "P", "PPL"),
+                ("3005001", "Le Breuil", "FR", "71059", "P", "PPL"),
+                ("3005010", "Le Breuil", "FR", "69026", "P", "PPL"),
+                ("2994172", "Mesvres", "FR", "71297", "P", "PPL"),
+                ("2970761", "Vanves", "FR", "92075", "P", "PPL"),
+                ("3015894", "Givry", "FR", "71221", "P", "PPL"),
+                ("3037394", "Anzy-le-Duc", "FR", "71011", "P", "PPL"),
+                ("3031090", "Bourbon-Lancy", "FR", "71047", "P", "PPL"),
+                ("2986468", "Poligny", "FR", "05104", "P", "PPL"),
+                ("3173435", "Milan", "IT", "", "P", "PPL"),
+                ("2800866", "Brussels", "BE", "21004", "P", "PPLC"),
+                ("702550", "Lviv", "UA", "", "P", "PPLA"),
+                ("702548", "Lviv", "UA", "", "P", "PPL"),
+                ("1172451", "Lahore", "PK", "", "P", "PPLA"),
+            ]
+            sqlcursor.executemany(sql, ppl)
+            # populated place features
+            sql = """INSERT INTO geonames (
+                                 geonameid,name,country_code,admin1_code,
+                                 admin2_code,admin3_code,admin4_code,fclass,fcode)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
+            ppl = [
+                ("2972315", "Toulouse", "FR", "76", "31", "313", "31555", "P", "PPLA"),
+                ("6453974", "Toulouse", "FR", "76", "31", "313", "31555", "A", "ADM4"),
+                ("6332218", "Toulouse", "US", "KY", "131", None, None, "P", "PPL"),
+                ("6428080", "Saint-Jean-d'Angély", "FR", "75", "17", "175", "17347", "A", "ADM4"),
+                ("2979363", "Saint-Jean-d'Angély", "FR", "75", "17", "175", "17347", "P", "PPLA3"),
+                ("3013767", "Upper Garonne", "FR", "76", "31", None, None, "A", "ADM2"),  # dpt
             ]
             sqlcursor.executemany(sql, ppl)
             # cities
@@ -116,6 +135,7 @@ class GeonamesAlignTaskBaseTC(FrACubicConfigMixIn, CubicWebTC):
                 ("3031359", "13", "Département des Bouches-du-Rhône"),
                 ("3020781", "26", "Département de la Drôme"),
                 ("3036420", "10", "Département de l'Aube"),
+                ("3026644 ", "17", "Charente-Maritime"),
             ]
             sqlcursor.executemany(sql, departments)
             # regions
@@ -124,6 +144,8 @@ class GeonamesAlignTaskBaseTC(FrACubicConfigMixIn, CubicWebTC):
                 ("3012874", "11", "Île-de-France"),
                 ("11071619", "27", "Bourgogne-Franche-Comté"),
                 ("11071622", "44", "Grand Est"),
+                ("11071623", "76", "Occitanie"),
+                ("11071620", "75", "Nouvelle-Aquitaine"),
             ]
             sql = """INSERT INTO geonames
             (geonameid,admin1_code,name,country_code,fclass,fcode)
@@ -131,13 +153,17 @@ class GeonamesAlignTaskBaseTC(FrACubicConfigMixIn, CubicWebTC):
             sqlcursor.executemany(sql, regions)
             # countries
             countries = [
-                ("République Française", "3017382", "FR", "1291074", None),
                 ("France", "3017382", "FR", "1556321", None),
                 ("Algérie", "2589581", "DZ", "1557027", None),
                 ("Belgique", "2802361", "BE", "1559635", None),
                 ("Allemagne", "2921044", "DE", "1557490", None),
-                ("Île de France", "934292", "MU", "518473", True),
                 ("Île Maurice", "934292", "MU", "2256656", None),
+                ("Ukraine", "690791", "UA", "1564432", None),
+                ("Pakistan", "1168579", "PK", "1557611", None),
+            ]
+            alt_names = [
+                ("République Française", "3017382", "FR", "1291074", None),
+                ("Île de France", "934292", "MU", "518473", True),
             ]
             sql = """INSERT INTO geonames_altnames
             (alternate_name,geonameid,isolanguage,alternatenameid,ishistoric)
@@ -146,7 +172,62 @@ class GeonamesAlignTaskBaseTC(FrACubicConfigMixIn, CubicWebTC):
                 sql,
                 [
                     (altname, geonameid, alternatenameid, ishistoric)
-                    for altname, geonameid, _, alternatenameid, ishistoric in countries
+                    for altname, geonameid, _, alternatenameid, ishistoric in countries + alt_names
+                ],
+            )
+            # altnames
+            cities = [
+                ("Bruxelles", "2800866", "fr", "1260587", None, None, 1),
+                ("Lviv", "702550", "fr", "1649879", None, None, 1),
+                ("Lviv", "702548", "fr", "16606915", None, None, 1),
+                ("Lahore", "1172451", "fr", "1899630", None, None, 1),
+                ("Lâhore", "1172451", "fr", "1596968", None, None, 2),
+                ("Toulouse", "2972314", "fr", "16254299", None, None, 1),
+                ("Toulouse", "6453974", "fr", "9495607", None, None, 1),
+                ("Toulouse", "2972315", "fr", "1601977", None, None, 1),
+                ("Saint-Jean-d'Angély", "2979363", "fr", "16314570", None, None, 1),
+                ("Haute-Garonne", "3013767", "fr", "2187116", True, None, 1),  # dpt
+                (
+                    "Département de la Haute-Garonne",
+                    "3013767",
+                    "fr",
+                    "2080345",
+                    None,
+                    None,
+                    2,
+                ),  # dpt
+                ("Occitanie", "11071623", "fr", "11839623", None, None, 1),
+                ("Languedoc-Roussillon-Midi-Pyrénées", "11071623", "fr", "11712764", True, None, 2),
+                ("Région Occitanie", "11071623", "fr", "11839625", None, None, 3),
+                (
+                    "Région Occitanie (Pyrénées-Méditerranée)",
+                    "11071623",
+                    "fr",
+                    "11839626",
+                    None,
+                    None,
+                    4,
+                ),
+                ("Charente-Maritime", "3026644", "fr", "2187099", True, None, 1),
+                ("Département de la Charente-Maritime", "3026644", "fr", "2080374", True, None, 2),
+                ("Nouvelle-Aquitaine", "11071620", "fr", "12791523", None, None, 1),
+            ]
+            sql = """INSERT INTO geonames_altnames
+            (alternate_name,geonameid,isolanguage,alternatenameid,ispreferredname,ishistoric,rank)
+            VALUES(%s,%s,%s,%s,%s,%s,%s)"""
+            sqlcursor.executemany(
+                sql,
+                [
+                    (
+                        alternate_name,
+                        geonameid,
+                        isolanguage,
+                        alternatenameid,
+                        ispreferredname,
+                        ishistoric,
+                        rank,
+                    )
+                    for alternate_name, geonameid, isolanguage, alternatenameid, ispreferredname, ishistoric, rank in cities  # noqa
                 ],
             )
             sql = """INSERT INTO geonames (geonameid,country_code,fcode)
@@ -176,7 +257,7 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
         Trying: Paris
         Expecting: is aligned to  Paris (Île-de-France, Paris)
         """
-        rows = [["1234567890", "", "", "", "Paris", "", "", "75"]]
+        rows = [["1234567890", "", "", "", "Paris", "", "", "75", "no"]]
         with self.admin_access.cnx() as cnx:
             geodata = location.Geodata(cnx)
             _, records_dptonly, _, _ = geonames_align.build_record(rows, geodata)
@@ -186,7 +267,7 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
         ]  # populated place
         pairs = location.alignment_geo_data(records_dptonly, geonames)
         cells = list(geonames_align.cells_from_pairs(pairs, geonames, records_dptonly))
-        self.assertEqual(cells[0][5], "http://www.geonames.org/{}".format(geonameid))
+        self.assertEqual(cells[0][5], f"https://www.geonames.org/{geonameid}")
 
     def test_toulon(self):
         """Test label that contains dpt as context.
@@ -194,7 +275,7 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
         Trying: Toulon (Var)
         Expecting: is aligned to Toulon (Provence-Alpes-Côte d'Azur, Var)
         """
-        rows = [["1234567890", "", "", "", "Toulon (Var)", "", "Var", "83"]]
+        rows = [["1234567890", "", "", "", "Toulon (Var)", "", "Var", "83", "no"]]
         with self.admin_access.cnx() as cnx:
             geodata = location.Geodata(cnx)
             records, _, _, _ = geonames_align.build_record(rows, geodata)
@@ -213,7 +294,7 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
         ]
         pairs = location.alignment_geo_data(records, geonames)
         cells = list(geonames_align.cells_from_pairs(pairs, geonames, records))
-        self.assertEqual(cells[0][5], "http://www.geonames.org/{}".format(geonameid))
+        self.assertEqual(cells[0][5], f"https://www.geonames.org/{geonameid}")
 
     def test_marrons(self):
         """Test label that contains dpt and city as context.
@@ -231,6 +312,7 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
                 "",
                 "Hautes-Alpes",
                 "05",
+                "no",
             ]
         ]
         with self.admin_access.cnx() as cnx:
@@ -251,10 +333,10 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
             ]
             pairs = location.alignment_geo_data(records, geonames)
             cells = list(geonames_align.cells_from_pairs(pairs, geonames, records))
-        self.assertEqual(cells[0][5], "http://www.geonames.org/{}".format(geonameid))
+        self.assertEqual(cells[0][5], f"https://www.geonames.org/{geonameid}")
         pairs = location.alignment_geo_data(records, geonames)
         cells = list(geonames_align.cells_from_pairs(pairs, geonames, records))
-        self.assertEqual(cells[0][5], "http://www.geonames.org/{}".format(geonameid))
+        self.assertEqual(cells[0][5], f"https://www.geonames.org/{geonameid}")
 
     def test_breuil(self):
         """Test label that contains context that is neither dpt nor city
@@ -266,10 +348,10 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
         in Marne, Le Breuil in Saône-et-Loire et Le Breuil in Rhône
         """
         finding_aids = [
-            [["1234567890", "", "", "", "Breuil (Le)", "", "Yvelines", "78"]],
-            [["2345678901", "", "", "", "Breuil (Le)", "", "Marne", "51"]],
-            [["3456789012", "", "", "", "Breuil (Le)", "", "Saône-et-Loire", "71"]],
-            [["4567890123", "", "", "", "Breuil (Le)", "", "Rhône", "69"]],
+            [["1234567890", "", "", "", "Breuil (Le)", "", "Yvelines", "78", "no"]],
+            [["2345678901", "", "", "", "Breuil (Le)", "", "Marne", "51", "no"]],
+            [["3456789012", "", "", "", "Breuil (Le)", "", "Saône-et-Loire", "71", "no"]],
+            [["4567890123", "", "", "", "Breuil (Le)", "", "Rhône", "69", "no"]],
         ]
         urls = []
         geonameids = (3004994, 3004993, 3005001, 3005010)
@@ -324,7 +406,7 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
                 if cells:
                     urls.append(cells[0][5])
         self.assertCountEqual(
-            ["http://www.geonames.org/{}".format(geonameid) for geonameid in geonameids], urls
+            [f"https://www.geonames.org/{geonameid}" for geonameid in geonameids], urls
         )
 
     def test_an_minutiers(self):
@@ -333,7 +415,7 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
         Trying: rue
         Expecting: is aligned to Paris
         """
-        rows = [["1234567890", "", "", "", "Truffaut (rue)", "MC/E", "FRAN", "93"]]
+        rows = [["1234567890", "", "", "", "Truffaut (rue)", "MC/E", "FRAN", "93", "no"]]
         with self.admin_access.cnx() as cnx:
             geodata = location.Geodata(cnx)
             records, _, _, _ = geonames_align.build_record(rows, geodata)
@@ -347,6 +429,7 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
                 "",
                 "Paris (paris, paris)",
                 "Truffaut (rue)",
+                "no",
             ]
         ]
         self.assertEqual(expected, records)
@@ -365,7 +448,7 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
             ]
             pairs = location.alignment_geo_data(records, geonames)
             cells = list(geonames_align.cells_from_pairs(pairs, geonames, records))
-            self.assertEqual(cells[0][5], "http://www.geonames.org/{}".format(geonameid))
+            self.assertEqual(cells[0][5], f"https://www.geonames.org/{geonameid}")
 
     def test_algerie(self):
         """Test aligning to country if no context is given.
@@ -373,27 +456,18 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
         Trying: Algérie
         Expecting: is aligned to Algeria
         """
-        rows = [["1234567890", "", "", "", "Algérie", "", "Paris", "13"]]
+        rows = [["1234567890", "", "", "", "Algérie", "", "Paris", "13", "no"]]
         with self.admin_access.cnx() as cnx:
             geodata = location.Geodata(cnx)
             _, _, records_countryonly, _ = geonames_align.build_record(rows, geodata)
-        geonameid = 2589581
-        geonames = [
-            [
-                geonameid,
-                "People’s Democratic Republic of Algeria",
-                ("", "", "algerie", None),
-                "",
-                "",
-                "Algérie",
-                "",
-                "",
-            ]
-        ]
-        pairs = location.alignment_geo_data_countryonly(records_countryonly, geonames)
-        cells = list(geonames_align.cells_from_pairs(pairs, geonames, records_countryonly))
-        expected = "http://www.geonames.org/{}".format(geonameid)
-        self.assertEqual(expected, cells[0][5])
+            geonameid = 2589581
+            pairs = location.alignment_geo_foreign_countries_cities(
+                cnx, geodata, records_countryonly
+            )
+            cells = list(geonames_align.cells_from_aligned_pairs(pairs))
+            self.assertEqual(cells[0][5], f"https://www.geonames.org/{geonameid}")
+            expected = f"https://www.geonames.org/{geonameid}"
+            self.assertEqual(expected, cells[0][5])
 
     def test_foreign_country_in_context(self):
         """Test aligning to foreign country if foreign country is in context.
@@ -411,27 +485,106 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
                 "",
                 "FR075FMSH",
                 "75",
+                "no",
             ]
         ]
         with self.admin_access.cnx() as cnx:
             geodata = location.Geodata(cnx)
             _, _, records_countryonly, _ = geonames_align.build_record(rows, geodata)
             geonameid = "2802361"
-            geonames = [
-                [
-                    geonameid,
-                    "Kingdom of Belgium",
-                    (None, None, "belgique", None),
-                    "",
-                    "",
-                    "Belgique",
-                    "",
-                    "",
-                ]
+            pairs = location.alignment_geo_foreign_countries_cities(
+                cnx, geodata, records_countryonly
+            )
+            cells = list(geonames_align.cells_from_aligned_pairs(pairs))
+            self.assertEqual(cells[0][5], f"https://www.geonames.org/{geonameid}")
+
+    def test_foreign_city(self):
+        """Test aligning to foreign country if foreign city and country are given.
+
+        Trying: Bruxelles (Belgique)
+        Expecting: is aligned to Bruxelles (Belgique)
+        """
+        rows = [
+            [
+                "1234567890",
+                "",
+                "",
+                "",
+                "Bruxelles (Belgique)",
+                "",
+                "FR075FMSH",
+                "75",
+                "no",
             ]
-            pairs = location.alignment_geo_data_countryonly(records_countryonly, geonames)
-            cells = list(geonames_align.cells_from_pairs(pairs, geonames, records_countryonly))
-            self.assertEqual(cells[0][5], "http://www.geonames.org/{}".format(geonameid))
+        ]
+        with self.admin_access.cnx() as cnx:
+            geodata = location.Geodata(cnx)
+            _, _, records_countryonly, _ = geonames_align.build_record(rows, geodata)
+            geonameid = "2800866"
+            pairs = location.alignment_geo_foreign_countries_cities(
+                cnx, geodata, records_countryonly
+            )
+            cells = list(geonames_align.cells_from_aligned_pairs(pairs))
+            self.assertEqual(cells[0][5], f"https://www.geonames.org/{geonameid}")
+
+    def test_ambiguous_foreign_city(self):
+        """Test aligning to foreign country if foreign city and country are given.
+
+        Trying: Lviv (Ukraine)
+        Expecting: is aligned to Ukraine as there is two distinct Lviv, Ukraine in geonames
+        """
+        rows = [
+            [
+                "1234567890",
+                "",
+                "",
+                "",
+                "Lviv (Ukraine)",
+                "",
+                "FR075FMSH",
+                "75",
+                "no",
+            ]
+        ]
+        with self.admin_access.cnx() as cnx:
+            geodata = location.Geodata(cnx)
+            _, _, records_countryonly, _ = geonames_align.build_record(rows, geodata)
+            geonameid = "690791"
+            pairs = location.alignment_geo_foreign_countries_cities(
+                cnx, geodata, records_countryonly
+            )
+            cells = list(geonames_align.cells_from_aligned_pairs(pairs))
+            self.assertEqual(cells[0][5], f"https://www.geonames.org/{geonameid}")
+
+    def test_duplicated_foreign_city(self):
+        """Test aligning to foreign country if foreign city and country are given.
+
+        Trying: Lâhore (Pakistan)
+        Expecting: is aligned to Lâhore (Pakistan) although two different versions
+                   of the city name exist in geonames_altnames
+        """
+        rows = [
+            [
+                "1234567890",
+                "",
+                "",
+                "",
+                "Lâhore (Pakistan)",
+                "",
+                "FRAD64",
+                "65",
+                "no",
+            ]
+        ]
+        with self.admin_access.cnx() as cnx:
+            geodata = location.Geodata(cnx)
+            _, _, records_countryonly, _ = geonames_align.build_record(rows, geodata)
+            geonameid = "1172451"
+            pairs = location.alignment_geo_foreign_countries_cities(
+                cnx, geodata, records_countryonly
+            )
+            cells = list(geonames_align.cells_from_aligned_pairs(pairs))
+            self.assertEqual(cells[0][5], f"https://www.geonames.org/{geonameid}")
 
     def test_city_in_context(self):
         """Test aligning to city if city is in context.
@@ -449,6 +602,7 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
                 "",
                 "FRAD005",
                 "05",
+                "no",
             ]
         ]
         with self.admin_access.cnx() as cnx:
@@ -469,7 +623,7 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
             ]
             pairs = location.alignment_geo_data(records, geonames)
             cells = list(geonames_align.cells_from_pairs(pairs, geonames, records))
-            self.assertEqual(cells[0][5], "http://www.geonames.org/{}".format(geonameid))
+            self.assertEqual(cells[0][5], f"https://www.geonames.org/{geonameid}")
 
     def test_foreign_country_only_in_context(self):
         """Test aligning to foreign country if foreign country only is in context.
@@ -477,26 +631,16 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
         Trying: Heidelberg (Allemagne)
         Expecting: is aligned to Allemagne (instead of not at all)
         """
-        rows = [["1234567890", "", "", "", "Heidelberg (Allemagne)", "", "FRAD015", "015"]]
+        rows = [["1234567890", "", "", "", "Heidelberg (Allemagne)", "", "FRAD015", "015", "no"]]
         with self.admin_access.cnx() as cnx:
             geodata = location.Geodata(cnx)
             _, _, records_countryonly, _ = geonames_align.build_record(rows, geodata)
             geonameid = "2921044"
-            geonames = [
-                [
-                    geonameid,
-                    "Allemagne",
-                    (None, None, "allemagne", None),
-                    "",
-                    "",
-                    "Allemagne",
-                    "",
-                    "",
-                ]
-            ]
-            pairs = location.alignment_geo_data_countryonly(records_countryonly, geonames)
-            cells = list(geonames_align.cells_from_pairs(pairs, geonames, records_countryonly))
-            self.assertEqual(cells[0][5], "http://www.geonames.org/{}".format(geonameid))
+            pairs = location.alignment_geo_foreign_countries_cities(
+                cnx, geodata, records_countryonly
+            )
+            cells = list(geonames_align.cells_from_aligned_pairs(pairs))
+            self.assertEqual(cells[0][5], f"https://www.geonames.org/{geonameid}")
 
     def test_topographic_before_context(self):
         """Test aligning to feature classes S, H, T, V and L if topographic key
@@ -505,7 +649,19 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
         Trying: Versailles, château de (Yvelines, France)
         Expecting: is aligned to Château de Versailles
         """
-        rows = [["1234567890", "", "", "", "Versailles, château de (Yvelines, France)", "", "", ""]]
+        rows = [
+            [
+                "1234567890",
+                "",
+                "",
+                "",
+                "Versailles, château de (Yvelines, France)",
+                "",
+                "",
+                "",
+                "no",
+            ]
+        ]
         with self.admin_access.cnx() as cnx:
             geodata = location.Geodata(cnx)
             _, _, _, records_topographic = geonames_align.build_record(rows, geodata)
@@ -524,7 +680,7 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
             ]
             pairs = location.alignment_geo_data_topographic(records_topographic, geonames)
             cells = list(geonames_align.cells_from_pairs(pairs, geonames, records_topographic))
-            self.assertEqual(cells[0][5], "http://www.geonames.org/{}".format(geonameid))
+            self.assertEqual(cells[0][5], f"https://www.geonames.org/{geonameid}")
 
     def test_topographic_in_context(self):
         """Test aligning to feature classes S, H, T, V and L if topographic key
@@ -533,7 +689,19 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
         Trying: Saint-Cloud (Hauts-de-Seine , château de)
         Expecting: is aligned to Château de Saint-Cloud
         """
-        rows = [["1234567890", "", "", "", "Saint-Cloud (Hauts-de-Seine , château de)", "", "", ""]]
+        rows = [
+            [
+                "1234567890",
+                "",
+                "",
+                "",
+                "Saint-Cloud (Hauts-de-Seine , château de)",
+                "",
+                "",
+                "",
+                "no",
+            ]
+        ]
         with self.admin_access.cnx() as cnx:
             geodata = location.Geodata(cnx)
             _, _, _, records_topographic = geonames_align.build_record(rows, geodata)
@@ -552,7 +720,7 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
             ]
             pairs = location.alignment_geo_data_topographic(records_topographic, geonames)
             cells = list(geonames_align.cells_from_pairs(pairs, geonames, records_topographic))
-            self.assertEqual(cells[0][5], "http://www.geonames.org/{}".format(geonameid))
+            self.assertEqual(cells[0][5], f"https://www.geonames.org/{geonameid}")
 
     def test_topographic_department(self):
         """Test aligning to feature classes S, H, T, V and L if department is in context.
@@ -560,7 +728,7 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
         Trying: Melo, lac de (Haute-Corse, France)
         Expecting: is aligned to Lac de Melo
         """
-        rows = [["1234567890", "", "", "", "Melo, lac de (Haute-Corse, France)", "", "", ""]]
+        rows = [["1234567890", "", "", "", "Melo, lac de (Haute-Corse, France)", "", "", "", "no"]]
         with self.admin_access.cnx() as cnx:
             geodata = location.Geodata(cnx)
             _, _, _, records_topographic = geonames_align.build_record(rows, geodata)
@@ -575,11 +743,13 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
                     "Lac de Melo (haute corse)",
                     "",
                     "",
+                    "no",
                 ]
             ]
             pairs = location.alignment_geo_data_topographic(records_topographic, geonames)
             cells = list(geonames_align.cells_from_pairs(pairs, geonames, records_topographic))
-            self.assertEqual(cells[0][5], "http://www.geonames.org/{}".format(geonameid))
+            self.assertEqual(cells[0][5], f"https://www.geonames.org/{geonameid}")
+            self.assertEqual(cells[0][6], "Lac de Melo (haute corse)")
 
     def test_topographic_no_department(self):
         """Test aligning to feature classes S, H, T, V and L if
@@ -588,7 +758,7 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
         Trying: rhône (cours d'eau)
         Expecting: is not aligned to Rhône
         """
-        rows = [["1234567890", "", "", "", "rhône (cours d'eau)", "", "", ""]]
+        rows = [["1234567890", "", "", "", "rhône (cours d'eau)", "", "", "", "no"]]
         with self.admin_access.cnx() as cnx:
             geodata = location.Geodata(cnx)
             _, _, _, records_topographic = geonames_align.build_record(rows, geodata)
@@ -617,7 +787,7 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
             ]
             pairs = location.alignment_geo_data_topographic(records_topographic, geonames)
             cells = list(geonames_align.cells_from_pairs(pairs, geonames, records_topographic))
-            self.assertEqual(cells[0][5], "http://www.geonames.org/{}".format(geonameid))
+            self.assertEqual(cells[0][5], f"https://www.geonames.org/{geonameid}")
 
     def test_admin2(self):
         """Test aligning to administrative class A if administrative key word
@@ -646,7 +816,7 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
             ]
             pairs = location.alignment_geo_data(records, geonames)
             cells = list(geonames_align.cells_from_pairs(pairs, geonames, records))
-            self.assertEqual(cells[0][5], "http://www.geonames.org/{}".format(geonameid))
+            self.assertEqual(cells[0][5], f"https://www.geonames.org/{geonameid}")
 
     def test_admin3(self):
         """Test aligning to administrative class A if administrative key word
@@ -655,7 +825,7 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
         Trying: Reims (Marne , arrondissement)
         Expecting: is aligned to Arrondissement de Reims
         """
-        rows = [["1234567890", "", "", "", "Reims (Marne , arrondissement)", "", "", ""]]
+        rows = [["1234567890", "", "", "", "Reims (Marne , arrondissement)", "", "", "", "no"]]
         with self.admin_access.cnx() as cnx:
             geodata = location.Geodata(cnx)
             records, _, _, _ = geonames_align.build_record(rows, geodata)
@@ -674,7 +844,7 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
             ]
             pairs = location.alignment_geo_data(records, geonames)
             cells = list(geonames_align.cells_from_pairs(pairs, geonames, records))
-            self.assertEqual(cells[0][5], "http://www.geonames.org/{}".format(geonameid))
+            self.assertEqual(cells[0][5], f"https://www.geonames.org/{geonameid}")
 
     def test_dom(self):
         """Test aligning to département d'outre-mer.
@@ -683,7 +853,17 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
         Expecting: is aligned to Réunion
         """
         rows = [
-            ["1234567890", "", "", "", "Réunion (France ; département d'outre-mer)", "", "", ""]
+            [
+                "1234567890",
+                "",
+                "",
+                "",
+                "Réunion (France ; département d'outre-mer)",
+                "",
+                "",
+                "",
+                "no",
+            ]
         ]
         with self.admin_access.cnx() as cnx:
             geodata = location.Geodata(cnx)
@@ -694,7 +874,7 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
             ]
             pairs = location.alignment_geo_data(records, geonames)
             cells = list(geonames_align.cells_from_pairs(pairs, geonames, records))
-            self.assertEqual(cells[0][5], "http://www.geonames.org/{}".format(geonameid))
+            self.assertEqual(cells[0][5], f"https://www.geonames.org/{geonameid}")
 
     def test_tom(self):
         """Test aligning to territoire d'outre-mer.
@@ -702,7 +882,7 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
         Trying: Mayotte (territoire d'outre-mer)
         Expecting: is aligned to Mayotte
         """
-        rows = [["1234567890", "", "", "", "Mayotte (territoire d'outre-mer)", "", "", ""]]
+        rows = [["1234567890", "", "", "", "Mayotte (territoire d'outre-mer)", "", "", "", "no"]]
         with self.admin_access.cnx() as cnx:
             geodata = location.Geodata(cnx)
             records, _, _, _ = geonames_align.build_record(rows, geodata)
@@ -710,7 +890,7 @@ class GeonamesAlignTC(GeonamesAlignTaskBaseTC):
             geonames = [[geonameid, "Mayotte", (None, None, None, None), "", "", "Mayotte", "", ""]]
             pairs = location.alignment_geo_data(records, geonames)
             cells = list(geonames_align.cells_from_pairs(pairs, geonames, records))
-            self.assertEqual(cells[0][5], "http://www.geonames.org/{}".format(geonameid))
+            self.assertEqual(cells[0][5], f"https://www.geonames.org/{geonameid}")
 
 
 class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
@@ -743,6 +923,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
                     ("latitude", 0.0),
                     ("keep", keep),
                     ("fiabilite_alignement", 1),
+                    ("quality", "yes" if loc.quality else "no"),
                 ]
             )
         )
@@ -765,15 +946,15 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
         Expecting: alignments to add does not contain more than one alignment per authority
         """
         with self.admin_access.cnx() as cnx:
-            existing_alignment = {("18296037", "http://www.geonames.org/3582490")}
+            existing_alignment = {("18296037", "https://www.geonames.org/3582490")}
             aligner = geonames_align.GeonameAligner(cnx)
             with open(self.datapath("alignment-geonames-conflict.csv")) as fp:
                 new_alignment, to_remove_alignment = aligner.process_csv(
                     fp, existing_alignment, override_alignments=True
                 )
-            expected = [("18296037", "http://www.geonames.org/3036015")]
+            expected = [("18296037", "https://www.geonames.org/3036015")]
             self.assertEqual(list(new_alignment.keys()), expected)
-            expected = [("18296037", "http://www.geonames.org/3582490")]
+            expected = [("18296037", "https://www.geonames.org/3582490")]
             self.assertEqual(list(to_remove_alignment.keys()), expected)
 
     def test_process_csv_missing_column(self):
@@ -790,7 +971,17 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
 
     def test_build_records(self):
         rows = [
-            ["1234567890", "", "", "", "Mesvres", "U1", "Département de Saône-et-Loire", "71"],
+            [
+                "1234567890",
+                "",
+                "",
+                "",
+                "Mesvres",
+                "U1",
+                "Département de Saône-et-Loire",
+                "71",
+                "no",
+            ],
             [
                 "1234567890",
                 "",
@@ -800,31 +991,34 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
                 "U1",
                 "Département de Saône-et-Loire",
                 "71",
+                "no",
             ],
         ]
         expected = (
             [
                 [
                     "Mesvres",
-                    ["saone et loire", None, None, None],
+                    ["saone et loire", "Mesvres", None, None],
                     "1234567890",
                     "",
                     "",
                     "",
                     "Mesvres saone et loire",
                     "Mesvres",
+                    "no",
                 ]
             ],
             [
                 [
                     "Vanves",
-                    ["hauts de seine", None, "france", None],
+                    ["hauts de seine", "Vanves", "france", None],
                     "1234567890",
                     "",
                     "",
                     "",
                     "Vanves (Hauts-de-Seine, France)",
                     "Vanves (Hauts-de-Seine, France)",
+                    "no",
                 ]
             ],
             [],
@@ -845,6 +1039,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
                 "U1",
                 "Département de Saône-et-Loire",
                 "71",
+                "no",
             ],
             [
                 "1234567890",
@@ -855,6 +1050,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
                 "U2",
                 "Département de Saône-et-Loire",
                 "71",
+                "no",
             ],
             [
                 "1234567890",
@@ -865,6 +1061,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
                 "U3",
                 "Département de Saône-et-Loire",
                 "71",
+                "no",
             ],
         ]
         expected = (
@@ -879,6 +1076,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
                     "",
                     "Cortiambles (Givry) saone et loire",
                     "Cortiambles (Givry)",
+                    "no",
                 ],
                 [
                     "Tours",
@@ -889,6 +1087,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
                     "",
                     "Tours (Anzy-le-Duc) saone et loire",
                     "Tours (Anzy-le-Duc)",
+                    "no",
                 ],
                 [
                     "Bourbon-Lancy, Bailliage de",
@@ -899,6 +1098,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
                     "",
                     "Bourbon-Lancy, Bailliage de (France) saone et loire",
                     "Bourbon-Lancy, Bailliage de (France)",
+                    "no",
                 ],
             ],
             [],
@@ -918,7 +1118,17 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
         in list of departmental records
         """
         rows = [
-            ["1234567890", "", "", "", "Cormeilles en Vexin, aéroport", "", "Val-d'Oise", "95"],
+            [
+                "1234567890",
+                "",
+                "",
+                "",
+                "Cormeilles en Vexin, aéroport",
+                "",
+                "Val-d'Oise",
+                "95",
+                "no",
+            ],
             [
                 "1234567890",
                 "",
@@ -928,6 +1138,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
                 "",
                 "Cantal",
                 "15",
+                "no",
             ],
             [
                 "1234567890",
@@ -938,6 +1149,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
                 "",
                 "Marne",
                 "51",
+                "no",
             ],
         ]
         expected_dptonly = [
@@ -950,6 +1162,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
                 "",
                 "Le lac de Menet, 1783 (aveu au roi par Gabrielle de la Croix) cantal",
                 "Le lac de Menet, 1783 (aveu au roi par Gabrielle de la Croix)",
+                "no",
             ]
         ]
         expected_topographic = [
@@ -962,6 +1175,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
                 "",
                 "cours d eau Aisne",
                 "Aisne (Marne ; cours d'eau) -- Sainte-Menehould",
+                "no",
             ],
             [
                 "Cormeilles en Vexin, aéroport",
@@ -972,6 +1186,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
                 "",
                 "aeroport Cormeilles en Vexin",
                 "Cormeilles en Vexin, aéroport",
+                "no",
             ],
         ]
         with self.admin_access.cnx() as cnx:
@@ -986,7 +1201,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
         Trying: Crocq (Creuse, France ; canton)
         Expecting: is skipped
         """
-        rows = [["1234567890", "", "", "", " Crocq (Creuse, France ; canton)", "", "", ""]]
+        rows = [["1234567890", "", "", "", " Crocq (Creuse, France ; canton)", "", "", "", "no"]]
         with self.admin_access.cnx() as cnx:
             geodata = location.Geodata(cnx)
             records, dptonly, countryonly, topographic = geonames_align.build_record(rows, geodata)
@@ -1002,13 +1217,67 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
         Trying: token is name of department and name of city
         Expecting: token is treated as department
         """
-        rows = [["1234567890", "", "", "", "Bar-sur-Seine (Aube, France)", "", "", ""]]
+        rows = [["1234567890", "", "", "", "Bar-sur-Seine (Aube, France)", "", "", "", "no"]]
         with self.admin_access.cnx() as cnx:
             geodata = location.Geodata(cnx)
             records, _, _, _ = geonames_align.build_record(rows, geodata)
             record = records[0]
             self.assertEqual(record[1][0], "aube")
             self.assertNotEqual(record[1][1], "aube")
+
+    def test_toulouse_pp(self):
+        """Test that cities are aligned to P fclass if P and A exist.
+
+        Trying: Toulouse (Haute-Garonne, France)
+        Expecting: is aligned to Toulouse (Haute-Garonne, France)
+                   https://www.geonames.org/2972315 (fclass P)
+
+        """
+        rows = [["167886031", "", "", "", "Toulouse (Haute-Garonne, France)", "", "", "", "yes"]]
+        with self.admin_access.cnx() as cnx:
+            geodata = location.Geodata(cnx)
+            pnia_records, _, _, _ = geonames_align.build_record(rows, geodata)
+            geonameid = 2972315
+            geoname = location.build_geoname_set(cnx, geodata)
+            self.assertIn("toulouse", geodata.simplified_cities.values())
+            pairs = location.alignment_geo_data(pnia_records, geoname)
+            cells = list(geonames_align.cells_from_pairs(pairs, geoname, pnia_records))
+            self.assertEqual(cells[0][5], f"https://www.geonames.org/{geonameid}")
+            self.assertEqual(cells[0][6], "Toulouse (Occitanie, Haute-Garonne)")
+
+    def test_saint_jean_pp(self):
+        """Test that cities are aligned to P fclass if P and A exist.
+
+        Trying: Saint-Jean-d'Angély (Charente-Maritime, France, commune)
+        Expecting: is aligned to Saint-Jean-d'Angély (Nouvelle-Aquitaine,Charente-Maritime)
+                   to https://www.geonames.org/2979363 (fclasse P)
+
+        """
+        rows = [
+            [
+                "167886031",
+                "",
+                "",
+                "",
+                "Saint-Jean-d'Angély (Charente-Maritime, France, commune)",
+                "",
+                "",
+                "",
+                "yes",
+            ]
+        ]
+        with self.admin_access.cnx() as cnx:
+            geodata = location.Geodata(cnx)
+            pnia_records, _, _, _ = geonames_align.build_record(rows, geodata)
+            geonameid = 2979363
+            geoname = location.build_geoname_set(cnx, geodata)
+            self.assertIn("saint jean d angely", geodata.simplified_cities.values())
+            pairs = location.alignment_geo_data(pnia_records, geoname)
+            cells = list(geonames_align.cells_from_pairs(pairs, geoname, pnia_records))
+            self.assertEqual(cells[0][5], f"https://www.geonames.org/{geonameid}")
+            self.assertEqual(
+                cells[0][6], "Saint-Jean-d'Angély (Nouvelle-Aquitaine, Charente-Maritime)"
+            )
 
     def _test_minhashing_pipline(self, refset, targetset):
         """MinHash pipeline.
@@ -1074,7 +1343,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
         Expecting : localisation info is delete on the corresponding Location
         """
         with self.admin_access.cnx() as cnx:
-            geoname_uri = "http://www.geonames.org/2972328"
+            geoname_uri = "https://www.geonames.org/2972328"
             cnx.system_sql(
                 """UPDATE geonames SET latitude=43.12,longitude=5.93
                 WHERE geonameid=2972328"""
@@ -1136,7 +1405,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
         Expecting : same_as relation still exists
         """
         with self.admin_access.cnx() as cnx:
-            geoname_uri = "http://www.geonames.org/2988507"
+            geoname_uri = "https://www.geonames.org/2988507"
             fa, loc, geogname = self.setup_process_alignments(cnx, geoname_uri)
             self.assertEqual(
                 [
@@ -1179,7 +1448,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
         Expecting : same_as relation do not exists
         """
         with self.admin_access.cnx() as cnx:
-            geoname_uri = "http://www.geonames.org/2988507"
+            geoname_uri = "https://www.geonames.org/2988507"
             fa, loc, geogname = self.setup_process_alignments(cnx, geoname_uri)
             cnx.commit()
             self.assertEqual(
@@ -1211,7 +1480,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
         Expecting : same_as relation must not exists
         """
         with self.admin_access.cnx() as cnx:
-            geoname_uri = "http://www.geonames.org/2988507"
+            geoname_uri = "https://www.geonames.org/2988507"
             _, loc, geogname = self.setup_process_alignments(cnx, geoname_uri)
             loc.cw_set(same_as=None)
             cnx.commit()
@@ -1243,7 +1512,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
         Expecting : same_as relation must exists
         """
         with self.admin_access.cnx() as cnx:
-            geoname_uri = "http://www.geonames.org/2988507"
+            geoname_uri = "https://www.geonames.org/2988507"
             _, loc, geogname = self.setup_process_alignments(cnx, geoname_uri)
             loc.cw_set(same_as=None)
             cnx.commit()
@@ -1274,7 +1543,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
         Expecting: user-defined latitude/longitude values are not changed
         """
         with self.admin_access.cnx() as cnx:
-            geoname_uri = "http://www.geonames.org/2988507"
+            geoname_uri = "https://www.geonames.org/2988507"
             _, locationauthority, geogname = self.setup_process_alignments(cnx, geoname_uri)
             self.assertEqual(locationauthority.latitude, 0.0)
             self.assertEqual(locationauthority.longitude, 0.0)
@@ -1302,7 +1571,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
         Expecting: user-defined latitude/longitude values are changed
         """
         with self.admin_access.cnx() as cnx:
-            geoname_uri = "http://www.geonames.org/2988507"
+            geoname_uri = "https://www.geonames.org/2988507"
             _, locationauthority, geogname = self.setup_process_alignments(cnx, geoname_uri)
             self.assertEqual(locationauthority.latitude, 0.0)
             self.assertEqual(locationauthority.longitude, 0.0)
@@ -1332,10 +1601,10 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
         with self.admin_access.cnx() as cnx:
             # insert user-defined
             _, locationauthority, geogname = self.setup_process_alignments(
-                cnx, "http://www.geonames.org/2988507"
+                cnx, "https://www.geonames.org/2988507"
             )
             geonameid = "1234567890"
-            geoname_uri = "http://www.geonames.org/{}".format(geonameid)
+            geoname_uri = f"https://www.geonames.org/{geonameid}"
             cnx.create_entity(
                 "ExternalUri", uri=geoname_uri, label="foo", extid=geonameid, source="geoname"
             ).eid
@@ -1355,7 +1624,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
         Expecting: existing alignments
         """
         with self.admin_access.cnx() as cnx:
-            geoname_uri = "http://www.geonames.org/2988507"
+            geoname_uri = "https://www.geonames.org/2988507"
             _, locationauthority, geogname = self.setup_process_alignments(cnx, geoname_uri)
             expected = {(str(locationauthority.eid), geoname_uri)}
             aligner = geonames_align.GeonameAligner(cnx)
@@ -1373,7 +1642,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
             authority = cnx.create_entity("LocationAuthority", label="bar")
             geogname = cnx.create_entity("Geogname", index=findingaid, authority=authority)
             cnx.commit()
-            geoname_uri = "http://www.geonames.org/1234567890"
+            geoname_uri = "https://www.geonames.org/1234567890"
             record = self.build_record(geogname, authority, geoname_uri, "y")
             key = (authority.eid, geoname_uri)
             new_alignment = {key: record}
@@ -1398,7 +1667,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
             authority = cnx.create_entity("LocationAuthority", label="bar")
             geogname = cnx.create_entity("Geogname", index=findingaid, authority=authority)
             cnx.commit()
-            geoname_uri = "http://www.geonames.org/1234567890"
+            geoname_uri = "https://www.geonames.org/1234567890"
             record = self.build_record(geogname, authority, geoname_uri, "y")
             key = (authority.eid, geoname_uri)
             new_alignment = {key: record}
@@ -1426,7 +1695,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
             authority = cnx.create_entity("LocationAuthority", label="bar")
             geogname = cnx.create_entity("Geogname", index=findingaid, authority=authority)
             cnx.commit()
-            geoname_uri = "http://www.geonames.org/1234567890"
+            geoname_uri = "https://www.geonames.org/1234567890"
             record = self.build_record(geogname, authority, geoname_uri, "y")
             record.geonamealignlabel = "foobar"
             key = (authority.eid, geoname_uri)
@@ -1448,7 +1717,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
             geogname = cnx.create_entity("Geogname", index=findingaid, authority=authority)
             cnx.commit()
             geonameid = "1234567890"
-            geoname_uri = "http://www.geonames.org/{}".format(geonameid)
+            geoname_uri = f"https://www.geonames.org/{geonameid}"
             record = self.build_record(geogname, authority, geoname_uri, "y")
             record.geonamealignlabel = None
             key = (authority.eid, geoname_uri)
@@ -1480,6 +1749,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
             "libelle_LocationAuthority": "foobar",
             "URI_GeoNames": "bar",
             "keep": "baz",
+            "quality": "no",
         }
         record = geonames_align.GeonameRecord(dictrow)
         self.assertEqual(record.autheid, dictrow["identifiant_LocationAuthority"])
@@ -1507,12 +1777,14 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
             geonameuri = "https://geonames.org/{}".format(geonameid)
             cnx.create_entity("ExternalUri", uri=geonameuri, extid=geonameid, source="geoname")
             cnx.commit()
+            self.assertFalse(authority_overwrite.quality)
             record = geonames_align.GeonameRecord(
                 {
                     "identifiant_LocationAuthority": authority.eid,
                     "libelle_LocationAuthority": authority.label,
                     "URI_GeoNames": geonameuri,
                     "keep": "yes",
+                    "quality": "no",
                 }
             )
             record_overwrite = geonames_align.GeonameRecord(
@@ -1521,6 +1793,7 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
                     "libelle_LocationAuthority": authority_overwrite.label,
                     "URI_GeoNames": geonameuri,
                     "keep": "yes",
+                    "quality": "no",
                 }
             )
             key = (authority.eid, geonameuri)
@@ -1533,15 +1806,14 @@ class GeonamesPipelineComponentsTC(GeonamesAlignTaskBaseTC):
             aligner = geonames_align.GeonameAligner(cnx)
             aligner.process_alignments(new_alignment, {}, override_alignments=True)
             # LocationAuthority aligned to BANO is not updated
-            authority = cnx.find_one_entity("LocationAuthority", eid=authority.eid)
+            authority = cnx.find("LocationAuthority", eid=authority.eid).one()
             self.assertEqual(authority.longitude, -1.0)
             self.assertEqual(authority.latitude, -1.0)
             # previously non-aligned LocationAuthority is updated
-            authority_overwrite = cnx.find_one_entity(
-                "LocationAuthority", eid=authority_overwrite.eid
-            )
+            authority_overwrite = cnx.find("LocationAuthority", eid=authority_overwrite.eid).one()
             self.assertEqual(authority_overwrite.longitude, 0.0)
             self.assertEqual(authority_overwrite.latitude, 0.0)
+            self.assertFalse(authority_overwrite.quality)
 
     def test_do_not_use_historic_names(self):
         """Testing not using historic names.

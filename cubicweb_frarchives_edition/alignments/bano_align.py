@@ -60,6 +60,7 @@ def cells_from_pairs(pairs, bano_set, records, simplified=False):
             str(bano_record[3]),  # latitude
             "yes",  # keep
             "",  # confidence (default value)
+            auth_record[8],  # quality
         ]
         if simplified:
             # Geoname URI at index 1
@@ -125,7 +126,7 @@ def build_record(locations):
     :rtype: list
     """
     for location in locations:
-        auth_label, unitid, code, _ = location[4:]
+        auth_label, unitid, code, _, quality = location[4:]
         processed_label = {}
         # Minutiers des AN
         # unitid is not required
@@ -161,6 +162,7 @@ class BanoRecord(align.LocationRecord):
             ("latitude", "latitude"),
             ("keep", "keep"),
             ("fiabilite_alignement", "confidence"),
+            ("quality", "quality"),
         ]
     )
     simplified_headers = OrderedDict(
@@ -176,6 +178,7 @@ class BanoAligner(align.LocationAligner):
     """BANO aligner."""
 
     record_type = BanoRecord
+    source = "bano"
 
     def __init__(self, cnx, log=None):
         """Initialize BANO aligner.
@@ -195,15 +198,38 @@ class BanoAligner(align.LocationAligner):
             res.extend(self._bano_sets[city])
         return res
 
-    def compute_findingaid_alignments(self, findingaids, simplified=False):
+    def compte_location_query(self, force=False):
+        """compute the query to fetch locations.
+
+        :param boolean force: if True: recalculate existing alignements, if False: ignore them
+
+        :returns: url
+        :rtype: string
+        """
+        if force:
+            restrict = ""
+        else:
+            restrict = f""", NOT EXISTS(
+            X same_as EX,
+            EX is ExternalId,
+            EX extid E,
+            EX source '{self.source}'
+            )
+            """
+
+        return self.location_query.format(restrict=restrict)
+
+    def compute_findingaid_alignments(self, findingaids, simplified=False, force=False):
         """Compute FindingAid alignment.
 
         :param list findingaids: list of imported FindingAids
+        :param boolean simplified: use simplified header for genarated csv file
+        :param boolean force: if True: recalculate existing alignements, if False: ignore them
 
         :returns: list of aligned pairs
         :rtype: list
         """
-        locations = self.fetch_locations(findingaids)
+        locations = self.fetch_locations(findingaids, force=force)
         if not locations:
             self.log.info("no location found, skip BANO alignment")
             return []
@@ -217,18 +243,6 @@ class BanoAligner(align.LocationAligner):
         rows = list(cells_from_pairs(pairs, bano_set, records, simplified=simplified))
         rows = set(tuple(row) for row in rows)
         return rows
-
-    def compute_existing_alignment(self):
-        """Fetch existing alignment(s) from database.
-
-        :returns: exiting alignment(s)
-        :rtype: set
-        """
-        alignment_query = """DISTINCT Any X, E WHERE
-        X is LocationAuthority, X same_as EX,
-        EX extid E, EX source 'bano'
-        """
-        return {(str(auth), extid) for auth, extid in self.cnx.execute(alignment_query)}
 
     def process_csv(self, fp, existing_alignment, override_alignments=False):
         """Process CSV file.
@@ -298,7 +312,7 @@ class BanoAligner(align.LocationAligner):
         existing_extid = {
             extid: eid
             for eid, extid in self.cnx.execute(
-                'Any X, I WHERE X is ExternalId, X extid I, X source "bano"'
+                f'Any X, I WHERE X is ExternalId, X extid I, X source "{self.source}"'
             )
         }
         # update ExternalId entities
@@ -320,7 +334,7 @@ class BanoAligner(align.LocationAligner):
                     ext = existing_extid[banoid]
                 else:
                     ext = self.cnx.create_entity(
-                        "ExternalId", extid=banoid, label=record.banolabel, source="bano"
+                        "ExternalId", extid=banoid, label=record.banolabel, source=self.source
                     ).eid
                     existing_extid[banoid] = ext
                 self.cnx.system_sql(
@@ -365,7 +379,7 @@ class BanoAligner(align.LocationAligner):
             SET cw_latitude=b.lat, cw_longitude=b.lon
             FROM (
                 SELECT tmp.cw_eid, tmp.cw_extid FROM cw_externalid tmp
-                WHERE tmp.cw_source = 'bano'
+                WHERE tmp.cw_source = '{self.source}'
             ) eu
             JOIN same_as_relation sa ON sa.eid_to = eu.cw_eid
             JOIN bano_whitelisted b ON b.banoid = eu.cw_extid

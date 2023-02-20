@@ -32,9 +32,8 @@
 import fakeredis
 
 from cubicweb import Binary
-from cubicweb.pyramid.test import PyramidCWTest
 
-from cubicweb_francearchives.testutils import HashMixIn
+from cubicweb_francearchives.testutils import S3BfssStorageTestMixin
 
 import utils
 import urllib.request
@@ -42,28 +41,7 @@ import urllib.parse
 import urllib.error
 
 
-BASE_SETTINGS = {
-    "cubicweb.bwcompat": "no",
-    "cubicweb.session.secret": "stuff",
-    "cubicweb.auth.authtkt.session.secret": "stuff",
-    "cubicweb.auth.authtkt.persistent.secret": "stuff",
-    "francearchives.autoinclude": "no",
-    "pyramid.debug_routematch": "true",
-}
-
-
-class JSONSchemaAdapterTC(HashMixIn, utils.FrACubicConfigMixIn, PyramidCWTest):
-    settings = BASE_SETTINGS
-
-    settings = {
-        "cubicweb.bwcompat": False,
-        "cubicweb.auth.authtkt.session.secret": "top secret",
-        "pyramid.debug_notfound": True,
-        "cubicweb.session.secret": "stuff",
-        "cubicweb.auth.authtkt.persistent.secret": "stuff",
-        "francearchives.autoinclude": "no",
-    }
-
+class JSONSchemaAdapterTC(S3BfssStorageTestMixin, utils.FranceArchivesCMSTC):
     def includeme(self, config):
         config.registry.settings["frarchives_edition.rq.redis"] = fakeredis.FakeStrictRedis()
         config.include("cubicweb_frarchives_edition.cms")
@@ -80,7 +58,7 @@ class JSONSchemaAdapterTC(HashMixIn, utils.FrACubicConfigMixIn, PyramidCWTest):
             data_sha1hex = f.data_hash
         self.webapp.extra_environ["debug_routematch"] = "true"
         res = self.webapp.get(
-            "/file/{0}".format(eid), status=200, headers={"accept": "application/json"}
+            "/file/{0}/".format(eid), status=200, headers={"accept": "application/json"}
         )
         self.assertEqual(
             res.json["download_url"], "/file/{}/data".format(urllib.parse.quote(data_sha1hex))

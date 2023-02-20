@@ -31,7 +31,7 @@
 import React from 'react'
 import {each} from 'lodash/collection'
 
-const uuidv4 = require('uuid/v4')
+const {v4: uuidv4} = require('uuid')
 const {Link} = require('react-router-dom')
 
 const PropTypes = require('prop-types')
@@ -41,12 +41,11 @@ const {
 } = require('../api')
 
 function setupDropDownCollapse() {
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         if (!event.target.matches('.dropbtn')) {
-            const dropDowns = document.getElementsByClassName(
-                'dropdown-content',
-            )
-            Array.from(dropDowns).forEach(dropDown => {
+            const dropDowns =
+                document.getElementsByClassName('dropdown-content')
+            Array.from(dropDowns).forEach((dropDown) => {
                 if (dropDown.classList.contains('show')) {
                     dropDown.classList.remove('show')
                 }

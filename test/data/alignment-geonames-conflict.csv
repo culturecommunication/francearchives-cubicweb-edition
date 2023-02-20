@@ -1,8 +1,8 @@
-identifiant_LocationAuthority	URI_Geogname	libelle_Geogname	URI_LocationAuthority	libelle_LocationAuthority	URI_GeoNames	libelle_GeoNames	longitude	latitude	keep	fiabilite_alignement
-18342020				libelle_18342020	http://www.geonames.org/3036015				yes	
-18342020				libelle_18342020	http://www.geonames.org/3036015	foo			yes	
-18342020				libelle_18342020	http://www.geonames.org/6447270				yes	
-18339882				libelle_18339882	http://www.geonames.org/3036015				yes	
-18296037				libelle_18296037	http://www.geonames.org/3036015				yes	
-18339882				libelle_18339882	http://www.geonames.org/3036015				no	
-18296037				libelle_18296037	http://www.geonames.org/3582490				no	
+identifiant_LocationAuthority	URI_Geogname	libelle_Geogname	URI_LocationAuthority	libelle_LocationAuthority	URI_GeoNames	libelle_GeoNames	longitude	latitude	keep	fiabilite_alignement	quality
+18342020				libelle_18342020	https://www.geonames.org/3036015				yes		yes
+18342020				libelle_18342020	https://www.geonames.org/3036015	foo			yes		yes
+18342020				libelle_18342020	https://www.geonames.org/6447270				yes		yes
+18339882				libelle_18339882	https://www.geonames.org/3036015				yes		no
+18296037				libelle_18296037	https://www.geonames.org/3036015				yes		no
+18339882				libelle_18339882	https://www.geonames.org/3036015				no		no
+18296037				libelle_18296037	https://www.geonames.org/3582490				no		no

@@ -1,7 +1,10 @@
-fakeredis == 1.0.5
+fakeredis == 1.7.1
 mock
 webtest
 pifpaf
-hg+https://franceachives:897dYPJQQeoTuw1Es-Hw@forge.extranet.logilab.fr/francearchives/cubicweb-francearchives/@default
-https://hg.logilab.org/users/siaf/yams/archive/tip.tar.bz2#egg=yams
-logilab-common==1.4.4
+moto
+pytest
+pytest-xdist
+Pygments
+    # via
+    # pyramid-debugtoolbar

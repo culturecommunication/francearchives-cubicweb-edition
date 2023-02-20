@@ -10,14 +10,34 @@ msgstr ""
 msgid "\"label\" is required"
 msgstr "le champ \"label\" est requis"
 
+msgid ""
+"\"{fileobj.filename}\" file contains invalid headers \"{\", \"."
+"join(headers)}\""
+msgstr ""
+"Le fichier \"{fileobj.filename}\" contient des colonnes invalides \"{\", \"."
+"join(headers)}\""
+
 msgid "0 document"
 msgstr ""
 
 msgid "1 document"
 msgstr ""
 
+msgid "A Service code must not contain any lower case characters"
+msgstr "Le code de service ne doit pas contenir de caractères en minuscule"
+
 #, python-format
 msgid "A Service with \"%s\" code already exists"
+msgstr "Un service avec le code  \"%s\" existe déjà"
+
+msgid "Agents"
+msgstr "Personnes et institutions"
+
+msgid ""
+"An email has been sent, follow instructions in there to change your password."
+msgstr ""
+
+msgid "Authority eid"
 msgstr ""
 
 msgid ""
@@ -27,13 +47,40 @@ msgstr ""
 "Fichier CSV invalide. Ce fichier doit contenir les colonnes \"Code_insee\", "
 "\"URL\", \"Couleur\" et \"Legende\"séparées par \",\""
 
-msgid "Context of import"
-msgstr "Contexte de groupement des entrées d'index"
+msgid "Captcha"
+msgstr ""
+
+msgid "Choose the service"
+msgstr "Choisir le service"
+
+msgid "Copy the glossary term link"
+msgstr "Copier le lien du glossaire"
+
+msgid "Could not retrieve data from {}: {}"
+msgstr "Il n'a pas été possible de récupérer les données de {}: {}"
+
+msgid "Do not import data in DB. Only harverts data."
+msgstr ""
+"Moissonner les données moissonnées sans les importer dans l'application."
+
+msgid "Encountered an error while creating en entity"
+msgstr "Une erreur est apparue lors de la création de l'entité"
+
+msgid ""
+"Following errors/warnings occurred while harvesting {} ({}) OAI repository "
+"{}. For the complete log visit {}."
+msgstr ""
+"Vous trouverez ci-dessous les erreurs et les avertissements qui sont "
+"survenus lors du moissonnage de l'entrepôt OAI {} du service {} ({}). Les "
+"logs complets de cette tâche sont disponbiles sur {}."
 
 msgid "Following files are empty : {}"
 msgstr ""
 
 msgid "Following files does not start with \"{}\" : {}"
+msgstr ""
+
+msgid "Forgot your password?"
 msgstr ""
 
 msgid "Found non-existent service code: "
@@ -51,11 +98,89 @@ msgstr ""
 msgid "Impossible to publish"
 msgstr ""
 
-msgid "Intitules de la rubrique presentation"
+msgid "Invalid link. Please try again."
 msgstr ""
+
+msgid "Locations"
+msgstr "Lieux"
 
 msgid "Missing data"
 msgstr "Données manquantes"
+
+msgid "NMN_A"
+msgstr ""
+
+msgid "NMN_AN"
+msgstr ""
+
+msgid "NMN_AU"
+msgstr ""
+
+msgid "NMN_BANS"
+msgstr ""
+
+msgid "NMN_BN"
+msgstr ""
+
+msgid "NMN_CM"
+msgstr ""
+
+msgid "NMN_CO"
+msgstr ""
+
+msgid "NMN_DI"
+msgstr ""
+
+msgid "NMN_F"
+msgstr ""
+
+msgid "NMN_JU"
+msgstr ""
+
+msgid "NMN_M"
+msgstr ""
+
+msgid "NMN_M14-18"
+msgstr ""
+
+msgid "NMN_MPF"
+msgstr ""
+
+msgid "NMN_MPF14-18"
+msgstr ""
+
+msgid "NMN_P"
+msgstr ""
+
+msgid "NMN_PR"
+msgstr ""
+
+msgid "NMN_PU"
+msgstr ""
+
+msgid "NMN_R"
+msgstr ""
+
+msgid "NMN_RE"
+msgstr ""
+
+msgid "NMN_REA"
+msgstr ""
+
+msgid "NMN_RM"
+msgstr ""
+
+msgid "NMN_RP"
+msgstr ""
+
+msgid "NMN_RT"
+msgstr ""
+
+msgid "NMN_S"
+msgstr ""
+
+msgid "NMN_SV"
+msgstr ""
 
 msgid "New RqTask"
 msgstr ""
@@ -63,14 +188,36 @@ msgstr ""
 msgid "No original entity found"
 msgstr "Le document original n'a pas été trouvé"
 
-msgid "Normalize indexes labels"
-msgstr "Normaliser les libellés des entrées d'index"
+msgid "Number of  document per file."
+msgstr ""
+
+msgid ""
+"Number of document to harvest. Leave empty the whole repo is to be harvested."
+msgstr ""
+
+msgid "OAI"
+msgstr ""
 
 msgid "OAIRepository"
 msgstr ""
 
 msgid "PDF/metadata.csv is missing from zip"
 msgstr "PDF/metadata.csv n'est pas dans le zip"
+
+msgid "Password"
+msgstr ""
+
+msgid "Please copy letters for the image"
+msgstr "Veuillez copier les lettres de l'image."
+
+msgid "Please enter a valid email address. For exemple: name@domain.fr"
+msgstr ""
+
+msgid "Please, add a start_year"
+msgstr "Ajoutez une année de début"
+
+msgid "Please, confirm the password"
+msgstr "Veuillez confirmer le mot de passe"
 
 # schema pot file, generated on 2017-07-04 06:39:53
 #
@@ -80,9 +227,6 @@ msgstr "Tâche"
 
 msgid "RqTask_plural"
 msgstr "Tâches"
-
-msgid "Section"
-msgstr "Rubrique"
 
 msgid "See other files referencing documents with identical content"
 msgstr ""
@@ -96,12 +240,33 @@ msgstr ""
 msgid "See the file (access by eid)"
 msgstr "Voir la fiche du fichier (accès par eid)"
 
+msgid "Select the document type"
+msgstr "Sélectionnez le type de document"
+
+msgid "Send"
+msgstr "Envoyer"
+
 msgid ""
 "Service \"{}\" does not exist. Check the ziped file name \"{}\" or create a "
 "new service before uploading the file again"
 msgstr ""
 "Le service \"{}\" n'existe pas. Vérifiez l'archive zip \"{}\" ou créez un "
 "nouveau service avant de téléverser à nouveau cette archive"
+
+msgid "SiteLink_plural"
+msgstr ""
+
+msgid "SiteLinks"
+msgstr ""
+
+msgid "Start_year must be less than stop_year"
+msgstr "L'année de début doit être inférieure à l'année de fin"
+
+msgid "State"
+msgstr ""
+
+msgid "Subjects"
+msgstr "Thèmes"
 
 msgid ""
 "The \"content\" field HTML is not valid. Please,\n"
@@ -128,16 +293,53 @@ msgstr "Cette archive ne contient aucun fichier au format CSV"
 msgid "This archive contains no files."
 msgstr "Cette archive ne contient aucun fichier"
 
+msgid "This field is required"
+msgstr ""
+
 msgid "This file in not a zip file"
 msgstr "Ce fichier n'est pas une archive zip"
 
 msgid "This file is empty"
 msgstr "Ce fichier est vide"
 
+#, python-format
+msgid "Unable to process \"%s\": %s"
+msgstr "Impossible de traiter le fichier \"%s\", %s."
+
+#, python-brace-format
+msgid "Unable to process \"{fileobj.filename}\": no fieldnames found"
+msgstr ""
+
+#, python-brace-format
+msgid "Unable to process \"{fileobj.filename}\": no headers found"
+msgstr ""
+"Impossible de traiter le fichier \"{fileobj.filename}\" car il ne contient "
+"pas de colonnes"
+
+#, python-brace-format
+msgid "Unable to process \"{fileobj.filename}\": {exception}"
+msgstr "Impossible de traiter le fichier \"{fileobj.filename}\": {exception}"
+
+#, python-brace-format
+msgid "Unable to read \"{fileobj.filename}\": {exception}"
+msgstr "Impossible de lire le fichier\"{fileobj.filename}\": {exception}"
+
+msgid "Update your password:"
+msgstr ""
+
+msgid "Your email"
+msgstr ""
+
 msgid "ZIP or XML file"
 msgstr "archive ZIP ou fichier XML"
 
+msgid "[FranceArchives]: {service.dc_title()} ({service.code}) - {status}"
+msgstr ""
+
 msgid "add RqTask output_file File subject"
+msgstr ""
+
+msgid "add RqTask subtasks RqTask subject"
 msgstr ""
 
 msgid "add a RqTask"
@@ -149,8 +351,8 @@ msgstr "calculer et importer les alignements vers BANO"
 msgid "align-geoname"
 msgstr "calculer les alignements vers GeoNames"
 
-msgid "all services"
-msgstr "tous les services"
+msgid "authorities type"
+msgstr "type d'autorités à importer"
 
 msgid "bad task eid"
 msgstr "identifiant de tâche non valide"
@@ -162,7 +364,8 @@ msgid "compute_alignments"
 msgstr ""
 
 msgid "compute_alignments_all"
-msgstr "[align database] aligner la base de données en entière"
+msgstr ""
+"[align database] propositions d'alignements Geoname sur la base entière"
 
 msgid "compute_location_authorities_to_group"
 msgstr "[Geonames] générer un CSV avec les candidats au groupement"
@@ -173,10 +376,13 @@ msgstr ""
 msgid "creating File (RqTask %(linkto)s output_file File)"
 msgstr ""
 
+msgid "creating RqTask (RqTask %(linkto)s subtasks RqTask)"
+msgstr ""
+
 # subject and object forms for each relation type
 # (no object form for final or symmetric relation types)
 msgid "cssimage"
-msgstr "image de la page d'accueil"
+msgstr "Image de la page d'accueil"
 
 msgctxt "Section"
 msgid "cssimage"
@@ -189,20 +395,39 @@ msgctxt "CssImage"
 msgid "cssimage_object"
 msgstr ""
 
+msgid "csv file delimiter"
+msgstr "fichier csv : séparateur des colonnes"
+
 msgid "csv file to import"
-msgstr ""
+msgstr "fichier CSV"
 
 msgid "csv-authorities"
-msgstr "fichier CSV autorités lieux"
+msgstr "fichier CSV"
 
 msgid "csv-finding-aids"
 msgstr "fichier CSV instruments de recherche à supprimer"
+
+msgid "dc-csv-file-desc"
+msgstr ""
+"Les fichiers CSV des IR doivent contenir 18 colonnes suivantes : "
+"\"identifiant_cote\", \"titre\", \"origine\", \"date1\", \"date2\", "
+"\"description\", \"type\", \"format\", \"index_matiere\", \"index_lieu\", "
+"\"index_personne\", \"index_collectivite\", \"langue\", \"conditions_acces"
+"\", \"conditions_utilisation\", \"source_complementaire\", \"identifiant_URI"
+"\", \"source_image\". Les données doivent être séparées par une virgule."
 
 msgid "dedupe_authorities"
 msgstr ""
 
 msgid "delete_finding_aids"
 msgstr "[delete findingaid] Supprimer des instruments de recherche"
+
+msgid "delete_nomina_by_service"
+msgstr ""
+"[delete nomina by service] Supprimer les données nominatives d'un service"
+
+msgid "document type"
+msgstr "type de document"
 
 # subject and object forms for each relation type
 # (no object form for final or symmetric relation types)
@@ -230,7 +455,7 @@ msgid "export-nonaligned"
 msgstr "exporter autorités non-alignées"
 
 msgid "export_agentauthorities"
-msgstr "[export authorities] exporter autorités agent"
+msgstr "[export authorities] exporter autorités personnes et institutions"
 
 msgid "export_ape"
 msgstr "[export ApeEAD] exporter des instruments de recherche en ApeEAD"
@@ -239,7 +464,7 @@ msgid "export_locationauthorities"
 msgstr "[export authorities] exporter autorités lieu"
 
 msgid "export_subjectauthorities"
-msgstr "[export authorities] exporter autorités sujet"
+msgstr "[export authorities] exporter autorités thème"
 
 msgid "fatask_authorityrecord"
 msgstr "notices d'authorité importées"
@@ -269,20 +494,6 @@ msgctxt "FindingAid"
 msgid "fatask_findingaid_object"
 msgstr ""
 
-msgid "fatask_person"
-msgstr "personnes importées"
-
-msgctxt "RqTask"
-msgid "fatask_person"
-msgstr ""
-
-msgid "fatask_person_object"
-msgstr ""
-
-msgctxt "Person"
-msgid "fatask_person_object"
-msgstr ""
-
 msgid "findingaid eid"
 msgstr ""
 
@@ -296,13 +507,22 @@ msgid "german"
 msgstr "allemand"
 
 msgid "group_location_authorities"
-msgstr "[Geonames] grouper les location authorities"
+msgstr "[Geonames] grouper les Lieux (fichier CSV des candidats au groupement)"
+
+msgid "harvesting completed with errors/warnings"
+msgstr "moissonnage terminé avec des erreurs/avertissements"
+
+msgid "harvesting failed"
+msgstr "moissonnage en échec"
 
 msgid "import_authorities"
-msgstr "[import authorities] importer autorités lieux"
+msgstr "[import authorities] importer des autorités"
 
 msgid "import_csv"
 msgstr "[import CSV] importer des descriptions"
+
+msgid "import_csv_nomina"
+msgstr "[import Nomina] importer des données nominatives"
 
 msgid "import_eac"
 msgstr "[import EAC-CPF] notices producteurs"
@@ -310,8 +530,14 @@ msgstr "[import EAC-CPF] notices producteurs"
 msgid "import_ead"
 msgstr "[import EAD/PDF] importer des instruments de recherche"
 
+msgid "import_nomnia_file_desc"
+msgstr "le fichier doit être au format CSV."
+
 msgid "import_oai"
 msgstr "importer des intruments de recherche depuis un dépôt OAI (import_oai)"
+
+msgid "import_qualified_authorities"
+msgstr "[import qualified authorities] importer la qualification des autorités"
 
 msgid "in_state_facet"
 msgstr "États"
@@ -323,13 +549,16 @@ msgid "index services"
 msgstr "reindexer les services (\"service_siaf\" index)"
 
 msgid "index_agent"
-msgstr "autorités Agents"
+msgstr "autorités personnes et institutions"
 
 msgid "index_location"
-msgstr "autorités Lieux"
+msgstr "autorités lieux"
 
 msgid "index_subject"
-msgstr "autorités Sujets"
+msgstr "autorités thèmes"
+
+msgid "input file must be a CSV file"
+msgstr "le fichier doit être au format CSV"
 
 msgid "input file must be a ZIP or a XML file"
 msgstr "le fichier doit être une archive ZIP ou au format XML"
@@ -356,9 +585,9 @@ msgid "missing \"eac-services-dir\" parameter in all-in-one.conf"
 msgstr ""
 "le paramètre \"eac-services-dir\" est absent du fichier all-in-one.conf"
 
-msgid "missing \"ead-services-dir\" parameter in all-in-one.conf"
+#, python-brace-format
+msgid "missing \"{config_dir_name}\" parameter in all-in-one.conf"
 msgstr ""
-"le paramètre \"ead-services-dir\" est absent du fichier all-in-one.conf"
 
 msgctxt "RqTask"
 msgid "name"
@@ -399,9 +628,6 @@ msgctxt "OAIImportTask"
 msgid "oaiimport_task_object"
 msgstr ""
 
-msgid "original ressource"
-msgstr ""
-
 msgid "output_descr"
 msgstr "description du résultat"
 
@@ -417,24 +643,41 @@ msgid "output_descr_format"
 msgstr ""
 
 msgid "output_file"
-msgstr ""
+msgstr "fichier(s) de résultats des tâches"
 
 msgctxt "RqTask"
 msgid "output_file"
 msgstr ""
 
 msgid "output_file_object"
-msgstr "fichier de résultats des tâches"
+msgstr ""
 
 msgctxt "File"
 msgid "output_file_object"
 msgstr ""
 
+msgid "parent task"
+msgstr "tâche parente"
+
 msgid "progress bar"
 msgstr "barre de progression"
 
 msgid "publish_findingaid"
-msgstr "publication d'instruments de recherche (publish_findingaid)"
+msgstr "[publish findingaid] publication d'instruments de recherche"
+
+msgid "pwd_policy"
+msgstr ""
+"Le mot de passe doit contenir : 12 caractères minimum, des majuscules, des "
+"minuscules, des chiffres et des caractères spéciaux"
+
+msgid "qualify-authorities-file"
+msgstr "fichier CSV"
+
+msgid "qualify-authorities-file-desc"
+msgstr ""
+"Le fichier CSV doit contenir 3 colonnes (\"urlpath\", \"label\", \"quality\" "
+"ou \"identifiant\", \"libelle\", \"qualite\"). Les données doivent être "
+"séparées par une tabulation."
 
 msgid "referenced_files"
 msgstr ""
@@ -451,10 +694,6 @@ msgctxt "Card"
 msgid "referenced_files"
 msgstr ""
 
-msgctxt "CommemoCollection"
-msgid "referenced_files"
-msgstr ""
-
 msgctxt "CommemorationItem"
 msgid "referenced_files"
 msgstr ""
@@ -464,6 +703,10 @@ msgid "referenced_files"
 msgstr ""
 
 msgctxt "ExternRef"
+msgid "referenced_files"
+msgstr ""
+
+msgctxt "FaqItemTranslation"
 msgid "referenced_files"
 msgstr ""
 
@@ -506,10 +749,10 @@ msgid "service code"
 msgstr "code de service"
 
 msgid "service code (required only for xml, optional for zip)"
-msgstr "le code du service"
+msgstr "code du service"
 
 msgid "service code of the productor (required only for xml, optional for zip)"
-msgstr "le code du service producteur (obligatoire pour le fichier XML)"
+msgstr "code du service producteur (obligatoire pour le fichier XML)"
 
 msgid "should_normalize"
 msgstr ""
@@ -532,7 +775,7 @@ msgid "status"
 msgstr "statut"
 
 msgid "subtasks"
-msgstr ""
+msgstr "sous-tâches"
 
 msgctxt "RqTask"
 msgid "subtasks"
@@ -554,8 +797,8 @@ msgstr "Logs de tâche"
 msgid "task_name"
 msgstr "type de tâche"
 
-msgid "title"
-msgstr "titre"
+msgid "this field is mandatory"
+msgstr "ce champ est obligatoire"
 
 msgctxt "RqTask"
 msgid "title"
@@ -565,13 +808,16 @@ msgid "type of task"
 msgstr "type de tâche"
 
 msgid "update-alignments"
-msgstr "mettre à jour alignements"
+msgstr "mettre à jour les alignements"
 
 msgid "update-labels"
-msgstr "mettre à jour libellés"
+msgstr "mettre à jour les libellés"
+
+msgid "update-quality"
+msgstr "mettre à jour la qualité"
 
 msgid "uri field is mandatory"
-msgstr ""
+msgstr "le champ \"url\" est obligatoire"
 
 msgid "wfs_cmsobject_draft"
 msgstr "brouillon"
@@ -616,6 +862,13 @@ msgstr "archive zip"
 msgid "{count} documents"
 msgstr ""
 
+#~ msgid ""
+#~ "\"{}\" file contains invalid fieldnames: \"{}\". Expected fieldnames are: "
+#~ "\"{}\""
+#~ msgstr ""
+#~ "Le fichier \"{}\" contient des colonnes invalides : \"{}\". Les colonnes "
+#~ "attendues sont : \"{}&\""
+
 #~ msgid "A department archive with \"%s\" code already exists"
 #~ msgstr ""
 #~ "Une service d'archives départementales avec le code \"%s\" existe déjà."
@@ -638,6 +891,12 @@ msgstr ""
 #~ "Une annexe de service d'archives départementales \"%s\" avec le code \"%s"
 #~ "\" existe déjà."
 
+#~ msgid "CSV from OAI import"
+#~ msgstr "CSV issu d'un import OAI"
+
+#~ msgid "Context of import"
+#~ msgstr "Contexte de groupement des entrées d'index"
+
 #~ msgid "FAFileImport"
 #~ msgstr "Import d'instrument recherche"
 
@@ -655,6 +914,12 @@ msgstr ""
 
 #~ msgid "No circular with circ_id \"{}\" has been found"
 #~ msgstr "Aucun cirulaire avec l'identifant (circ_id) \"{}\" n'a été trouvé"
+
+#~ msgid "Normalize indexes labels"
+#~ msgstr "Normaliser les libellés des entrées d'index"
+
+#~ msgid "Section"
+#~ msgstr "Rubrique"
 
 #~ msgid "See all files referencing the same document (acces by datahash)"
 #~ msgstr ""
@@ -723,11 +988,17 @@ msgstr ""
 #~ msgid "add a SocialNetwork"
 #~ msgstr "ajouter un réseaux social"
 
+#~ msgid "all services"
+#~ msgstr "tous les services"
+
 #~ msgid "bad service code should be one of: "
 #~ msgstr "code de service non valide, ce code devrait être un des suivants : "
 
 #~ msgid "bad xpath expression: "
 #~ msgstr "xpath non valide"
+
+#~ msgid "csv or zip file to import"
+#~ msgstr "fichier CSV ou ZIP"
 
 #~ msgid "csv-geonames"
 #~ msgstr "fichier CSV alignements GeoNames"
@@ -740,6 +1011,9 @@ msgstr ""
 
 #~ msgid "export_authorities"
 #~ msgstr "[export authorities] exporter autorités lieux"
+
+#~ msgid "fatask_person"
+#~ msgstr "personnes importées"
 
 #~ msgid "french"
 #~ msgstr "français"
@@ -763,24 +1037,20 @@ msgstr ""
 #~ msgid "metadata attached to findingaid"
 #~ msgstr "metadonnées attachées à un instrument de recherche"
 
+#~ msgid "missing \"ead-services-dir\" parameter in all-in-one.conf"
+#~ msgstr ""
+#~ "le paramètre \"ead-services-dir\" est absent du fichier all-in-one.conf"
+
 #~ msgctxt "FAFileImport"
 #~ msgid "name"
 #~ msgstr "nom"
-
-#~ msgid "non-compliant-to-pwd_policy"
-#~ msgstr ""
-#~ "Mot de passe trop faible. Le mot de passe doit avoir : 12 caractères "
-#~ "minimum, des majuscules, des minuscules, des chiffres et des caractères "
-#~ "spéciaux"
 
 #~ msgctxt "FAFileImport"
 #~ msgid "publisher"
 #~ msgstr "diffuseur"
 
-#~ msgid "pwd_policy"
-#~ msgstr ""
-#~ "Le mot de passe doit avoir : 12 caractères minimum, des majuscules, des "
-#~ "minuscules, des chiffres et des caractères spéciaux"
+#~ msgid "remove_authorities"
+#~ msgstr "supprimer des autorités"
 
 #~ msgid "service code from which you want to generate APE files"
 #~ msgstr ""
@@ -805,6 +1075,9 @@ msgstr ""
 
 #~ msgid "time"
 #~ msgstr "temps"
+
+#~ msgid "title"
+#~ msgstr "titre"
 
 #~ msgid "wfs_findingaid_initialized"
 #~ msgstr "initialisé"

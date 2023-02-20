@@ -53,15 +53,19 @@ const {togglePanel} = require('../actions'),
         AddEntityTranslation,
         AddGlossaryTermLink,
         AddFaqLink,
+        AddSiteLink,
         ConsultationLink,
+        SiteLinksLink,
         SearchCWUsersLink,
         SearchFaTasksLink,
         FAMonitoringBordLink,
+        BlacklistedAuthoritiesLink,
         EditHomePageMetataLink,
         SameAsLink,
         GroupAuthLink,
         PublishTaskLink,
         AddLink,
+        SectionThemesLink,
     } = require('./index')
 
 const ACTIONS = {
@@ -81,15 +85,20 @@ const ACTIONS = {
     'add-user': AddCWUserLink,
     'add-glossaryterm': AddGlossaryTermLink,
     'add-faq': AddFaqLink,
+    'add-sitelink': AddSiteLink,
     'fa-import': FaImport,
     cwusers: SearchCWUsersLink,
     'fa-tasks': SearchFaTasksLink,
     'fa-bord': FAMonitoringBordLink,
+    'black-auth': BlacklistedAuthoritiesLink,
     'consultation-link': ConsultationLink,
     'homepage-metadata': EditHomePageMetataLink,
     'fa-publish-task': PublishTaskLink,
     'edit-same-as': SameAsLink,
     'group-authorities': GroupAuthLink,
+    'section-themes': SectionThemesLink,
+
+    sitelinks: SiteLinksLink,
 }
 
 class App extends Component {
@@ -141,16 +150,16 @@ class App extends Component {
             'div',
             {
                 className: `row ${showPanel ? 'panel-unfolded' : ''}`,
-                ref: n => (this.wrapper = n),
+                ref: (n) => (this.wrapper = n),
             },
             ce(
                 'div',
-                {className: `col-xs-${showPanel ? '2' : '12'}`, id: 'toolbar'},
+                {className: `col-sm-${showPanel ? '2' : '12'}`, id: 'toolbar'},
                 ...children,
             ),
             ce(
                 'div',
-                {className: 'col-xs-10', id: 'mainpanel'},
+                {className: 'col-sm-10', id: 'mainpanel'},
                 ce(AlertError),
                 ...Children.toArray(this.props.children),
             ),

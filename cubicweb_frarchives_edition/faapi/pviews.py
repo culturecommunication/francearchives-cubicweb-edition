@@ -29,9 +29,14 @@
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
 
+
 from pyramid import httpexceptions
 from pyramid.renderers import render
+from pyramid.response import Response
 
+from pyramid.view import view_config
+
+from cubicweb import ValidationError
 from cubicweb_jsonschema.api import (
     LOG,
     JSONBadRequest,
@@ -39,7 +44,6 @@ from cubicweb_jsonschema.api import (
 )
 
 from cubicweb_jsonschema.api.entities import allow_for_entity_relation
-
 from cubicweb_frarchives_edition import update_suggest_es
 from cubicweb_frarchives_edition.api import json_config
 from cubicweb_frarchives_edition.faapi.resources import (
@@ -178,6 +182,9 @@ def edit_same_as(context, request):
             msg = "{}: {}".format(label, cnx._("uri field is mandatory"))
             return JSONBadRequest(jsonapi_error(status=422, details=msg, pointer="uri"))
         sameas_uri = sameas.get("uri").strip()
+        # only accept https for geonames
+        if "geonames.org" in sameas_uri:
+            sameas_uri = sameas_uri.replace("http://", "https://")
         # an existing ExternalUri whith the wanted uri value
         # ExternalUri exists
         existing_rset = cnx.execute(
@@ -203,9 +210,16 @@ def edit_same_as(context, request):
                     # in this case we should not call `cw_set` with new uri, maybe
                     # this ExternalUri is also linked to other authority, so prefer
                     # creating new ExternalUri so that other authority are unchanged
-                    newexturi = cnx.create_entity(
-                        "ExternalUri", uri=sameas_uri, label=sameas["label"]
-                    )
+                    try:
+                        newexturi = cnx.create_entity(
+                            "ExternalUri", uri=sameas_uri, label=sameas["label"]
+                        )
+                    except ValidationError as err:
+                        msg = "; ".join(err.errors.values())
+                        return JSONBadRequest(jsonapi_error(status=422, details=msg, pointer="uri"))
+                    except Exception:
+                        msg = cnx._("Encountered an error while creating en entity")
+                        return JSONBadRequest(jsonapi_error(status=422, details=msg, pointer="uri"))
                     cnx.execute(
                         "DELETE A same_as E WHERE A eid %(a)s, E eid %(e)s",
                         {"a": auth.eid, "e": exturi.eid},
@@ -229,7 +243,15 @@ def edit_same_as(context, request):
                     if not same_as_of_auth.get(existing_exturi.eid):
                         auth.cw_set(same_as=existing_exturi.eid)
             else:
-                newexturi = cnx.create_entity("ExternalUri", uri=sameas_uri, label=label)
+                try:
+                    newexturi = cnx.create_entity("ExternalUri", uri=sameas_uri, label=label)
+                except ValidationError as err:
+                    msg = "; ".join(err.errors.values())
+                    return JSONBadRequest(jsonapi_error(status=422, details=msg, pointer="uri"))
+                except Exception:
+                    msg = cnx._("Encountered an error while creating en entity")
+                    return JSONBadRequest(jsonapi_error(status=422, details=msg, pointer="uri"))
+
                 auth.cw_set(same_as=newexturi.eid)
                 LOG.info("created %s", newexturi)
     url = auth.absolute_url()
@@ -346,6 +368,14 @@ def group_candidates(context, request):
     query_string = "{}".format(request.params["q"])
     results = context.entity.cw_adapt_to("IToGroup").candidates(query_string)
     return {"data": results}
+
+
+@view_config(route_name="sitelinks", request_method=("GET", "HEAD"))
+def sitelinks_view(request):
+    cwreq = request.cw_request
+    viewsreg = cwreq.vreg["views"]
+    view = viewsreg.select("sitelinks", cwreq)
+    return Response(viewsreg.main_template(cwreq, "main-template", rset=None, view=view))
 
 
 def includeme(config):

@@ -1,0 +1,5 @@
+identifiant_SubjectAuthority	URI_Subject	libelle_Subject	URI_SubjectAuthority	libelle_SubjectAuthority	type_Subject	URI_ExternalUri	libelle_ExternalUri	keep	quality
+23827342	https://francearchives.fr/subject/206672445	traité de Compiègne	https://francearchives.fr/subject/23827342	traité de Compiègne	subject	https://www.wikidata.org/wiki/Q1357802	traité de Compiègne	yes	yes
+78921211	https://francearchives.fr/subject/206671539	M1 (carabine)	https://francearchives.fr/subject/78921211 	M1 (carabine)	subject	https://data.bnf.fr/fr/11984784/m1__carabine_/	M1 (carabine)	yes	yes
+78921212	https://francearchives.fr/subject/206671531	char d'assaut	https://francearchives.fr/subject/78921213	char d'assaut	subject	https://data.bnf.fr/fr/15090736/m1__char_d_assaut_/	M1 (char d'assaut)	yes	yes
+78921212	https://francearchives.fr/subject/206671531	char d'assaut	https://francearchives.fr/subject/78921213	char d'assaut	subject	https://data.bnf.fr/fr/15090736/m1__char_d_assaut_/	M1 – char d'assaut	yes	yes

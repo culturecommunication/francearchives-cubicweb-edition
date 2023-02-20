@@ -29,9 +29,7 @@
 
 
 # standard library imports
-import os
 import logging
-import tempfile
 
 # third party imports
 
@@ -40,10 +38,14 @@ import tempfile
 # library specific imports
 from cubicweb_frarchives_edition.rq import rqjob
 from cubicweb_frarchives_edition import load_leaflet_json
+from cubicweb_frarchives_edition.alignments.align import LocationAligner
 
 
 def auto_run_import(cnx, rqtask, aligner_cls, cw_file):
     """Automatically import alignments.
+
+    XXX : to FIX it seems that  cw_file is the same file as rqtask.output_file, there is no need
+    to pass it as agrument
 
     :param Connection cnx: CubicWeb database connection
     :param RQTask rqtask: current task
@@ -55,41 +57,47 @@ def auto_run_import(cnx, rqtask, aligner_cls, cw_file):
         name="import_alignment",
         title="automatic import-alignment {eid}".format(eid=rqtask.eid),
     )
-    temp_fd, temp_path = tempfile.mkstemp()
-    os.write(temp_fd, cw_file.data.getvalue())
-    os.close(temp_fd)
+    # for some raison we can not pass an object in enqueue params, so we pass the filepath
+    temp_path = cw_file.get_filepath("data")
     subtask.cw_adapt_to("IRqJob").enqueue(
         import_alignment, temp_path, aligner_cls, override_alignments=False
     )
     return subtask.eid
 
 
-def update_alignments(cnx, log, cw_file, aligner_cls, override_alignments=False):
+def update_alignments(cnx, log, temp_path, aligner_cls, override_alignments=False):
     """Update alignments.
 
     :param Connection cnx: CubicWeb database connection
     :param Logger log: RQTask logger
-    :param File cw_file: file
+    :param string temp_path: path to a file
     :param classobj aligner_cls: aligner class
     :param bool override_alignments: toggle overriding user-defined alignments on/off
     """
     aligner = aligner_cls(cnx, log)
     # read-in CSV file and import alignment(s)
-    aligner.process_csvpath(cw_file, override_alignments=override_alignments)
-    # update Leaflet
-    log.info("update IR map")
-    load_leaflet_json(cnx)
+    log.info(f"[import alignements]: process '{temp_path}'")
+    aligner.process_csvpath(temp_path, override_alignments=override_alignments)
+    # reload the map only if modification is found in alignements
+    # we should probably make it a daily cron
+    if isinstance(aligner, LocationAligner):
+        if aligner.modified_alignments:
+            log.info("[import alignements]: update IR map")
+            load_leaflet_json(cnx)
+        else:
+            log.info(
+                "[import alignements]: do not update IR map as no alignments have been modified."
+            )
 
 
 @rqjob
-def import_alignment(cnx, cw_file, aligner_cls, override_alignments=False):
+def import_alignment(cnx, temp_path, aligner_cls, override_alignments=False):
     """Import alignment.
 
     :param cnx Connection: CubicWeb database connection
-    :param File cw_file: file
+    :param string temp_path: file
     :param classobj aligner_cls: aligner class
     :param bool override_alignments: toggle overriding user-defined alignments on/off
     """
     log = logging.getLogger("rq.task")
-    log.info("import alignments")
-    update_alignments(cnx, log, cw_file, aligner_cls, override_alignments=override_alignments)
+    update_alignments(cnx, log, temp_path, aligner_cls, override_alignments=override_alignments)

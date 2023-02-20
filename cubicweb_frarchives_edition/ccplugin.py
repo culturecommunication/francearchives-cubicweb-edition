@@ -37,8 +37,11 @@
 
 
 from datetime import datetime
+from datetime import timedelta as dt_timedelta
 
 import gzip
+
+import logging
 
 import os
 import os.path as osp
@@ -56,7 +59,7 @@ import urllib.parse
 import zipfile
 
 from logilab.common.shellutils import ProgressBar
-from cubicweb import ConfigurationError
+from cubicweb import ConfigurationError, UnknownEid
 
 from cubicweb.cwctl import CWCTL, init_cmdline_log_threshold
 from cubicweb.cwconfig import CubicWebConfiguration as cwcfg
@@ -96,7 +99,7 @@ def get_rq_redis_connection(appid):
     redis_url = settings.get("rq.redis_url")
     if redis_url is None:
         raise ConfigurationError(
-            "could not start rq: `rq.redis_url` is missing from " "pyramid.ini file"
+            "could not start rq: `rq.redis_url` is missing from pyramid.ini file"
         )
     return redis.StrictRedis.from_url(redis_url)
 
@@ -142,26 +145,65 @@ class PeriodicOaiImport(Command):
     name = "fa-rq-import-oai"
     max_args = None
     min_args = 1
+    options = [
+        (
+            "debug",
+            {
+                "type": "yn",
+                "default": False,
+                "help": "set to True if you want to print out debug info and progress",
+            },
+        ),
+        (
+            "services",
+            {
+                "type": "csv",
+                "default": (),
+                "help": (
+                    "List of services codes to be indexed separated by comma."
+                    "If the list is empty, all services will be harvested"
+                ),
+            },
+        ),
+    ]
 
     def run(self, args):
         from cubicweb_frarchives_edition.tasks import import_oai
 
         appid = args.pop()
         connection = get_rq_redis_connection(appid)
+        self.logger = logging.getLogger("fa-rq-import-oai")
+        self.logger.setLevel(logging.INFO)
         with admincnx(appid) as cnx, rq.Connection(connection):
-            for (oairepoeid, auto_dedupe, context_service) in cnx.execute(
-                """Any X, A, S WHERE X is OAIRepository,
-                    X should_normalize A, X context_service S"""
-            ):
-                service = cnx.entity_from_eid(oairepoeid).service[0]
+            query = """
+                    Any X, V, A, S WHERE X is OAIRepository,
+                    X service V,
+                    X should_normalize A, X context_service S,
+                    X periodical_import True"""
+            if self.config.services:
+                services = ",".join('"%s"' % s.upper() for s in self.config.services)
+                query += f", X service V, V code IN ({services})"
+            rset = cnx.execute(query)
+            proceeded = set()
+            for repo, service, auto_dedupe, context_service in rset.iter_rows_with_entities():
+                proceeded.add(services.code)
+                self.logger.info(
+                    f"[fa-rq-import-oai]: {service.code}: create task to harvest '{repo.url}'"
+                )
                 task_title = "import-oai delta {code} ({date})".format(
                     code=service.code, date=datetime.utcnow().strftime("%Y-%m-%d")
                 )
                 rqtask = cnx.create_entity("RqTask", name="import_oai", title=task_title)
                 rqtask.cw_adapt_to("IRqJob").enqueue(
-                    import_oai, oairepoeid, auto_dedupe, context_service, publish=True
+                    import_oai, repo.eid, auto_dedupe, context_service, publish=True
                 )
                 cnx.commit()
+            missing = set(self.config.services).difference(proceeded)
+            if missing:
+                self.logger.warning(
+                    f"[fa-rq-import-oai]: no repository found for {', '.join(missing)}"
+                )
+            self.logger.info(f"[fa-rq-import-oai]: {rset.rowcount} tasks created")
 
 
 @CWCTL.register
@@ -300,7 +342,7 @@ class GenerateSlonySlave(Command):
                 "type": "string",
                 "default": None,
                 "help": (
-                    "database host of the slave; if unset, " "use the same host as the instance."
+                    "database host of the slave; if unset, use the same host as the instance."
                 ),
             },
         ),
@@ -548,41 +590,43 @@ class SetupDatabase(Command):
             "db-dbname",
             {
                 "type": "string",
-                "help": ("database name, default is the " "same as the cubicweb instance."),
+                "help": ("database name, default is the same as the cubicweb instance."),
             },
         ),
         (
             "db-dbhost",
             {
                 "type": "string",
-                "help": ("database host, default is the " "same as the cubicweb instance."),
+                "help": ("database host, default is the same as the cubicweb instance."),
             },
         ),
         (
             "db-dbport",
             {
                 "type": "string",
-                "help": ("database port, default is the " "same as the cubicweb instance."),
+                "help": ("database port, default is the same as the cubicweb instance."),
             },
         ),
         (
             "db-dbuser",
             {
                 "type": "string",
-                "help": ("database user, default is the " "same as the cubicweb instance."),
+                "help": ("database user, default is the same as the cubicweb instance."),
             },
         ),
         (
             "db-dbpassword",
             {
                 "type": "string",
-                "help": ("database password, default is the " "same as the cubicweb instance."),
+                "help": ("database password, default is the same as the cubicweb instance."),
             },
         ),
     )
     database_dump_uri = "http://download.geonames.org/export/dump/"
 
     def run(self, args):
+        self.logger = logging.getLogger("databnf.alignment")
+        self.logger.setLevel(logging.INFO)
         appid = args[0]
         inst_config = instance_configuration(appid)
         sconf = inst_config.system_source_config
@@ -599,40 +643,35 @@ class SetupDatabase(Command):
             dbparams["password"] = getpass("password: ")
         datadir = self.get("datadir")
         if datadir and not osp.isdir(datadir):
-            print('\n-> The specified directory "{}" does not exist. ' "Exit.\n".format(datadir))
-            return
+            self.logger.error('\n-> The specified directory "{}" does not exist.'.format(datadir))
+            sys.exit(1)
         with admincnx(appid) as cnx:
             if not datadir:
                 datadir = cnx.repo.config.appdatahome
             datadir = osp.join(datadir, self.datadir_basename)
-        if not osp.isdir(datadir):
-            os.mkdir(datadir)
         if self.get("download"):
-            print(
-                "\n-> Database files are downloaded into "
+            self.logger.info(
+                "\n-> Database files will be downloaded into "
                 "the following folder:\n    {0}".format(datadir)
             )
         else:
-            print("\n-> Use database files from " "the following folder:\n    {0}".format(datadir))
-        if setup.table_exists(dbparams, self.witness_table) and not self.get("update"):
-            print("\n-> Database already exists. Use `--update=y` to update.".format())
-            return
+            self.check_data_exists(datadir)
         table_owner = sconf["db-user"] if dbparams["user"] != sconf["db-user"] else None
         self.load_data(appid, dbparams, datadir, table_owner=table_owner)
 
     def load_data(self, appid, dbparams, datadir, table_owner=None):
-        """"create and populate sql tables"""
+        """create and populate sql tables"""
         raise NotImplementedError()
 
     def unzip_file(self, zip_fpath, datadir):
         with zipfile.ZipFile(zip_fpath) as data_zip:
-            print(
+            self.logger.info(
                 "\n-> Extracting {0} \n    to {1}".format(zip_fpath, ", ".join(data_zip.namelist()))
             )
             data_zip.extractall(datadir)
 
     def gunzip_file(self, zip_fpath, unzip_fpath, datadir):
-        print("\n-> Extracting {0} \n    to {1}".format(zip_fpath, unzip_fpath))
+        self.logger.info("\n-> Extracting {0} \n    to {1}".format(zip_fpath, unzip_fpath))
         with gzip.GzipFile(zip_fpath) as data_zip:
             with open(unzip_fpath, "wb") as out:
                 shutil.copyfileobj(data_zip, out)
@@ -643,7 +682,7 @@ class SetupDatabase(Command):
         download = self.get("download")
         if not osp.isfile(zip_fpath) or download:
             uri = urllib.parse.urljoin(self.database_dump_uri, zip_fname)
-            print("\n-> Downloading {0} \n    to {1}".format(uri, zip_fpath))
+            self.logger.info("\n-> Downloading {0} \n    to {1}".format(uri, zip_fpath))
             r = requests.get(urllib.parse.urljoin(self.database_dump_uri, zip_fname), stream=True)
             try:
                 fsize = int(r.headers.get("Content-Length"))
@@ -652,14 +691,14 @@ class SetupDatabase(Command):
             else:
                 pb = ProgressBar(fsize, 50)
             if fsize:
-                print("    file size: expected {0}".format(fsize))
+                self.logger.info("    file size: expected {0}".format(fsize))
             with open(zip_fpath, "wb") as f:
                 for chunk in r.iter_content(chunk_size=self.download_chunk_size):
                     if chunk:
                         f.write(chunk)
                         if pb:
                             pb.update(self.download_chunk_size)
-            print("\nUsing downloaded file {0}".format(zip_fpath))
+            self.logger.info("\nUsing downloaded file {0}".format(zip_fpath))
             # unzip the file
             if not osp.isfile(unzip_fpath) or download:
                 try:
@@ -670,8 +709,34 @@ class SetupDatabase(Command):
         else:
             file_info = "\nUsing existing file {0}: \n    size: {1}, last modified: {2}"
         (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat(unzip_fpath)
-        print(file_info.format(unzip_fpath, size, time.ctime(mtime)))
+        self.logger.info(file_info.format(unzip_fpath, size, time.ctime(mtime)))
         return unzip_fpath
+
+    def check_table_exists(self, dbparams):
+        if setup.table_exists(dbparams, self.witness_table) and not self.get("update"):
+            self.logger.error(
+                "\n-> Table '{}' of '{}' database already exists. "
+                "Use `--update=y` to update.".format(self.witness_table, dbparams["database"])
+            )
+            sys.exit(1)
+
+    def check_data_exists(self, datadir):
+        if not osp.isdir(datadir) or not os.path.isdir(datadir):
+            self.logger.error(
+                "\n-> Folder '{0}' doesn't exist. Use `--download=y` option "
+                "to create it and get data.".format(datadir)
+            )
+            sys.exit(1)
+        if not os.listdir(datadir):
+            self.logger.error(
+                "\n-> No content found in folder '{0}'. Use `--download=y` option "
+                "to get data.".format(datadir)
+            )
+            sys.exit(1)
+        else:
+            self.logger.info(
+                "\n-> Use database files from the following folder:\n    {0}".format(datadir)
+            )
 
 
 @CWCTL.register
@@ -684,13 +749,28 @@ class SetupGeonamesDatabase(SetupDatabase):
     database_dump_uri = "http://download.geonames.org/export/dump/"
 
     def load_data(self, appid, dbparams, datadir, table_owner=None):
+        self.logger.info(
+            "\n-> Start downloding database files into "
+            "the following folder:\n    {0}".format(datadir)
+        )
+        if not osp.isdir(datadir):
+            os.mkdir(datadir)
         allcountries_path = self.download_file("allCountries.zip", "allCountries.txt", datadir)
         altnames_path = self.download_file("alternateNames.zip", "alternateNames.txt", datadir)
+        self.check_data_exists(datadir)
         if not self.get("dry-run"):
-            print("\n-> Create and populate geonames tables")
-            setup.load_geonames_tables(
-                appid, dbparams, allcountries_path, altnames_path, table_owner=table_owner
+            self.check_table_exists(dbparams)
+            self.load_geonames_tables(
+                appid, dbparams, datadir, allcountries_path, altnames_path, table_owner=None
             )
+
+    def load_geonames_tables(
+        self, appid, dbparams, datadir, allcountries_path, altnames_path, table_owner=None
+    ):
+        self.logger.info("\n-> Create and populate geonames tables")
+        setup.load_geonames_tables(
+            appid, dbparams, allcountries_path, altnames_path, table_owner=table_owner
+        )
 
 
 @CWCTL.register
@@ -704,8 +784,12 @@ class SetupBanoDatabase(SetupDatabase):
 
     def load_data(self, appid, dbparams, datadir, table_owner=None):
         full_path = self.download_file("full.csv.gz", "full.csv", datadir)
+        self.check_data_exists(datadir)
+        self.check_table_exists(dbparams)
         if not self.get("dry-run"):
-            print("\n-> Create and populate BANO tables")
+            if not osp.isdir(datadir):
+                os.mkdir(datadir)
+            self.logger.info("\n-> Create and populate BANO tables")
             setup.load_bano_tables(appid, dbparams, full_path, table_owner=table_owner)
 
 
@@ -800,6 +884,80 @@ class GroupSimilarSubjects(Command):
             group_subject_authorities(
                 cnx, dry_run=dry_run, directory=directory, limitdoc=self.config.limit
             )
+
+
+@CWCTL.register
+class CleanRqTasks(Command):
+    """delete RqTasks older then 1 year old (value by default)
+    usage: cubicweb-ctl delete-old-rqtasks <instance> --dry-run=n"""
+
+    arguments = "<instance>"
+    name = "delete-old-rqtasks"
+    max_args = None
+    min_args = 1
+    options = [
+        (
+            "days",
+            {
+                "type": "int",
+                "default": "365",
+                "help": "remove all RqTasks that are older than the given value in days"
+                "(default value 1 year)",
+            },
+        ),
+        (
+            "dry-run",
+            {
+                "type": "yn",
+                "default": True,
+                "help": "set to False (n) if you want to actually delete tasks",
+            },
+        ),
+        (
+            "debug",
+            {
+                "type": "yn",
+                "default": True,
+                "help": "set to False (n) if you don't want to print out debug info",
+            },
+        ),
+    ]
+
+    def run(self, args):
+        appid = args.pop()
+        with admincnx(appid) as cnx:
+            logger = logging.getLogger("francearchives.delete-old-rqtasks")
+            if self.config.debug:
+                logger.setLevel(logging.INFO)
+            date = datetime.now() - dt_timedelta(days=self.config.days)
+            rset = cnx.execute(
+                "Any X WHERE X is RqTask, X creation_date < %(date)s", {"date": date}
+            )
+            if self.config.dry_run:
+                logger.info(f"Found {rset.rowcount} RqTaks older than {date}.")
+                logger.info("No tasks will be deleted (dry_run option is True.)")
+            else:
+                logger.info(f"{rset.rowcount} RqTaks older than {date} will be deleted.")
+
+            for rqtask in rset.entities():
+                # first delete all fatask_findingaid dead relations: in
+                # the fatask_findingaid_relation
+                # table is not cleaned when a FindingAid is deleted
+                if not rqtask.fatask_findingaid:
+                    cnx.system_sql(
+                        "DELETE FROM fatask_findingaid_relation where eid_from=%(e)s",
+                        {"e": rqtask.eid},
+                    )
+                try:
+                    rqtask.cw_delete()
+                except UnknownEid as err:
+                    logger.error(f"RqTask {rqtask.eid} could not be deleted :{err}.")
+                    continue
+                if not self.config.dry_run:
+                    cnx.commit()
+                    logger.info(f"RqTask {rqtask.eid} deleted.")
+                else:
+                    logger.info(f"RqTask {rqtask.eid} could be deleted.")
 
 
 for cmdclass in (

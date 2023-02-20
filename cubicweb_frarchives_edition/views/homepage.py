@@ -52,6 +52,7 @@ class EditionIndexView(PniaIndexView):
         self.w('<link rel="cms-js" url="fa-import">')
         self.w('<link rel="cms-js" url="fa-tasks">')
         self.w('<link rel="cms-js" url="fa-bord">')
+        self.w('<link rel="cms-js" url="black-auth">')
         self.w('<link rel="cms-js" url="todos">')
         self.w('<link rel="cms-js" url="add">')
         self.w('<link rel="cms-js" url="add-service">')
@@ -61,6 +62,9 @@ class EditionIndexView(PniaIndexView):
             self.w('<link rel="cms-js" url="add-user">')
             self.w('<link rel="cms-js" url="add-glossaryterm">')
             self.w('<link rel="cms-js" url="add-faq">')
+            self.w('<link rel="cms-js" url="add-sitelink">')
+        if "managers" in self._cw.user.groups:
+            self.w('<link rel="cms-js" url="sitelinks">')
         rset = self._cw.execute('Any X WHERE X is Metadata, X uuid "metadata-homepage"')
         if rset:
             self.w('<link rel="cms-js" url="homepage-metadata">')

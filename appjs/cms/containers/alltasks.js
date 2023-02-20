@@ -29,6 +29,6 @@
  */
 const {connect} = require('react-redux')
 
-const SearchFaTasks = require('../components/alltasks.js')
+const {SearchFaTasks} = require('../components/alltasks.js')
 
 module.exports.SearchFaTasks = connect()(SearchFaTasks)

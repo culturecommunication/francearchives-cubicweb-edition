@@ -34,7 +34,6 @@ import mimetypes
 import os.path as osp
 import os
 from datetime import datetime
-import tempfile
 
 
 import jsl
@@ -59,87 +58,19 @@ from cubicweb_jsonschema import CREATION_ROLE, EDITION_ROLE
 
 
 from . import parse_dataurl
+from cubicweb_francearchives.storage import S3BfssStorageMixIn
+
 from cubicweb_frarchives_edition.cms.faimport import (
     process_faimport_zip,
     process_faimport_xml,
     process_csvimport_zip,
     process_authorityrecords_zip,
     process_authorityrecord_xml,
+    check_quality_csv,
+    validate_import_nomina_csv,
 )
 from cubicweb_frarchives_edition import tasks
 from cubicweb_frarchives_edition.api import jsonapi_error, JSONBadRequest
-
-
-class CommemoCollectionIJSONSchemaRelationTargetETypeAdapter(
-    ijsonschema.IJSONSchemaRelationTargetETypeAdapter
-):  # noqa
-    __select__ = ijsonschema.IJSONSchemaRelationTargetETypeAdapter.__select__ & match_kwargs(
-        {"etype": "CommemoCollection"}
-    )
-
-    def creation_schema(self, **kwargs):
-        req = self._cw
-        schema = super(
-            CommemoCollectionIJSONSchemaRelationTargetETypeAdapter, self
-        ).creation_schema(**kwargs)
-        commemocollection_attrs = schema["properties"]
-        commemocollection_attrs["sections"] = {
-            "type": "array",
-            "title": req._("Section"),
-            "items": {
-                "type": "object",
-                "properties": {"title": {"type": "string", "title": req._("title")}},
-            },
-        }
-        commemocollection_attrs["commemorationItems"] = {
-            "type": "array",
-            "title": req._("Intitules de la rubrique presentation"),
-            "items": {
-                "type": "object",
-                "properties": {"title": {"type": "string", "title": req._("title")}},
-            },
-        }
-        return schema
-
-    def create_entity(self, instance, target):
-        entity = super(CommemoCollectionIJSONSchemaRelationTargetETypeAdapter, self).create_entity(
-            instance, target
-        )
-        req = self._cw
-        for order, i in enumerate(instance.get("commemorationItems", ())):
-            req.create_entity(
-                "CommemorationItem",
-                reverse_children=entity,
-                title=i["title"],
-                order=order + 1,
-                alphatitle=i["title"],
-                commemoration_year=entity.year,
-                collection_top=entity,
-            )
-        for s in instance.get("sections", ()):
-            req.create_entity("Section", reverse_children=entity, title=s["title"])
-        return entity
-
-
-class CommemorationIJSONSchemaRelationTargetETypeAdapter(
-    ijsonschema.IJSONSchemaRelationTargetETypeAdapter
-):  # noqa
-    __select__ = ijsonschema.IJSONSchemaRelationTargetETypeAdapter.__select__ & match_kwargs(
-        {"etype": "CommemorationItem"}
-    )
-
-    def create_entity(self, instance, target):
-        entity = super(CommemorationIJSONSchemaRelationTargetETypeAdapter, self).create_entity(
-            instance, target
-        )
-        if target.cw_etype == "CommemoCollection":
-            collection_top = target
-        else:
-            assert target.cw_etype == "Section" and target.is_commemo_section()
-            collection_top = target.commemo_section
-        # XXX add 'collection_top' to "Additional properties"
-        entity.cw_set(collection_top=collection_top)
-        return entity
 
 
 class RqTaskIJSONSchemaAdapter(ijsonschema.IJSONSchemaETypeAdapter):
@@ -147,7 +78,9 @@ class RqTaskIJSONSchemaAdapter(ijsonschema.IJSONSchemaETypeAdapter):
         [
             (_("import_ead"), tasks.import_ead),
             (_("import_csv"), tasks.import_csv),
+            (_("import_csv_nomina"), tasks.import_csv_nomina),
             (_("import_authorities"), tasks.import_authorities),
+            (_("import_qualified_authorities"), tasks.import_qualified_authorities),
             (_("publish_findingaid"), tasks.publish_findingaid),
             (_("delete_finding_aids"), tasks.delete_findingaids),
             (_("export_ape"), tasks.export_ape),
@@ -163,6 +96,7 @@ class RqTaskIJSONSchemaAdapter(ijsonschema.IJSONSchemaETypeAdapter):
             (_("import_eac"), tasks.import_eac),
             (_("run_dead_links"), tasks.run_dead_links),
             (_("run_index_kibana"), tasks.index_kibana),
+            (_("delete_nomina_by_service"), tasks.delete_nomina_by_service),
         ]
     )
     __select__ = ijsonschema.IJSONSchemaETypeAdapter.__select__ & match_kwargs({"etype": "RqTask"})
@@ -211,20 +145,6 @@ class RqTaskIJSONSchemaAdapter(ijsonschema.IJSONSchemaETypeAdapter):
             )
         return list(services)
 
-    def write_tempfile(self, content):
-        """Write content of input file to temporary file.
-
-        :param bytes content: content
-        :param instance: RQ task
-
-        :returns: filename of temporary file
-        :rtype: str
-        """
-        fd, filepath = tempfile.mkstemp()
-        os.write(fd, content)
-        os.close(fd)
-        return filepath
-
 
 class RqTaskDedupeAuthJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
     __select__ = RqTaskIJSONSchemaAdapter.__select__ & match_kwargs(
@@ -268,35 +188,7 @@ class RqTaskDedupeAuthJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
         return entity
 
 
-class ImportIndexPolicyMinix(object):
-    @property
-    def index_policy_props(self):
-        req = self._cw
-        props = {}
-        props["should_normalize"] = {
-            "type": "boolean",
-            "title": req._("Normalize indexes labels"),
-            "enum": [True, False],
-            "enumNames": [
-                req._("yes"),
-                req._("no"),
-            ],
-            "default": True,
-        }
-        props["context_service"] = {
-            "type": "boolean",
-            "title": req._("Context of import"),
-            "enum": [True, False],
-            "enumNames": [
-                req._("service"),
-                req._("all services"),
-            ],
-            "default": True,
-        }
-        return props
-
-
-class RqTaskImportEadIJSONSchemaAdapter(ImportIndexPolicyMinix, RqTaskIJSONSchemaAdapter):
+class RqTaskImportEadIJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
     __select__ = RqTaskIJSONSchemaAdapter.__select__ & match_kwargs({"schema_type": "import_ead"})
 
     def creation_schema(self, **kwargs):
@@ -322,7 +214,6 @@ class RqTaskImportEadIJSONSchemaAdapter(ImportIndexPolicyMinix, RqTaskIJSONSchem
             "title": req._("force-delete-old-findingaids"),
             "default": True,
         }
-        props.update(self.index_policy_props)
         schema["required"] = list(set(schema["required"]) | {"file"})
         return schema
 
@@ -330,18 +221,29 @@ class RqTaskImportEadIJSONSchemaAdapter(ImportIndexPolicyMinix, RqTaskIJSONSchem
         req = self._cw
         fileobj = instance["fileobj"]
         code, ext = osp.splitext(fileobj.filename)
+        st = S3BfssStorageMixIn()
         if ext == ".zip":
-            filepaths = process_faimport_zip(req, fileobj)
+            filepaths = process_faimport_zip(req, fileobj, st.storage_write_zipfile)
         elif ext == ".xml":
-            filepaths = process_faimport_xml(req, fileobj, instance["service"])
+            filepaths = [
+                process_faimport_xml(req, fileobj, instance["service"], st.storage_write_file)
+            ]
+        else:
+            raise JSONBadRequest(
+                jsonapi_error(
+                    status=422,
+                    pointer="file",
+                    details=req._("input file must be a ZIP or a XML file"),
+                )
+            )
         force_delete = instance.get("force-delete", False)
         auto_import = False
+        auto_dedupe = True
+        context_service = True
         entity = super(RqTaskImportEadIJSONSchemaAdapter, self).create_entity(instance)
         func = self.TASK_MAP[instance["name"]]
-        auto_dedupe = instance["should_normalize"]
-        context_service = instance["context_service"]
         kwargs = {}
-        if instance["service"] == "FRAN":
+        if instance.get("service") == "FRAN":
             kwargs = {"job_timeout": "18h"}
         entity.cw_adapt_to("IRqJob").enqueue(
             func, filepaths, auto_dedupe, context_service, force_delete, auto_import, **kwargs
@@ -376,10 +278,15 @@ class RqTaskImportEacIJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
         req = self._cw
         fileobj = instance["fileobj"]
         f, ext = osp.splitext(fileobj.filename)
+        st = S3BfssStorageMixIn()
         if ext == ".zip":
-            filepaths = process_authorityrecords_zip(req, fileobj)
+            filepaths = process_authorityrecords_zip(req, fileobj, st.storage_write_zipfile)
         elif ext == ".xml":
-            filepaths = [process_authorityrecord_xml(req, fileobj, instance["service"])]
+            filepaths = [
+                process_authorityrecord_xml(
+                    req, fileobj, instance["service"], st.storage_write_file
+                )
+            ]
         else:
             raise JSONBadRequest(
                 jsonapi_error(
@@ -397,7 +304,7 @@ class RqTaskImportEacIJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
         return entity
 
 
-class RqTaskImportOaiIJSONSchemaAdapter(ImportIndexPolicyMinix, RqTaskIJSONSchemaAdapter):
+class RqTaskImportOaiIJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
     __select__ = RqTaskIJSONSchemaAdapter.__select__ & match_kwargs({"schema_type": "import_oai"})
     TASK_MAP = OrderedDict(
         [
@@ -412,17 +319,35 @@ class RqTaskImportOaiIJSONSchemaAdapter(ImportIndexPolicyMinix, RqTaskIJSONSchem
         props["oairepository"] = {
             "type": "integer",
             "title": req._("oai repository identifier"),
+            "required": True,
         }
-        props["force-refresh"] = {
+        props["force_refresh"] = {
             "type": "boolean",
+            "default": True,
+            "required": True,
             "title": req._("force-import-oai"),
         }
-        props.update(self.index_policy_props)
+        props["dry_run"] = {
+            "type": "boolean",
+            "default": False,
+            "required": True,
+            "title": req._("Do not import data in DB. Only harverts data."),
+        }
+        props["records_limit"] = {
+            "type": "integer",
+            "title": req._(
+                "Number of document to harvest. Leave empty the whole repo is to be harvested."
+            ),
+        }
+        props["csv_rows_limit"] = {
+            "type": "integer",
+            "title": req._("Number of  document per file."),
+        }
         schema["required"].append("oairepository")
         return schema
 
     def create_entity(self, instance):
-        force_refresh = instance.get("force-refresh", True)
+        force_refresh = instance.get("force_refresh", True)
         auto_import = False
         oairepo = self._cw.entity_from_eid(instance["oairepository"])
         meta_prefix = oairepo.oai_params.get("metadataPrefix", [""])[0]
@@ -431,8 +356,11 @@ class RqTaskImportOaiIJSONSchemaAdapter(ImportIndexPolicyMinix, RqTaskIJSONSchem
             name = "{} ({})".format(name, meta_prefix)
         entity = self._cw.create_entity("RqTask", name=name, title=instance["title"])
         func = self.TASK_MAP[instance["name"]]
-        auto_dedupe = instance["should_normalize"]
-        context_service = instance["context_service"]
+        auto_dedupe = True
+        context_service = True
+        dry_run = instance.get("dry_run", False)
+        records_limit = instance.get("records_limit", None)
+        csv_rows_limit = instance.get("csv_rows_limit", None)
         entity.cw_adapt_to("IRqJob").enqueue(
             func,
             instance["oairepository"],
@@ -440,6 +368,9 @@ class RqTaskImportOaiIJSONSchemaAdapter(ImportIndexPolicyMinix, RqTaskIJSONSchem
             context_service,
             force_refresh,
             auto_import,
+            dry_run,
+            records_limit,
+            csv_rows_limit,
             job_timeout="24h",
         )
         return entity
@@ -475,6 +406,7 @@ class RqTaskExportApeIJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
 
 class AbstractRqTaskImportCSVAdapter(RqTaskIJSONSchemaAdapter):
     __abstract__ = True
+    file_help_msg = _("csv file to import")
 
     def creation_schema(self, **kwargs):
         req = self._cw
@@ -482,37 +414,78 @@ class AbstractRqTaskImportCSVAdapter(RqTaskIJSONSchemaAdapter):
         props = schema["properties"]
         props["file"] = {
             "type": "string",
-            "title": req._("csv file to import"),
+            "title": req._(self.file_help_msg),
         }
-        schema["required"] = list(set(schema["required"]) | {"file", "title"})
-        return schema
-
-    def create_entity(self, instance):
-        filepath = self.write_tempfile(instance["fileobj"].value)
-        entity = super(AbstractRqTaskImportCSVAdapter, self).create_entity(instance)
-        func = self.TASK_MAP[instance["name"]]
-        entity.cw_adapt_to("IRqJob").enqueue(func, filepath)
-        return entity
-
-
-class RqTaskDeleteFindingAidsIJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
-    __select__ = RqTaskIJSONSchemaAdapter.__select__ & match_kwargs(
-        {"schema_type": "delete_finding_aids"}
-    )
-
-    def creation_schema(self, **kwargs):
-        req = self._cw
-        schema = super().creation_schema(**kwargs)
-        props = schema["properties"]
-        props["file"] = {"type": "string", "title": req._("csv-finding-aids")}
         schema["required"] = list(set(schema["required"]) | {"file", "title"})
         return schema
 
     def create_entity(self, instance):
         entity = super().create_entity(instance)
         func = self.TASK_MAP[instance["name"]]
-        filepath = self.write_tempfile(instance["fileobj"].value)
+        st = S3BfssStorageMixIn()
+        filepath = st.storage_write_tmpfile(instance["fileobj"].filename, instance["fileobj"].value)
         entity.cw_adapt_to("IRqJob").enqueue(func, filepath)
+        return entity
+
+
+class RqTaskDeleteFindingAidsIJSONSchemaAdapter(AbstractRqTaskImportCSVAdapter):
+    __select__ = RqTaskIJSONSchemaAdapter.__select__ & match_kwargs(
+        {"schema_type": "delete_finding_aids"}
+    )
+    file_help_msg = _("csv-finding-aids")
+
+
+class RqTaskDeleteNominaByServiceIJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
+    __select__ = RqTaskIJSONSchemaAdapter.__select__ & match_kwargs(
+        {"schema_type": "delete_nomina_by_service"}
+    )
+
+    def creation_schema(self, **kwargs):
+        req = self._cw
+        schema = super().creation_schema(**kwargs)
+        services = req.execute(
+            """Any X, C ORDERBY C WHERE X is Service, X code C,
+               EXISTS(N service X, N is NominaRecord)"""
+        )
+        props = schema["properties"]
+        props["service"] = {
+            "type": "string",
+            "title": req._("Choose the service"),
+            "enum": [str(eid) for eid, code in services],
+            "enumNames": [code for eid, code in services],
+        }
+        schema["required"] = list(set(schema["required"]) | {"service", "title"})
+        return schema
+
+    def create_entity(self, instance):
+        service_eid = instance["service"]
+        entity = super().create_entity(instance)
+        func = self.TASK_MAP[instance["name"]]
+        entity.cw_adapt_to("IRqJob").enqueue(func, service_eid)
+        return entity
+
+
+class RqTaskRemoveAuthoritiesIJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
+    __select__ = RqTaskIJSONSchemaAdapter.__select__ & match_kwargs(
+        {"schema_type": "remove_authorities"}
+    )
+
+    def creation_schema(self, **kwargs):
+        req = self._cw
+        schema = super(RqTaskRemoveAuthoritiesIJSONSchemaAdapter, self).creation_schema(**kwargs)
+        props = schema["properties"]
+        props["authority_eid"] = {
+            "type": "string",
+            "title": req._("Authority eid"),
+        }
+        schema["required"] = list(set(schema["required"]) | {"authority_eid"})
+        return schema
+
+    def create_entity(self, instance):
+        entity = super(RqTaskRemoveAuthoritiesIJSONSchemaAdapter, self).create_entity(instance)
+        func = tasks.remove_authorities
+        kwargs = {"job_timeout": "18h"}
+        entity.cw_adapt_to("IRqJob").enqueue(func, instance["authority_eid"], **kwargs)
         return entity
 
 
@@ -525,23 +498,70 @@ class RqTaskImportAuthoritiesIJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
         req = self._cw
         schema = super(RqTaskImportAuthoritiesIJSONSchemaAdapter, self).creation_schema(**kwargs)
         props = schema["properties"]
+        props["cw_etype"] = {
+            "type": "string",
+            "title": req._("authorities type"),
+            "enum": ["LocationAuthority", "AgentAuthority", "SubjectAuthority"],
+            "enumNames": [
+                req._("Locations"),
+                req._("Agents"),
+                req._("Subjects"),
+            ],
+        }
         props["file"] = {"type": "string", "title": req._("csv-authorities")}
         props["labels"] = {"type": "boolean", "title": req._("update-labels"), "default": True}
+        props["quality"] = {"type": "boolean", "title": req._("update-quality"), "default": True}
         props["alignments"] = {
             "type": "boolean",
             "title": req._("update-alignments"),
             "default": True,
         }
-        schema["required"] = list(set(schema["required"]) | {"file", "title"})
+        schema["required"] = list(set(schema["required"]) | {"file", "title", "cw_etype"})
         return schema
 
     def create_entity(self, instance):
         entity = super(RqTaskImportAuthoritiesIJSONSchemaAdapter, self).create_entity(instance)
         func = self.TASK_MAP[instance["name"]]
-        filepath = self.write_tempfile(instance["fileobj"].value)
+        st = S3BfssStorageMixIn()
+        filepath = st.storage_write_tmpfile(instance["fileobj"].filename, instance["fileobj"].value)
         entity.cw_adapt_to("IRqJob").enqueue(
-            func, filepath, instance.get("labels", True), instance.get("alignments", True)
+            func,
+            filepath,
+            instance["fileobj"].filename,
+            instance["cw_etype"],
+            instance.get("labels", True),
+            instance.get("alignments", True),
+            instance.get("quality", True),
         )
+        return entity
+
+
+class RqTaskImportQualifiedAuthoritiesIJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
+    __select__ = RqTaskIJSONSchemaAdapter.__select__ & match_kwargs(
+        {"schema_type": "import_qualified_authorities"}
+    )
+
+    def creation_schema(self, **kwargs):
+        req = self._cw
+        schema = super().creation_schema(**kwargs)
+        props = schema["properties"]
+        props["file"] = {
+            "type": "string",
+            "title": req._("qualify-authorities-file"),
+            "description": req._("qualify-authorities-file-desc"),
+        }
+        schema["required"] = list(set(schema["required"]) | {"file", "title"})
+        return schema
+
+    def create_entity(self, instance):
+        entity = super().create_entity(instance)
+        func = self.TASK_MAP[instance["name"]]
+        st = S3BfssStorageMixIn()
+        # check headers
+        fileobj = instance["fileobj"]
+        headers = check_quality_csv(self._cw, fileobj, st)
+        filepath = st.storage_write_tmpfile(fileobj.filename, fileobj.value)
+        entity.cw_adapt_to("IRqJob").enqueue(func, filepath, headers)
         return entity
 
 
@@ -676,7 +696,9 @@ class RqTaskPublishFAIJSONSchemaAdapter(RqTaskIJSONSchemaAdapter):
         return entity
 
 
-class RqTaskImportCSVIJSONSchemaAdapter(ImportIndexPolicyMinix, RqTaskIJSONSchemaAdapter):
+class RqTaskImportCSVIJSONSchemaAdapter(
+    RqTaskIJSONSchemaAdapter,
+):
     __select__ = RqTaskIJSONSchemaAdapter.__select__ & match_kwargs({"schema_type": "import_csv"})
 
     def creation_schema(self, **kwargs):
@@ -686,13 +708,13 @@ class RqTaskImportCSVIJSONSchemaAdapter(ImportIndexPolicyMinix, RqTaskIJSONSchem
         props["file"] = {
             "type": "string",
             "title": req._("csv file to import"),
+            "description": req._("dc-csv-file-desc"),
         }
         props["force-delete"] = {
             "type": "boolean",
             "title": req._("force-delete-old-findingaids"),
             "default": True,
         }
-        props.update(self.index_policy_props)
         schema["required"] = list(set(schema["required"]) | {"file", "title"})
         return schema
 
@@ -702,9 +724,10 @@ class RqTaskImportCSVIJSONSchemaAdapter(ImportIndexPolicyMinix, RqTaskIJSONSchem
         auto_import = False
         entity = super(RqTaskImportCSVIJSONSchemaAdapter, self).create_entity(instance)
         func = self.TASK_MAP[instance["name"]]
-        filepaths = process_csvimport_zip(req, instance["fileobj"])
-        auto_dedupe = instance["should_normalize"]
-        context_service = instance["context_service"]
+        st = S3BfssStorageMixIn()
+        filepaths = process_csvimport_zip(req, instance["fileobj"], st.storage_write_zipfile)
+        auto_dedupe = True
+        context_service = True
         entity.cw_adapt_to("IRqJob").enqueue(
             func,
             filepaths,
@@ -713,6 +736,120 @@ class RqTaskImportCSVIJSONSchemaAdapter(ImportIndexPolicyMinix, RqTaskIJSONSchem
             force_delete,
             auto_import,
         )
+        return entity
+
+
+# Nomina code without duplicated values from cubicweb_francearchives.entities.nomina
+# import NominaActCodeTypes
+
+NominaActCodeTypes = OrderedDict(
+    {
+        "A": _("NMN_A"),
+        "AN": _("NMN_AN"),
+        "BANS": _("NMN_BANS"),
+        "B": _("NMN_BN"),
+        "CO": _("NMN_CO"),
+        "CM": _("NMN_CM"),
+        "DI": _("NMN_DI"),
+        "F": _("NMN_F"),
+        "JU": _("NMN_JU"),
+        "M": _("NMN_M"),
+        "MPF": _("NMN_MPF"),
+        "MPF14-18": _("NMN_MPF14-18"),
+        "MORT 14-18": _("NMN_M14-18"),
+        "P": _("NMN_P"),
+        "PR": _("NMN_PR"),
+        "PU": _("NMN_PU"),
+        "RP": _("NMN_RP"),
+        "RE": _("NMN_RE"),
+        "REA": _("NMN_REA"),
+        "RM": _("NMN_RM"),
+        "R": _("NMN_R"),
+        "SV": _("NMN_SV"),
+        "S": _("NMN_S"),
+        "T": _("NMN_RT"),
+        "ZZ": _("NMN_AU"),
+        "OAI": _("OAI")
+        # "JU": _("NMN_AU"),
+    }
+)
+
+
+class RqTaskImportCSVNominaIJSONSchemaAdapter(
+    RqTaskIJSONSchemaAdapter,
+):
+    __select__ = RqTaskIJSONSchemaAdapter.__select__ & match_kwargs(
+        {"schema_type": "import_csv_nomina"}
+    )
+
+    def creation_schema(self, **kwargs):
+        req = self._cw
+        schema = super(RqTaskImportCSVNominaIJSONSchemaAdapter, self).creation_schema(**kwargs)
+        doctype_values = list(NominaActCodeTypes.keys())
+        doctype_labels = list([req._(value) for value in NominaActCodeTypes.values()])
+        # XXX use NominaDocType entity" or
+        # cubicweb_francearchives.entities.nomina import NominaActCodeTypes
+
+        props = schema["properties"]
+        props["doctype"] = {
+            "type": "string",
+            "title": req._("document type"),
+            "enum": doctype_values,
+            "enumNames": doctype_labels,
+            "description": req._("Select the document type"),
+        }
+        props["file"] = {
+            "type": "string",
+            "title": req._("csv file to import"),
+            "description": req._("import_nomnia_file_desc"),
+        }
+        props["delimiter"] = {
+            "type": "string",
+            "title": req._("csv file delimiter"),
+            "enum": [";", "\t"],
+            "enumNames": [";", "tabulation"],
+            "default": ";",
+        }
+        props["service"] = {
+            "type": "string",
+            "title": req._("service code (required only for xml, optional for zip)"),
+            "enum": [
+                c
+                for c, in req.execute(
+                    "Any C ORDERBY C WHERE X is Service, X code C, NOT X code NULL"
+                )
+            ],
+        }
+
+        schema["required"] = list(
+            set(schema["required"]) | {"title", "service", "file", "delimiter", "doctype"}
+        )
+        return schema
+
+    def create_entity(self, instance):
+        req = self._cw
+        fileobj = instance["fileobj"]
+        code, ext = osp.splitext(fileobj.filename)
+        st = S3BfssStorageMixIn()
+        service = instance["service"]
+        doctype = instance["doctype"]
+        delimiter = instance["delimiter"]
+        if ext == ".csv":
+            filepaths = validate_import_nomina_csv(
+                req, fileobj, service, doctype, delimiter, st.storage_write_file
+            )
+        else:
+            raise JSONBadRequest(
+                jsonapi_error(
+                    status=422,
+                    pointer="file",
+                    details=req._("input file must be a CSV file"),
+                )
+            )
+        entity = super(RqTaskImportCSVNominaIJSONSchemaAdapter, self).create_entity(instance)
+        func = self.TASK_MAP[instance["name"]]
+        kwargs = {"job_timeout": "24h"}
+        entity.cw_adapt_to("IRqJob").enqueue(func, filepaths, service, doctype, delimiter, **kwargs)
         return entity
 
 
@@ -841,7 +978,7 @@ class RqTaskRunDeadLinks(RqTaskIJSONSchemaAdapter):
     def create_entity(self, instance):
         entity = super(RqTaskRunDeadLinks, self).create_entity(instance)
         func = self.TASK_MAP[instance["name"]]
-        entity.cw_adapt_to("IRqJob").enqueue(func, job_timeout="12h")
+        entity.cw_adapt_to("IRqJob").enqueue(func, job_timeout="24h")
         return entity
 
 
@@ -877,7 +1014,7 @@ class RqTaskIndexKibana(RqTaskIJSONSchemaAdapter):
             func,
             instance["index_authorities"],
             instance["index_services"],
-            job_timeout="10h",
+            job_timeout="48h",
         )
         return entity
 
@@ -1114,6 +1251,11 @@ class FrarchivesBytesAttributeMapper(mappers.AttributeMapper):
         return "".join(parts)
 
 
+class FrarchivesJsonAttributeMapper(mappers.AttributeMapper):
+    __select__ = mappers.yams_match(target_types="Json")
+    jsl_field_class = jsl.fields.DictField
+
+
 @monkeypatch(ijsonschema.IJSONSchemaEntityAdapter)
 def add_relation(self, values):
     """relate current entity to eid listed in values through ``rtype``"""
@@ -1141,7 +1283,6 @@ def add_relation(self, values):
 
 
 class TrInfoJSONSchemaEntityAdapter(ijsonschema.IJSONSchemaEntityAdapter):
-
     __select__ = ijsonschema.IJSONSchemaEntityAdapter.__select__ & is_instance("TrInfo")
 
     def serialize(self):
@@ -1162,7 +1303,6 @@ class FrarchivesIJSONSchemaRelatedEntityAdapter(ijsonschema.IJSONSchemaRelatedEn
 
 
 class FrarchivesIJSONSchemaEntityAdapter(ijsonschema.IJSONSchemaEntityAdapter):
-
     __select__ = ijsonschema.IJSONSchemaEntityAdapter.__select__ & yes()
 
     def serialize(self, attrs=None):
@@ -1296,8 +1436,9 @@ class DownloadablableJSONSchemaAdapter(FrarchivesIJSONSchemaEntityAdapter):
         except AttributeError:
             pass
         else:
+            storage_route = "s3" if os.getenv("AWS_S3_BUCKET_NAME") else "bfss"
             data["download_url"] = pyramid_request.route_path(
-                "bfss", hash=self.entity.data_hash, basename=self.entity.data_name
+                storage_route, hash=self.entity.data_hash, basename=self.entity.data_name
             )
 
         return data
@@ -1308,6 +1449,11 @@ class VocabularyFieldMixIn(object):
     react-jsonschema-from does not support oneOf Field yet"""
 
     def jsl_field(self, schema_role, **kwargs):
+        def translate(voc):
+            if voc.strip():
+                return self._cw._(voc)
+            return voc
+
         kwargs.setdefault("format", self.format)
         field_factory = super(mappers.AttributeMapper, self).jsl_field
         if schema_role in (CREATION_ROLE, EDITION_ROLE):
@@ -1328,7 +1474,13 @@ class VocabularyFieldMixIn(object):
                 # react-jsonschema-for oneOf field support lack,
                 # but we still ignore other constraints.
                 voc = vocabulary_constraint.vocabulary()
-                kwargs.update({"enum": voc, "enum_titles": [self._cw._(v) for v in voc]})
+                # translate the vocabulary and avoid adding an additional blank line
+                kwargs.update(
+                    {
+                        "enum": [v for v in voc],
+                        "enum_titles": [translate(v) for v in voc],
+                    }
+                )
                 return field_factory(schema_role, **kwargs)
             for constraint in self.attr.constraints:
                 self.add_constraint(constraint, kwargs)
@@ -1422,6 +1574,22 @@ class AutocompleteEntityBaseContentRelationMapper(
     )
 
 
+class AutocompleteETypeBaseContentSuggestRelationMapper(
+    AutocompleteRelationMapperMixIn, mappers.ETypeRelationMapper
+):
+    __select__ = mappers.ETypeRelationMapper.__select__ & mappers.yams_match(
+        rtype="related_content_suggestion", role="subject"
+    )
+
+
+class AutocompleteEntityBaseContentSuggestRelationMapper(
+    AutocompleteRelationMapperMixIn, mappers.EntityRelationMapper
+):
+    __select__ = mappers.EntityRelationMapper.__select__ & mappers.yams_match(
+        rtype="related_content_suggestion", role="subject"
+    )
+
+
 # class AutocompleteEntityPniaAgentRelationMapper(AutocompleteRelationMapperMixIn,
 #                                                 mappers.ETypeRelationMapper):
 #     __select__ = (mappers.ETypeRelationMapper.__select__
@@ -1483,19 +1651,10 @@ class ExternalIdSchemaAdapter(FrarchivesIJSONSchemaEntityAdapter):
         return data
 
 
-class OAIRepositoryIJSONSchemaAdapter(
-    ImportIndexPolicyMinix, ijsonschema.IJSONSchemaRelationTargetETypeAdapter
-):
+class OAIRepositoryIJSONSchemaAdapter(ijsonschema.IJSONSchemaRelationTargetETypeAdapter):
     __select__ = ijsonschema.IJSONSchemaRelationTargetETypeAdapter.__select__ & match_kwargs(
         {"etype": "OAIRepository"}
     )
-
-    def creation_schema(self, **kwargs):
-        schema = super(OAIRepositoryIJSONSchemaAdapter, self).creation_schema(**kwargs)
-        props = schema["properties"]
-        for prop, defs in self.index_policy_props.items():
-            props[prop] = defs
-        return schema
 
 
 def registration_callback(vreg):

@@ -27,7 +27,7 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
-/* global fetch, SCRIPT_NAME */
+/* global SCRIPT_NAME */
 
 import 'whatwg-fetch'
 import {isEmpty} from 'lodash/lang'
@@ -47,7 +47,7 @@ function jsonFetch(url, options = {}) {
         credentials: 'same-origin',
         headers: {Accept: 'application/json'},
     })
-    return fetch(fullUrl, options).then(response => {
+    return fetch(fullUrl, options).then((response) => {
         const {headers} = response,
             contentLength = headers.get('Content-Length'),
             noContent = contentLength === '0' || contentLength === 0
@@ -77,7 +77,7 @@ function jsonDeleteFetch(url, options = {}) {
     // which will make pyramid route unselectable (due to competition with others)
     const fullUrl = buildUrl(url)
     defaultsDeep(options, {credentials: 'same-origin', method: 'DELETE'})
-    return fetch(fullUrl, options).then(response => {
+    return fetch(fullUrl, options).then((response) => {
         if (
             response.headers.get('content-type') &&
             response.headers
@@ -104,8 +104,8 @@ function jsonSchemaFetch(url, options = {}) {
 
 function jsonFetchCollection(url, options) {
     // Filter out error response by returning and empty collection.
-    return jsonFetch(url, options).then(doc => {
-        if (doc.hasOwnProperty('errors')) {
+    return jsonFetch(url, options).then((doc) => {
+        if (Object.prototype.hasOwnProperty.call(doc, 'errors')) {
             console.error(doc)
             return []
         }

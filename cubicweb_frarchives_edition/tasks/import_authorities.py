@@ -32,6 +32,7 @@
 import csv
 import logging
 from collections import defaultdict
+from psycopg2.extras import execute_batch
 
 # third party imports
 import rq
@@ -39,73 +40,162 @@ import rq
 # CubicWeb specific imports
 
 # library specific imports
+from cubicweb_francearchives.storage import S3BfssStorageMixIn
+
 from cubicweb_frarchives_edition.rq import rqjob, update_progress
 from cubicweb_frarchives_edition.tasks.import_alignments import update_alignments
 from cubicweb_frarchives_edition.alignments.geonames_align import GeonameRecord, GeonameAligner
+from cubicweb_frarchives_edition.alignments.authorities_align import (
+    AgentImportRecord,
+    AgentImportAligner,
+    SubjectImportRecord,
+    SubjectImportAligner,
+)
 
 
-def update_labels(cnx, log, csvpath):
-    """Update LocationAuthorities' labels.
+CW_ETYPES_ALIGNERS = {
+    "LocationAuthority": {"record": GeonameRecord, "aligner": GeonameAligner},
+    "AgentAuthority": {"record": AgentImportRecord, "aligner": AgentImportAligner},
+    "SubjectAuthority": {"record": SubjectImportRecord, "aligner": SubjectImportAligner},
+}
+
+
+def update_authorities(
+    cnx, log, csvpath, csvfilename, cw_etype, update_labels=True, update_quality=True
+):
+    """Update Authorities labels.
 
     :param Connection cnx: CubicWeb database connection
     :param Logger log: RqTask logger
-    :param str csvpath: path to CSV file
+    :param str csvpath: path to CSV file (can be a hash)
+    :param str csvfilename: CSV file name
+    :param str cw_etype: authorities cw_etype
+    :param bool update_labels: toggle updating labels on/off
+    :param bool update_quality: toggle updating quality on/off
+
     """
-    labels = {
-        str(eid): label
-        for (eid, label) in cnx.execute("Any A, L WHERE A is LocationAuthority, A label L").rows
-    }
+    if update_labels:
+        log.info(f"update labels from {csvfilename}")
+    if update_quality:
+        log.info(f"update quality from {csvfilename}")
+
     user_defined_labels = defaultdict(set)
-    with open(csvpath) as fp:
+    user_defined_qualities = defaultdict(set)
+    st = S3BfssStorageMixIn(log=log)
+    record_cls = CW_ETYPES_ALIGNERS[cw_etype]["record"]
+    with st.storage_read_file(csvpath) as fp:
         reader = csv.DictReader(fp, delimiter="\t")
         try:
-            GeonameRecord.validate_csv(reader.fieldnames)
+            record_cls.validate_csv(
+                reader.fieldnames, align=False, labels=update_labels, quality=update_quality
+            )
         except ValueError as exception:
             raise exception
+
+        labels, qualities = {}, {}
+        for eid, label, quality in cnx.execute(
+            f"""Any A, L, Q WHERE A is {cw_etype}, A label L, A quality Q"""
+        ):
+            labels[str(eid)] = label
+            qualities[str(eid)] = quality
+        if update_quality and "quality" not in reader.fieldnames:
+            raise (ValueError("column 'quality' is missing for the csv file"))
         invalid = []
         for i, row in enumerate(reader, 1):
             try:
-                record = GeonameRecord(row)
+                record = record_cls(row, align=False, labels=update_labels, quality=update_quality)
             except ValueError as exception:
                 invalid.append("{} {}".format(i, exception))
                 continue
             label = labels.get(record.autheid, "")
             if not label:
-                # make certain that LocationAuthority is not known
+                # make certain that the Authority is not known
                 # instead of empty label
                 if record.autheid not in labels:
                     log.warning(
-                        "unknown LocationAuthority %s (row %d, column 1) (skip)", record.autheid, i
+                        f"unknown {cw_etype} %s (row %d, column 1) (skip)", record.autheid, i
                     )
                     continue
             if record.pnialabel != label:
-                user_defined_labels[record.autheid].add(record.pnialabel)
+                if update_labels:
+                    user_defined_labels[record.autheid].add(record.pnialabel)
+            if update_quality:
+                if not isinstance(record.quality, bool):
+                    log.warning(
+                        f"""quality ignored: found a wrong quality value '{record.quality}' for {cw_etype} {record.autheid} (row {i}, column 1)"""  # noqa
+                    )
+                    continue
+                if record.quality != qualities[record.autheid]:
+                    user_defined_qualities[record.autheid].add(record.quality)
         if invalid:
             log.warning("found missing value in required column(s): {}".format(";".join(invalid)))
-    args = []
-    for autheid, labels in list(user_defined_labels.items()):
-        if len(labels) > 1:
-            log.warning(
-                "%d conflicting user-defined labels LocationAuthority %s (skip all)",
-                len(labels),
-                autheid,
+    skipped, confirmed = process_data(log, user_defined_labels, "label", [])
+    # update labels
+    if update_labels:
+        if confirmed:
+            log.info(f"update {len(confirmed)} user-defined {cw_etype} label")
+            execute_batch(
+                cnx.cnxset.cu, f"UPDATE cw_{cw_etype} SET cw_label=%s WHERE cw_eid=%s", confirmed
             )
+            cnx.commit()
+            for label, eid in confirmed:
+                cnx.entity_from_eid(eid).add_to_auth_history()
+        else:
+            log.info(f"No user-defined {cw_etype} labels found to be changed")
+
+    # process and update quality
+    if update_quality:
+        if user_defined_qualities:
+            _, confirmed = process_data(log, user_defined_qualities, "quality", skipped)
+            if confirmed:
+                log.info(f"update {len(confirmed)} user-defined {cw_etype} quality")
+                cnx.cnxset.cu.executemany(
+                    f"UPDATE cw_{cw_etype} SET cw_quality=%s WHERE cw_eid=%s", confirmed
+                )
+                cnx.commit()
+            else:
+                log.info(f"No user-defined {cw_etype} quality found to be changed")
+
+
+def process_data(log, user_defined, column, to_skip):
+    """process data for Authorities's update.
+
+    :param Logger log: RqTask logger
+    :param dict user_defined: autorities to update
+    :param str column: Authority column to update
+    :param list to_skip: autorities to skip
+    """
+    args = []
+    skipped = []
+    for autheid, values in list(user_defined.items()):
+        if autheid in to_skip:
             continue
-        args.append((labels.pop(), autheid))
-    log.info("update %d user-defined LocationAuthority label(s)", len(args))
-    cursor = cnx.cnxset.cu
-    cursor.executemany("UPDATE cw_locationauthority SET cw_label=%s WHERE cw_eid=%s", args)
-    cnx.commit()
+        if len(values) > 1:
+            log.warning(
+                f"authority %s : found %d conflicting user-defined {column} : %s. Skip all",
+                autheid,
+                len(values),
+                " ; ".join('"{}"'.format(value) for value in values),
+            )
+            skipped.append(autheid)
+            continue
+        args.append((values.pop(), autheid))
+    return skipped, args
 
 
 @rqjob
-def import_authorities(cnx, csvpath, labels=True, alignments=True):
-    """Import LocationAuthorities.
+def import_authorities(
+    cnx, csvpath, csvfilename, cw_etype, labels=True, alignments=True, quality=True
+):
+    """Import authorities.
 
     :param Connection cnx: CubicWeb database connection
     :param str csvpath: path to CSV file
+    :param str csvfilename: CSV file name
+    :param str cw_etype: authorities cw_etype
     :param bool labels: toggle updating labels on/off
     :param bool alignments: toggle updating alignments on/off
+    :param bool quality: toggle updating quality on/off
     """
     log = logging.getLogger("rq.task")
     job = rq.get_current_job()
@@ -114,17 +204,20 @@ def import_authorities(cnx, csvpath, labels=True, alignments=True):
         progress_value = 0.5
     else:
         progress_value = 1
-    if labels:
-        log.info("update LocationAuthority labels")
+    log.info(f'Start processing "{csvfilename}" ({cw_etype})')
+    if labels or quality:
         try:
-            update_labels(cnx, log, csvpath)
-        except Exception:
-            log.error("failed to update LocationAuthority labels")
+            update_authorities(cnx, log, csvpath, csvfilename, cw_etype, labels, quality)
+        except Exception as error:
+            log.error(f"failed to update labels or quality: {error}")
         progress = update_progress(job, progress + progress_value)
     if alignments:
-        log.info("update GeoNames alignments")
+        log.info(f"update alignments from {csvfilename}")
         try:
-            update_alignments(cnx, log, csvpath, GeonameAligner, override_alignments=True)
-        except Exception:
-            log.error("failed to update GeoNames alignments")
+            aligner_cls = CW_ETYPES_ALIGNERS[cw_etype]["aligner"]
+            update_alignments(cnx, log, csvpath, aligner_cls, override_alignments=True)
+        except Exception as error:
+            log.error(f"failed to update alignments : {error}")
         progress = update_progress(job, progress + progress_value)
+    # delete the temporary file
+    S3BfssStorageMixIn(log=log).storage_delete_file(csvpath)

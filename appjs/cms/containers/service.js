@@ -39,7 +39,10 @@ const React = require('react'),
     {
         BootstrapTable: BT,
         TableHeaderColumn: THC,
-    } = require('react-bootstrap-table')
+    } = require('react-bootstrap-table'),
+    Button = require('react-bootstrap/cjs/Button'),
+    Modal = require('react-bootstrap/cjs/Modal'),
+    Form = require('react-bootstrap/cjs/Form')
 
 const {
     default: {
@@ -84,7 +87,7 @@ class SelectAnnex extends Component {
 
     fetchData(service) {
         this.setState({loading: true, annex: null, bodyType: null})
-        getRelated('service', service.eid, 'annex_of').then(services => {
+        getRelated('service', service.eid, 'annex_of').then((services) => {
             if (this.unmounted) {
                 // do not call setState on an unmounted Component
                 return
@@ -142,7 +145,7 @@ class SelectAnnex extends Component {
                 'annex_of',
                 service.eid,
                 input,
-            ).then(d => d.map(e => ({label: e.title, value: e.eid})))
+            ).then((d) => d.map((e) => ({label: e.title, value: e.eid})))
         }
 
         if (loading) {
@@ -157,7 +160,7 @@ class SelectAnnex extends Component {
                     onBlurResetsInput: false,
                     placeholder: 'Rechercher',
                     noOptionsMessage: () => null,
-                    onChange: value => this.setState({annex: value}),
+                    onChange: (value) => this.setState({annex: value}),
                 }),
                 ce(
                     'button',
@@ -256,7 +259,7 @@ class AddService extends Component {
 
     onSubmit(ev) {
         this.setState({formData: ev.formData})
-        return createEntity('service', ev.formData).then(doc => {
+        return createEntity('service', ev.formData).then((doc) => {
             if (doc.errors && doc.errors.length) {
                 this.props.dispatch(showErrors(doc.errors))
                 return
@@ -349,7 +352,7 @@ class ServiceEditor extends Component {
     onEditSubmit(ev) {
         const {eid} = this.props.entity
         this.setState({formData: ev.formData})
-        return updateEntity('service', eid, ev.formData).then(doc => {
+        return updateEntity('service', eid, ev.formData).then((doc) => {
             if (doc.errors && doc.errors.length) {
                 this.props.dispatch(showErrors(doc.errors))
                 return
@@ -389,46 +392,61 @@ ServiceEditor.propTypes = {
 exports.ServiceEditor = connect()(ServiceEditor)
 
 function getJsonUrl() {
-    const pathname = document.location.pathname
-    const isdpt = pathname.includes('departements'),
-        segments = pathname.split('/'),
+    const pathname = document.location.pathname,
+        isdpt = pathname.includes('departements'),
         url = isdpt
             ? '/annuaire/departements' + document.location.search
-            : '/annuaire/' + segments[segments.length - 1]
+            : '/annuaire/' + /service\/(\d+)/.exec(pathname)[1]
     return url
 }
 
-class OAIPublishButton extends Component {
-    constructor(props) {
-        super(props)
-        this.createTask = this.createTask.bind(this)
-        this.state = {loading: false}
-    }
+function metadataPrefixIsNomina(url) {
+    return url.includes('metadataPrefix=nomina')
+}
 
-    createTask() {
+function OAIPublishButton({entityData}) {
+    const [loading, setLoading] = React.useState(false)
+    const [showPublishModal, setShowPublishModal] = React.useState(false)
+    const [doImport, setDoImport] = React.useState(true)
+    const [fromLastImport, setFromLastImport] = React.useState(false)
+    const [recordsLimit, setRecordsLimit] = React.useState({
+        enabled: false,
+        value: '1',
+    })
+    const [recordsInCSV, setRecordsInCSV] = React.useState(100000)
+    const invalidRecordsLimit =
+        recordsLimit.enabled &&
+        (Number.isNaN(Number.parseInt(recordsLimit.value)) ||
+            Number.parseInt(recordsLimit.value) < 1)
+    const invalidRecordsInCSV =
+        recordsInCSV.value !== undefined &&
+        (Number.isNaN(Number.parseInt(recordsInCSV.value)) ||
+            Number.parseInt(recordsInCSV.value) < 1)
+    function createTask(evt) {
+        evt.preventDefault()
         // onSubmit event, updating the OAIRepository is called later
-        const {
-            eid,
-            name,
-            context_service,
-            should_normalize,
-        } = this.props.entityData
+        const {eid, name} = entityData
         let taskName = `import-oai for OAIRepository #${eid}`
         if (name !== undefined) {
             taskName += `(${name})`
         }
-        this.setState({loading: true})
+        if (invalidRecordsLimit || invalidRecordsInCSV) return
+        setLoading(true)
         return createEntity(
             'RqTask',
             {
                 name: `import_oai`,
                 title: taskName,
                 oairepository: eid,
-                should_normalize: should_normalize,
-                context_service: context_service,
+                dry_run: !doImport,
+                force_refresh: !fromLastImport,
+                records_limit: recordsLimit.enabled
+                    ? Number.parseInt(recordsLimit.value)
+                    : null,
+                csv_rows_limit: recordsInCSV.value,
             },
             'import_oai',
-        ).then(doc => {
+        ).then((doc) => {
             if (doc.errors && doc.errors.length) {
                 this.props.dispatch(showErrors(doc.errors))
                 return
@@ -438,24 +456,125 @@ class OAIPublishButton extends Component {
         })
     }
 
-    render() {
-        let iconComp
-        if (this.state.loading) {
-            iconComp = ce(spinner)
-        } else {
-            iconComp = ce(icon, {name: 'play'})
-        }
-        return ce(
-            'button',
-            {
-                className: 'btn btn-default pull-right',
-                title: 'moissonner cet entrepôt',
-                onClick: this.createTask,
-            },
-            iconComp,
-            ' moissonner',
-        )
-    }
+    const Spinner = spinner
+    const Icon = icon
+    return (
+        <React.Fragment>
+            <Button
+                className="pull-right"
+                title="moissonner cet entrepôt"
+                onClick={(evt) => {
+                    if (metadataPrefixIsNomina(entityData.url)) {
+                        setShowPublishModal(true)
+                    } else {
+                        createTask(evt)
+                    }
+                }}
+            >
+                <Icon name="play" />
+                moissonner
+            </Button>
+
+            <Modal
+                show={showPublishModal}
+                onHide={() => setShowPublishModal(false)}
+                size="lg"
+                centered
+            >
+                <Modal.Header closeButton>
+                    <Modal.Title>Paramètres du moissonnage</Modal.Title>
+                </Modal.Header>
+                <Form onSubmit={createTask} disabled={loading}>
+                    <Modal.Body>
+                        <Form.Group className="mb-3" controlId="doImport">
+                            <Form.Check
+                                label="Importer les données moissonnées dans l'application"
+                                checked={doImport}
+                                className="mb-3"
+                                onChange={(evt) =>
+                                    setDoImport(evt.currentTarget.checked)
+                                }
+                            />
+                            <Form.Check
+                                label="Importer uniquement les nouvelles données et les données modifiées depuis le dernier import"
+                                checked={fromLastImport}
+                                className="mb-3"
+                                onChange={(evt) =>
+                                    setFromLastImport(evt.currentTarget.checked)
+                                }
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3" controlId="recordsLimit">
+                            <Form.Check
+                                label="Limiter le nombre d'enregistrements à moissonner"
+                                value={recordsLimit.enabled}
+                                onChange={(evt) =>
+                                    setRecordsLimit({
+                                        ...recordsLimit,
+                                        enabled: evt.currentTarget.checked,
+                                    })
+                                }
+                            />
+                            <Form.Control
+                                type={recordsLimit.enabled ? 'number' : 'text'}
+                                disabled={!recordsLimit.enabled}
+                                min={1}
+                                value={
+                                    recordsLimit.enabled
+                                        ? recordsLimit.value
+                                        : ''
+                                }
+                                onChange={(evt) =>
+                                    setRecordsLimit({
+                                        ...recordsLimit,
+                                        value: evt.currentTarget.value,
+                                    })
+                                }
+                            />
+                        </Form.Group>
+                        <Form.Group className="mb-3" controlId="recordsInCSV">
+                            Limiter le nombre d'enregistrements moissonnés par
+                            fichier
+                            <Form.Control
+                                type="number"
+                                min={1}
+                                value={recordsInCSV.value}
+                                defaultValue={100000}
+                                onChange={(evt) =>
+                                    setRecordsInCSV({
+                                        ...recordsInCSV,
+                                        value: evt.currentTarget.value,
+                                    })
+                                }
+                            />
+                        </Form.Group>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            onClick={() => setShowPublishModal(false)}
+                        >
+                            Annuler
+                        </Button>
+                        <Button
+                            type="submit"
+                            variant="primary"
+                            onClick={createTask}
+                            disabled={
+                                loading ||
+                                invalidRecordsLimit ||
+                                invalidRecordsInCSV
+                            }
+                        >
+                            {loading ? <Spinner /> : <Icon name="play" />}
+                            Moissonner
+                        </Button>
+                    </Modal.Footer>
+                </Form>
+            </Modal>
+        </React.Fragment>
+    )
 }
 
 OAIPublishButton.propTypes = {
@@ -463,8 +582,7 @@ OAIPublishButton.propTypes = {
     entityData: PropTypes.shape({
         eid: PropTypes.integer,
         name: PropTypes.string,
-        should_normalize: PropTypes.bool,
-        context_service: PropTypes.bool,
+        url: PropTypes.string,
     }).isRequired,
 }
 
@@ -606,7 +724,7 @@ const OAIRelatedEditor = ({dispatch, entity, formRedirects}) => {
                 onAddClick={() => setDisplayCreationForm(true)}
             />
             <div className="related-entities">
-                {related.map(e => (
+                {related.map((e) => (
                     <OAIRepositoryEditForm
                         key={e.eid}
                         entity={e}
@@ -640,7 +758,7 @@ class ServiceListEditor extends Component {
     }
 
     componentDidMount() {
-        jsonFetch(getJsonUrl()).then(data => this.setState({data: data.data}))
+        jsonFetch(getJsonUrl()).then((data) => this.setState({data: data.data}))
         this.bindClickMap()
     }
 
@@ -653,7 +771,7 @@ class ServiceListEditor extends Component {
 
     updateData() {
         this.setState({data: null})
-        jsonFetch(getJsonUrl()).then(data => this.setState({data: data.data}))
+        jsonFetch(getJsonUrl()).then((data) => this.setState({data: data.data}))
     }
 
     unbindClickMap() {
@@ -716,8 +834,7 @@ class ServiceListEditor extends Component {
                                           name: 'image',
                                       }),
                                       ce(button, {
-                                          title:
-                                              'éditer/ajouter un entrepôt OAI',
+                                          title: 'éditer/ajouter un entrepôt OAI',
                                           onClick: () =>
                                               this.setState({
                                                   selectedService: service,
@@ -726,8 +843,7 @@ class ServiceListEditor extends Component {
                                           name: 'database',
                                       }),
                                       ce(button, {
-                                          title:
-                                              'définir ce service comme une annexe',
+                                          title: 'définir ce service comme une annexe',
                                           onClick: () =>
                                               this.setState({
                                                   selectedService: service,

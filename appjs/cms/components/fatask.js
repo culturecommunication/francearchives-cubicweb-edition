@@ -82,7 +82,6 @@ class AddFATaskForm extends AddEntityForm {
 
     onSubmit(ev) {
         this.setState({formData: ev.formData})
-        // eslint-disable-next-line react/no-find-dom-node
         const input = findDOMNode(this).querySelector('input[type=file]'),
             files = []
         if (input) {
@@ -93,7 +92,7 @@ class AddFATaskForm extends AddEntityForm {
             ev.formData,
             this.props.taskType,
             ...files,
-        ).then(doc => {
+        ).then((doc) => {
             if (doc.errors && doc.errors.length) {
                 this.props.dispatch(showErrors(doc.errors))
             } else if (doc.absoluteUrl) {

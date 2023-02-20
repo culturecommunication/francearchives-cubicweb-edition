@@ -34,10 +34,13 @@ from urllib3.exceptions import ProtocolError
 
 from elasticsearch.exceptions import ConnectionError, NotFoundError
 
+from logilab.common.decorators import cachedproperty
+
 from cubicweb.server import hook
 from cubicweb.predicates import is_instance
 
 from cubicweb_elasticsearch.entities import ESTransactionQueue
+from cubicweb_elasticsearch import hooks as es_hooks
 from cubicweb_elasticsearch.hooks import IndexEsOperation
 
 from cubicweb_francearchives.schema.cms import CMS_OBJECTS
@@ -93,6 +96,8 @@ class FAESTransactionQueue(ESTransactionQueue):
             is_published = self.published_entity(entity)
             if op_type == "delete" or op_type == "sync-delete":
                 sync_operations.append(("delete", entity))
+            elif op_type == "index-children":
+                sync_operations.append(("index-children", entity))
             elif is_published:
                 sync_operations.append(("index", entity))
         if sync_operations:
@@ -104,6 +109,57 @@ class FAESTransactionQueue(ESTransactionQueue):
                     "{} #{}".format(op_type, entity.eid) for op_type, entity in sync_operations
                 )
                 self.warning("[ES] Failed sync operations %s", op_str)
+
+
+class ServiceUpdateStateInESHook(hook.Hook):
+    """update Service in Elasticsearch database"""
+
+    __regid__ = "frarchives_edition.update-state-in-es.service"
+    __select__ = hook.Hook.__select__ & custom_on_fire_transition(
+        ("FindingAid", "BaseContent", "ExternRef"),
+        {"wft_cmsobject_publish", "wft_cmsobject_unpublish"},
+    )
+    events = ("after_add_entity",)
+    category = "es"
+
+    def __call__(self):
+        target = self.entity.for_entity
+        for service in target.services:
+            ServiceIndexEsOperation.get_instance(self._cw).add_data(
+                {"op_type": "index", "entity": service}
+            )
+
+
+class ServiceSiteRefHook(hook.Hook):
+    """update Service in Elasticsearch database"""
+
+    __regid__ = "elasticsearch.relations.service"
+    __select__ = hook.Hook.__select__ & hook.match_rtype("basecontent_service", "exref_service")
+    events = ("after_add_relation", "after_delete_relation")
+    category = "es"
+
+    def __call__(self):
+        ServiceIndexEsOperation.get_instance(self._cw).add_data(
+            {"op_type": "index", "entity": self._cw.entity_from_eid(self.eidto)}
+        )
+
+
+class ServiceESTransactionQueue(ESTransactionQueue):
+    __regid__ = "es.service.opqueue"
+    sync_service = "sync-service"
+
+    @cachedproperty
+    def default_indexer(self):
+        return self._cw.vreg["es"].select("kibana-service-indexer", self._cw)
+
+
+class NominaESTransactionQueue(ESTransactionQueue):
+    __regid__ = "es.nomina.opqueue"
+    sync_service = "sync-nomina"
+
+    @cachedproperty
+    def default_indexer(self):
+        return self._cw.vreg["es"].select("nomina-indexer", self._cw)
 
 
 class UpdateStateInESHook(hook.Hook):
@@ -134,6 +190,113 @@ class UpdateStateInESHook(hook.Hook):
                 "entity": target,
             }
         )
+
+
+class ChildenRelationUpdateIndexES(es_hooks.RelationsUpdateIndexES):
+    """updates ES indexing for ancestor field"""
+
+    __select__ = hook.Hook.__select__ & hook.match_rtype("children")
+
+    def __call__(self):
+        target = self._cw.entity_from_eid(self.eidto)
+        if target.cw_etype == "Section" and es_hooks.entity_indexable(target):
+            es_hooks.IndexEsOperation.get_instance(self._cw).add_data(
+                {
+                    "op_type": "index-children",
+                    "entity": target,
+                }
+            )
+
+
+class ServiceUpdateIndexES(hook.Hook):
+    """detect content change and updates ES indexing"""
+
+    __regid__ = "elasticsearch.service.contentupdatetoes"
+    __select__ = hook.Hook.__select__ & is_instance("Service")
+    events = ("after_update_entity", "after_add_entity", "after_delete_entity")
+    category = "es"
+
+    def __call__(self):
+        op_type = "delete" if self.event == "after_delete_entity" else "index"
+        ServiceIndexEsOperation.get_instance(self._cw).add_data(
+            {
+                "op_type": op_type,
+                "entity": self.entity,
+            }
+        )
+
+
+class NominaRecordUpdateIndexES(hook.Hook):
+    """detect content change and updates ES indexing"""
+
+    __regid__ = "elasticsearch.nomina.contentupdatetoes"
+    __select__ = hook.Hook.__select__ & is_instance("NominaRecord")
+    events = ("after_update_entity", "after_add_entity", "after_delete_entity")
+    category = "es"
+
+    def __call__(self):
+        op_type = "delete" if self.event == "after_delete_entity" else "index"
+        NominaIndexEsOperation.get_instance(self._cw).add_data(
+            {
+                "op_type": op_type,
+                "entity": self.entity,
+            }
+        )
+
+
+class NominaRecordUpdateSameAsRel(hook.Hook):
+    """reindex NominaRecord on same_as changes"""
+
+    __regid__ = "elasticsearch.nomina.update_sameas"
+    __select__ = hook.Hook.__select__ & hook.match_rtype("same_as")
+    events = ("after_add_relation", "after_delete_relation")
+
+    def __call__(self):
+        obj = self._cw.entity_from_eid(self.eidto)
+        subj = self._cw.entity_from_eid(self.eidfrom)
+        if subj.cw_etype == "NominaRecord" and obj.cw_etype == "AgentAuthority":
+            # reindex NominaRecord
+            op_type = "delete" if self.event == "after_delete_entity" else "index"
+            NominaIndexEsOperation.get_instance(self._cw).add_data(
+                {
+                    "op_type": op_type,
+                    "entity": subj,
+                }
+            )
+
+
+class ESAgentAuthorityRenameHook(hook.Hook):
+    __regid__ = "francearchives.agent-rename"
+    __select__ = hook.Hook.__select__ & is_instance("AgentAuthority")
+    events = ("before_update_entity",)
+
+    def __call__(self):
+        old_label, new_label = self.entity.cw_edited.oldnewvalue("label")
+        if old_label != new_label:
+            for nomina in self.entity.same_as_links.get("NominaRecord", []):
+                NominaIndexEsOperation.get_instance(self._cw).add_data(
+                    {"op_type": "index", "entity": nomina}
+                )
+
+
+class NominaIndexEsOperation(hook.DataOperationMixIn, hook.Operation):
+    """mixin class to process ES indexing as a postcommit event"""
+
+    containercls = list
+
+    def postcommit_event(self):
+        queue = self.cnx.vreg["es"].select("es.nomina.opqueue", req=self.cnx)
+        queue.process_operations(self.get_data())
+
+
+class ServiceIndexEsOperation(hook.DataOperationMixIn, hook.Operation):
+    """mixin class to process ES indexing as a postcommit event"""
+
+    containercls = list
+
+    def postcommit_event(self):
+        queue = self.cnx.vreg["es"].select("es.service.opqueue", req=self.cnx)
+        queue.process_operations(self.get_data())
 
 
 def registration_callback(vreg):

@@ -46,8 +46,8 @@ class OnHomePageIcon extends Component {
 
     componentDidMount() {
         const {cw_etype, eid} = this.entity
-        getSchema(cw_etype, eid, 'edition').then(d => (this.schema = d))
-        return getEntity(cw_etype, eid).then(d => {
+        getSchema(cw_etype, eid, 'edition').then((d) => (this.schema = d))
+        return getEntity(cw_etype, eid).then((d) => {
             this.entity = d
             this.setState({onHomePage: d.on_homepage, loading: false})
         })

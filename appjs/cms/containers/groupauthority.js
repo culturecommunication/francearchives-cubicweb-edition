@@ -27,6 +27,7 @@
  * The fact that you are presently reading this means that you have had
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
+
 import React from 'react'
 import {connect} from 'react-redux'
 import PropTypes from 'prop-types'
@@ -48,18 +49,25 @@ class IdEntry extends React.Component {
             let href =
                 window.BASE_URL + authtype + '/' + selectedAuthority.value
             link = (
-                <div>
-                    <span className="control-label col-xs-1">
-                        voir l&quot;autorité séléctionnée
-                    </span>
+                <div className="col-md-1 g-3 align-items-center">
+                    <label className="form-label col-md-1">
+                        Voir l&#39;autorité
+                    </label>
                     <a
+                        title="voir l&#39;autorité sélectionnée"
                         href={href}
-                        className="fa-stack fa-lg url_link col-xs-2"
+                        className="fa-stack fa-xl url_link"
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        <i className="fa fa-circle fa-stack-2x"></i>
-                        <i className="fa fa-arrow-right fa-stack-1x fa-inverse"></i>
+                        <i
+                            className="fa fa-circle fa-stack-2x"
+                            aria-hidden="true"
+                        ></i>
+                        <i
+                            className="fa fa-arrow-right fa-stack-1x fa-inverse"
+                            aria-hidden="true"
+                        ></i>
                     </a>
                 </div>
             )
@@ -69,8 +77,8 @@ class IdEntry extends React.Component {
             if (input.length < 3) {
                 return []
             }
-            return Api.getAuthorityToGroup(eid, input).then(d =>
-                d.map(e => ({label: e.title, value: e.eid})),
+            return Api.getAuthorityToGroup(eid, input).then((d) =>
+                d.map((e) => ({label: e.title, value: e.eid})),
             )
         }
 
@@ -81,22 +89,23 @@ class IdEntry extends React.Component {
         return (
             <fieldset>
                 <legend>Autorité à grouper</legend>
-                <div className="form-group">
-                    <label className="control-label col-xs-1">libellé</label>
-                    <Async
-                        cache={false}
-                        className="col-xs-9"
-                        name="sameas"
-                        noOptionsMessage={() => 'aucune autorité trouvée'}
-                        value={selectedAuthority}
-                        loadOptions={throttle(loadOptions, 300)}
-                        onBlurResetsInput={false}
-                        isMulti={false}
-                        isClearable={true}
-                        placeholder="Sélectionnez une autorité par son libellé..."
-                        onChange={onChange}
-                        filterOptions={filterOptions}
-                    />
+                <div className="row mb-4 g-3 align-items-center">
+                    <div className="col-md-11">
+                        <label className="form-label">Libellé</label>
+                        <Async
+                            cache={false}
+                            name="sameas"
+                            noOptionsMessage={() => 'aucune autorité trouvée'}
+                            value={selectedAuthority}
+                            loadOptions={throttle(loadOptions, 300)}
+                            onBlurResetsInput={false}
+                            isMulti={false}
+                            isClearable={true}
+                            placeholder="Sélectionnez une autorité par son libellé..."
+                            onChange={onChange}
+                            filterOptions={filterOptions}
+                        />
+                    </div>
                     {link}
                 </div>
             </fieldset>
@@ -118,7 +127,7 @@ function IdList({eid, authtype, ids, onIdChange}) {
                     <IdEntry
                         eid={eid}
                         authtype={authtype}
-                        onChange={options => onIdChange(idx, options)}
+                        onChange={(options) => onIdChange(idx, options)}
                         selectedAuthority={selected}
                     />
                 </div>
@@ -138,12 +147,17 @@ const location_reload = document.location.reload.bind(document.location)
 class GroupAuthorityComp extends React.Component {
     constructor(props) {
         super(props)
-        this.state = {ids: [], submitting: false, message: null}
+        this.state = {
+            ids: [],
+            submitting: false,
+            message: null,
+            formAdded: false,
+        }
         this.onAdd = this.onAdd.bind(this)
         this.onIdChange = this.onIdChange.bind(this)
         this.onSubmit = this.onSubmit.bind(this)
         this.onCancel = this.props.onCancel || location_reload
-        this.updateMessage = msg => this.setState({message: msg})
+        this.updateMessage = (msg) => this.setState({message: msg})
     }
 
     onSubmit(ev) {
@@ -152,10 +166,10 @@ class GroupAuthorityComp extends React.Component {
             {ids} = this.state,
             eid = entity.get('eid')
         const eids = ids
-            .filter(el => {
+            .filter((el) => {
                 return el !== null
             })
-            .map(e => e.value)
+            .map((e) => e.value)
         this.setState({submitting: true})
         Api.jsonFetch(`/fa/authority/${eid}/_group`, {
             method: 'POST',
@@ -168,7 +182,7 @@ class GroupAuthorityComp extends React.Component {
                 })
                 this.setState({submitting: false, ids: []})
             })
-            .catch(e => {
+            .catch((e) => {
                 this.updateMessage({type: 'danger', text: e})
                 console.error(e)
             })
@@ -183,59 +197,67 @@ class GroupAuthorityComp extends React.Component {
     onAdd() {
         const {ids} = this.state
         ids.unshift(null)
-        this.setState({ids})
+        this.setState({ids, formAdded: true})
         return false
     }
 
     render() {
         const {entity} = this.props,
-            {ids, submitting, message} = this.state,
+            {ids, submitting, message, formAdded} = this.state,
             title = entity.get('dc_title'),
+            entityUrl = `${window.BASE_URL}${entity.get('rest_path')}`,
             i18netype = entity.get('i18n_cw_etype'),
             eid = entity.get('eid'),
             etype = entity.get('cw_etype')
-        const isEmpty = array => !array.filter(e => e !== null).length
+        const isEmpty = (array) => !array.filter((e) => e !== null).length
         return (
             <div>
                 <h1>
-                    {i18netype} : &quot;{title}&quot;
+                    {i18netype}{' '}
+                    <a
+                        target="_blank"
+                        href={entityUrl}
+                        rel="noopener noreferrer"
+                    >
+                        {title}
+                    </a>{' '}
+                    : gérer les groupements
                 </h1>
                 <Alert message={message} />
                 <div className="cms_add_link">
-                    <button
-                        title="ajouter des autorités"
-                        className="btn btn-default"
-                        onClick={this.onAdd}
-                    >
-                        Cliquer ici
+                    <button className="btn btn-default" onClick={this.onAdd}>
+                        Ajouter des autorités à grouper
                     </button>
-                    &nbsp; pour ajouter des autorités à grouper
                 </div>
-                <form className="form-horizontal" onSubmit={this.onSubmit}>
+                <form onSubmit={this.onSubmit}>
                     <IdList
-                        className="form-group field"
+                        className="mb-4 field"
                         eid={eid}
                         authtype={etype}
                         ids={ids}
                         onIdChange={this.onIdChange}
                     />
-                    <div className="btn-group">
-                        <button
-                            className="btn btn-default"
-                            type="button"
-                            onClick={this.onCancel}
-                        >
-                            fermer
-                        </button>
-                        <button
-                            disabled={submitting || isEmpty(ids)}
-                            className="btn btn-primary"
-                            type="submit"
-                        >
-                            {submitting ? <Spinner /> : null}
-                            enregistrer
-                        </button>
-                    </div>
+                    {!formAdded ? (
+                        <div />
+                    ) : (
+                        <div className="btn-group">
+                            <button
+                                className="btn btn-default"
+                                type="button"
+                                onClick={this.onCancel}
+                            >
+                                Annuler
+                            </button>
+                            <button
+                                disabled={submitting || isEmpty(ids)}
+                                className="btn btn-primary"
+                                type="submit"
+                            >
+                                {submitting ? <Spinner /> : null}
+                                Enregistrer
+                            </button>
+                        </div>
+                    )}
                 </form>
             </div>
         )

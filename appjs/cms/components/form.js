@@ -72,7 +72,7 @@ function CustomFieldTemplate(props) {
         displayLabel
             ? ce(
                   'label',
-                  {className: 'control-label', htmlFor: id},
+                  {className: 'form-label', htmlFor: id},
                   `${label} ${required ? '*' : ''}`,
               )
             : null,

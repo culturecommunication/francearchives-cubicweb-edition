@@ -71,7 +71,7 @@ class BaseContentEditor extends Component {
     onSubmit(ev) {
         const {cw_etype, eid} = this.props.entity
         this.setState({formData: ev.formData})
-        return updateEntity(cw_etype, eid, ev.formData).then(doc => {
+        return updateEntity(cw_etype, eid, ev.formData).then((doc) => {
             if (doc.errors && doc.errors.length) {
                 this.props.dispatch(showErrors(doc.errors))
             } else {

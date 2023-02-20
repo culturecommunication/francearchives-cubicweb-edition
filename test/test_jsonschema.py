@@ -38,11 +38,10 @@ import urllib.error
 
 from cubicweb import Binary, ValidationError
 from cubicweb.devtools.testlib import CubicWebTC
-from cubicweb.pyramid.test import PyramidCWTest
 
 from cubicweb_jsonschema import CREATION_ROLE, VIEW_ROLE
 
-from cubicweb_francearchives.testutils import HashMixIn
+from cubicweb_francearchives.testutils import S3BfssStorageTestMixin
 from cubicweb_frarchives_edition.entities import parse_dataurl
 
 import utils
@@ -91,17 +90,7 @@ class ParseDataURLTC(utils.FrACubicConfigMixIn, TestCase):
         self.assertEqual(data, b"chat")
 
 
-class JSONSchemaTC(utils.FrACubicConfigMixIn, PyramidCWTest):
-
-    settings = {
-        "cubicweb.bwcompat": False,
-        "pyramid.debug_notfound": True,
-        "cubicweb.session.secret": "stuff",
-        "cubicweb.auth.authtkt.session.secret": "stuff",
-        "cubicweb.auth.authtkt.persistent.secret": "stuff",
-        "francearchives.autoinclude": "no",
-    }
-
+class JSONSchemaTC(S3BfssStorageTestMixin, utils.FranceArchivesCMSTC):
     def includeme(self, config):
         config.include("cubicweb_jsonschema.api.schema")
         config.include("cubicweb_jsonschema.api.entities")
@@ -175,7 +164,7 @@ class JSONSchemaTC(utils.FrACubicConfigMixIn, PyramidCWTest):
                 self.assertEqual(expected, [e.title for e in document.iter_fields()])
 
 
-class RelationMapperTC(HashMixIn, utils.FrACubicConfigMixIn, CubicWebTC):
+class RelationMapperTC(S3BfssStorageTestMixin, utils.FrACubicConfigMixIn, CubicWebTC):
     def test_filedataattribute_mapper(self):
         with self.admin_access.cnx() as cnx:
             mapper = cnx.vreg["mappers"].select(
@@ -338,6 +327,7 @@ class RelationMapperTC(HashMixIn, utils.FrACubicConfigMixIn, CubicWebTC):
     def test_bytes_creation(self):
         instance = {
             "title": "my map",
+            "order": 1,
             "map_file": "data:text/comma-separated-values;name=map;base64,{}".format(
                 base64.b64encode(b"a,b,c").decode("utf-8")
             ),
@@ -357,6 +347,7 @@ class RelationMapperTC(HashMixIn, utils.FrACubicConfigMixIn, CubicWebTC):
                 cnx.commit()
                 instance = {
                     "title": "the map",
+                    "order": cw_map.order,
                     "map_file": "data:;base64,{}".format(
                         base64.b64encode(b"a,b,c").decode("utf-8")
                     ),

@@ -55,7 +55,7 @@ class CKEditorWrapper extends Component {
     render() {
         return ce('textarea', {
             defaultValue: this.props.formData,
-            ref: n => (this._container = n),
+            ref: (n) => (this._container = n),
         })
     }
 }
@@ -65,9 +65,9 @@ CKEditorWrapper.propTypes = {
 
 function fileInputHandler(file, cb) {
     var reader = new FileReader()
-    reader.onload = function(e) {
+    reader.onload = function (e) {
         createEntity('file', {data: e.target.result, title: file.name}).then(
-            doc => {
+            (doc) => {
                 if (doc.errors && doc.errors.length) {
                     alert(JSON.stringify(doc.errors, null, 2))
                     return
@@ -118,8 +118,7 @@ class TinyMCEWrapper extends Component {
                     menu: {
                         favs: {
                             title: 'Favoris',
-                            items:
-                                'code | searchreplace | spellchecker | emoticons | insert',
+                            items: 'code | searchreplace | spellchecker | emoticons | insert',
                         },
                     },
                     menubar:
@@ -195,7 +194,7 @@ class TinyMCEWrapper extends Component {
                     image_title: true,
                     height: 400,
                 }}
-                onChange={event => {
+                onChange={(event) => {
                     // store value before triggering onChange to be able to
                     // test new props against current value in _shouldComponentupdate
                     this.value = event.target.getContent()

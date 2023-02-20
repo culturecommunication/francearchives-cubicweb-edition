@@ -33,7 +33,7 @@ const {createContext} = require('react')
 const abrevations = {en: 'anglais', de: 'allemand', es: 'espagnol'}
 
 const AbrevContext = createContext({
-    unabrevate: abbr => {
+    unabrevate: (abbr) => {
         return abrevations[abbr]
     },
 })

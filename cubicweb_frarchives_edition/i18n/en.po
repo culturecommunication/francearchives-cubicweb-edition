@@ -10,14 +10,32 @@ msgstr ""
 msgid "\"label\" is required"
 msgstr ""
 
+msgid ""
+"\"{fileobj.filename}\" file contains invalid headers \"{\", \"."
+"join(headers)}\""
+msgstr ""
+
 msgid "0 document"
 msgstr "0 documents"
 
 msgid "1 document"
 msgstr ""
 
+msgid "A Service code must not contain any lower case characters"
+msgstr ""
+
 #, python-format
 msgid "A Service with \"%s\" code already exists"
+msgstr ""
+
+msgid "Agents"
+msgstr ""
+
+msgid ""
+"An email has been sent, follow instructions in there to change your password."
+msgstr ""
+
+msgid "Authority eid"
 msgstr ""
 
 msgid ""
@@ -27,13 +45,36 @@ msgstr ""
 "Fichier CSV invalide. Ce fichier doit contenir les colonnes \"Code_insee\", "
 "\"URL\", \"Couleur\" et \"Legende\"séparées par \",\""
 
-msgid "Context of import"
+msgid "Captcha"
+msgstr ""
+
+msgid "Choose the service"
+msgstr ""
+
+msgid "Copy the glossary term link"
+msgstr ""
+
+msgid "Could not retrieve data from {}: {}"
+msgstr ""
+
+msgid "Do not import data in DB. Only harverts data."
+msgstr ""
+
+msgid "Encountered an error while creating en entity"
+msgstr ""
+
+msgid ""
+"Following errors/warnings occurred while harvesting {} ({}) OAI repository "
+"{}. For the complete log visit {}."
 msgstr ""
 
 msgid "Following files are empty : {}"
 msgstr ""
 
 msgid "Following files does not start with \"{}\" : {}"
+msgstr ""
+
+msgid "Forgot your password?"
 msgstr ""
 
 msgid "Found non-existent service code: "
@@ -51,10 +92,88 @@ msgstr ""
 msgid "Impossible to publish"
 msgstr ""
 
-msgid "Intitules de la rubrique presentation"
+msgid "Invalid link. Please try again."
+msgstr ""
+
+msgid "Locations"
 msgstr ""
 
 msgid "Missing data"
+msgstr ""
+
+msgid "NMN_A"
+msgstr ""
+
+msgid "NMN_AN"
+msgstr ""
+
+msgid "NMN_AU"
+msgstr ""
+
+msgid "NMN_BANS"
+msgstr ""
+
+msgid "NMN_BN"
+msgstr ""
+
+msgid "NMN_CM"
+msgstr ""
+
+msgid "NMN_CO"
+msgstr ""
+
+msgid "NMN_DI"
+msgstr ""
+
+msgid "NMN_F"
+msgstr ""
+
+msgid "NMN_JU"
+msgstr ""
+
+msgid "NMN_M"
+msgstr ""
+
+msgid "NMN_M14-18"
+msgstr ""
+
+msgid "NMN_MPF"
+msgstr ""
+
+msgid "NMN_MPF14-18"
+msgstr ""
+
+msgid "NMN_P"
+msgstr ""
+
+msgid "NMN_PR"
+msgstr ""
+
+msgid "NMN_PU"
+msgstr ""
+
+msgid "NMN_R"
+msgstr ""
+
+msgid "NMN_RE"
+msgstr ""
+
+msgid "NMN_REA"
+msgstr ""
+
+msgid "NMN_RM"
+msgstr ""
+
+msgid "NMN_RP"
+msgstr ""
+
+msgid "NMN_RT"
+msgstr ""
+
+msgid "NMN_S"
+msgstr ""
+
+msgid "NMN_SV"
 msgstr ""
 
 msgid "New RqTask"
@@ -63,13 +182,35 @@ msgstr ""
 msgid "No original entity found"
 msgstr ""
 
-msgid "Normalize indexes labels"
+msgid "Number of  document per file."
+msgstr ""
+
+msgid ""
+"Number of document to harvest. Leave empty the whole repo is to be harvested."
+msgstr ""
+
+msgid "OAI"
 msgstr ""
 
 msgid "OAIRepository"
 msgstr ""
 
 msgid "PDF/metadata.csv is missing from zip"
+msgstr ""
+
+msgid "Password"
+msgstr ""
+
+msgid "Please copy letters for the image"
+msgstr ""
+
+msgid "Please enter a valid email address. For exemple: name@domain.fr"
+msgstr ""
+
+msgid "Please, add a start_year"
+msgstr ""
+
+msgid "Please, confirm the password"
 msgstr ""
 
 # schema pot file, generated on 2017-07-04 06:39:53
@@ -81,9 +222,6 @@ msgstr ""
 msgid "RqTask_plural"
 msgstr ""
 
-msgid "Section"
-msgstr ""
-
 msgid "See other files referencing documents with identical content"
 msgstr ""
 
@@ -93,9 +231,30 @@ msgstr ""
 msgid "See the file (access by eid)"
 msgstr ""
 
+msgid "Select the document type"
+msgstr ""
+
+msgid "Send"
+msgstr ""
+
 msgid ""
 "Service \"{}\" does not exist. Check the ziped file name \"{}\" or create a "
 "new service before uploading the file again"
+msgstr ""
+
+msgid "SiteLink_plural"
+msgstr ""
+
+msgid "SiteLinks"
+msgstr ""
+
+msgid "Start_year must be less than stop_year"
+msgstr ""
+
+msgid "State"
+msgstr ""
+
+msgid "Subjects"
 msgstr ""
 
 msgid ""
@@ -120,16 +279,51 @@ msgstr ""
 msgid "This archive contains no files."
 msgstr ""
 
+msgid "This field is required"
+msgstr ""
+
 msgid "This file in not a zip file"
 msgstr ""
 
 msgid "This file is empty"
 msgstr ""
 
+#, python-format
+msgid "Unable to process \"%s\": %s"
+msgstr ""
+
+#, python-brace-format
+msgid "Unable to process \"{fileobj.filename}\": no fieldnames found"
+msgstr ""
+
+#, python-brace-format
+msgid "Unable to process \"{fileobj.filename}\": no headers found"
+msgstr ""
+
+#, python-brace-format
+msgid "Unable to process \"{fileobj.filename}\": {exception}"
+msgstr ""
+
+#, python-brace-format
+msgid "Unable to read \"{fileobj.filename}\": {exception}"
+msgstr ""
+
+msgid "Update your password:"
+msgstr ""
+
+msgid "Your email"
+msgstr ""
+
 msgid "ZIP or XML file"
 msgstr ""
 
+msgid "[FranceArchives]: {service.dc_title()} ({service.code}) - {status}"
+msgstr ""
+
 msgid "add RqTask output_file File subject"
+msgstr ""
+
+msgid "add RqTask subtasks RqTask subject"
 msgstr ""
 
 msgid "add a RqTask"
@@ -141,7 +335,7 @@ msgstr "calculate and import alignments to BANO"
 msgid "align-geoname"
 msgstr "calculate alignments to GeoNames"
 
-msgid "all services"
+msgid "authorities type"
 msgstr ""
 
 msgid "bad task eid"
@@ -165,6 +359,9 @@ msgstr ""
 msgid "creating File (RqTask %(linkto)s output_file File)"
 msgstr ""
 
+msgid "creating RqTask (RqTask %(linkto)s subtasks RqTask)"
+msgstr ""
+
 # subject and object forms for each relation type
 # (no object form for final or symmetric relation types)
 msgid "cssimage"
@@ -181,6 +378,9 @@ msgctxt "CssImage"
 msgid "cssimage_object"
 msgstr ""
 
+msgid "csv file delimiter"
+msgstr ""
+
 msgid "csv file to import"
 msgstr ""
 
@@ -190,10 +390,19 @@ msgstr "CSV file location authorities"
 msgid "csv-finding-aids"
 msgstr ""
 
+msgid "dc-csv-file-desc"
+msgstr ""
+
 msgid "dedupe_authorities"
 msgstr ""
 
 msgid "delete_finding_aids"
+msgstr ""
+
+msgid "delete_nomina_by_service"
+msgstr ""
+
+msgid "document type"
 msgstr ""
 
 # subject and object forms for each relation type
@@ -261,20 +470,6 @@ msgctxt "FindingAid"
 msgid "fatask_findingaid_object"
 msgstr ""
 
-msgid "fatask_person"
-msgstr ""
-
-msgctxt "RqTask"
-msgid "fatask_person"
-msgstr ""
-
-msgid "fatask_person_object"
-msgstr ""
-
-msgctxt "Person"
-msgid "fatask_person_object"
-msgstr ""
-
 msgid "findingaid eid"
 msgstr ""
 
@@ -290,10 +485,19 @@ msgstr ""
 msgid "group_location_authorities"
 msgstr ""
 
+msgid "harvesting completed with errors/warnings"
+msgstr ""
+
+msgid "harvesting failed"
+msgstr ""
+
 msgid "import_authorities"
 msgstr "[import authorities] import location authorities"
 
 msgid "import_csv"
+msgstr ""
+
+msgid "import_csv_nomina"
 msgstr ""
 
 msgid "import_eac"
@@ -302,11 +506,17 @@ msgstr ""
 msgid "import_ead"
 msgstr ""
 
+msgid "import_nomnia_file_desc"
+msgstr ""
+
 msgid "import_oai"
 msgstr ""
 
+msgid "import_qualified_authorities"
+msgstr "[import_qualified_authorities] importer la qualification des autorités"
+
 msgid "in_state_facet"
-msgstr "In state"
+msgstr "États"
 
 msgid "index authorities"
 msgstr ""
@@ -321,6 +531,9 @@ msgid "index_location"
 msgstr ""
 
 msgid "index_subject"
+msgstr ""
+
+msgid "input file must be a CSV file"
 msgstr ""
 
 msgid "input file must be a ZIP or a XML file"
@@ -345,7 +558,8 @@ msgstr ""
 msgid "missing \"eac-services-dir\" parameter in all-in-one.conf"
 msgstr ""
 
-msgid "missing \"ead-services-dir\" parameter in all-in-one.conf"
+#, python-brace-format
+msgid "missing \"{config_dir_name}\" parameter in all-in-one.conf"
 msgstr ""
 
 msgctxt "RqTask"
@@ -387,9 +601,6 @@ msgctxt "OAIImportTask"
 msgid "oaiimport_task_object"
 msgstr ""
 
-msgid "original ressource"
-msgstr ""
-
 msgid "output_descr"
 msgstr ""
 
@@ -418,10 +629,24 @@ msgctxt "File"
 msgid "output_file_object"
 msgstr ""
 
+msgid "parent task"
+msgstr ""
+
 msgid "progress bar"
 msgstr ""
 
 msgid "publish_findingaid"
+msgstr ""
+
+msgid "pwd_policy"
+msgstr ""
+"Password must contain at least : 12 letters,  lowcase lettres, uppercase "
+"letters, numeric characters and special characters"
+
+msgid "qualify-authorities-file"
+msgstr ""
+
+msgid "qualify-authorities-file-desc"
 msgstr ""
 
 msgid "referenced_files"
@@ -439,10 +664,6 @@ msgctxt "Card"
 msgid "referenced_files"
 msgstr ""
 
-msgctxt "CommemoCollection"
-msgid "referenced_files"
-msgstr ""
-
 msgctxt "CommemorationItem"
 msgid "referenced_files"
 msgstr ""
@@ -452,6 +673,10 @@ msgid "referenced_files"
 msgstr ""
 
 msgctxt "ExternRef"
+msgid "referenced_files"
+msgstr ""
+
+msgctxt "FaqItemTranslation"
 msgid "referenced_files"
 msgstr ""
 
@@ -542,7 +767,7 @@ msgstr "Task logs"
 msgid "task_name"
 msgstr ""
 
-msgid "title"
+msgid "this field is mandatory"
 msgstr ""
 
 msgctxt "RqTask"
@@ -557,6 +782,9 @@ msgstr "update alignments"
 
 msgid "update-labels"
 msgstr "update authority labels"
+
+msgid "update-quality"
+msgstr ""
 
 msgid "uri field is mandatory"
 msgstr ""
@@ -604,6 +832,9 @@ msgstr ""
 msgid "{count} documents"
 msgstr ""
 
+#~ msgid "CSV from OAI import"
+#~ msgstr "CSV issu d'un import OAI"
+
 #~ msgid "FAFileImport"
 #~ msgstr "Finding aid file import"
 
@@ -615,6 +846,14 @@ msgstr ""
 
 #~ msgid "FAOAIPMHImport_plural"
 #~ msgstr "Finding aid OAI-PMH imports"
+
+#~ msgid ""
+#~ "Following errors/warnings occurred while harvesting \"{} ({})\" OAI "
+#~ "repository \"{}\". For the complete log visit {}."
+#~ msgstr ""
+#~ "Vous trouverez ci-dessous les erreurs et les avertissements qui sont "
+#~ "survenus lors du moissonnage de l'entrepôt OAI {} du service {} ({}). Les "
+#~ "logs complets de cette tâche sont disponbiles sur {}."
 
 #~ msgid "New FAFileImport"
 #~ msgstr "New finding aid file import"
@@ -648,11 +887,6 @@ msgstr ""
 #~ "Password is too weak. Password must contain at least : 12 letters,  "
 #~ "lowcase lettres, uppercase letters, numeric characters and special "
 #~ "characters"
-
-#~ msgid "pwd_policy"
-#~ msgstr ""
-#~ "Password must contain at least : 12 letters,  lowcase lettres, uppercase "
-#~ "letters, numeric characters and special characters"
 
 #~ msgctxt "FAFileImport"
 #~ msgid "startyear"

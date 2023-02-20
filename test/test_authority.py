@@ -242,11 +242,11 @@ class ReapplyAuthorityOperationsTC(FrACubicConfigMixIn, EADImportMixin, CubicWeb
 
         """
         with self.admin_access.cnx() as cnx:
-            self.import_filepath(cnx, self.datapath("reapply_auth_op.xml"))
+            self.import_filepath(cnx, "reapply_auth_op.xml")
             self.assertEqual(len(cnx.find("LocationAuthority")), 2)
         with self.admin_access.cnx() as cnx:
             self.import_filepath(
-                cnx, self.datapath("reapply_auth_op.xml"), autodedupe_authorities="service/strict"
+                cnx, "reapply_auth_op.xml", autodedupe_authorities="service/strict"
             )
             self.assertEqual(len(cnx.find("LocationAuthority")), 4)
 
@@ -256,14 +256,10 @@ class ReapplyAuthorityOperationsTC(FrACubicConfigMixIn, EADImportMixin, CubicWeb
 
         """
         with self.admin_access.cnx() as cnx:
-            self.import_filepath(
-                cnx, self.datapath("FRAD095_00162.xml"), service_infos=self.service_infos
-            )
+            self.import_filepath(cnx, "FRAD095_00162.xml", service_infos=self.service_infos)
             self.assertEqual(len(cnx.find("LocationAuthority")), 2)
         with self.admin_access.cnx() as cnx:
-            self.import_filepath(
-                cnx, self.datapath("FRAD095_00162.xml"), autodedupe_authorities="service/strict"
-            )
+            self.import_filepath(cnx, "FRAD095_00162.xml", autodedupe_authorities="service/strict")
             self.assertEqual(len(cnx.find("LocationAuthority")), 2)
 
     def test_reapply_group_op_without_service(self):
@@ -272,7 +268,7 @@ class ReapplyAuthorityOperationsTC(FrACubicConfigMixIn, EADImportMixin, CubicWeb
 
         """
         with self.admin_access.cnx() as cnx:
-            self.import_filepath(cnx, self.datapath("reapply_auth_op.xml"))
+            self.import_filepath(cnx, "reapply_auth_op.xml")
             self.assertEqual(len(cnx.find("LocationAuthority")), 2)
             self.assertCountEqual(
                 [1, 1], [len(a.reverse_authority) for a in cnx.find("LocationAuthority").entities()]
@@ -286,7 +282,7 @@ class ReapplyAuthorityOperationsTC(FrACubicConfigMixIn, EADImportMixin, CubicWeb
             )
         with self.admin_access.cnx() as cnx:
             self.import_filepath(
-                cnx, self.datapath("reapply_auth_op.xml"), autodedupe_authorities="service/strict"
+                cnx, "reapply_auth_op.xml", autodedupe_authorities="service/strict"
             )
             self.assertEqual(len(cnx.find("LocationAuthority")), 3)
             self.assertCountEqual(
@@ -300,9 +296,7 @@ class ReapplyAuthorityOperationsTC(FrACubicConfigMixIn, EADImportMixin, CubicWeb
 
         """
         with self.admin_access.cnx() as cnx:
-            self.import_filepath(
-                cnx, self.datapath("FRAD095_00162.xml"), service_infos=self.service_infos
-            )
+            self.import_filepath(cnx, "FRAD095_00162.xml", service_infos=self.service_infos)
             self.assertEqual(len(cnx.find("LocationAuthority")), 2)
             self.assertCountEqual(
                 [1, 1], [len(a.reverse_authority) for a in cnx.find("LocationAuthority").entities()]
@@ -317,7 +311,7 @@ class ReapplyAuthorityOperationsTC(FrACubicConfigMixIn, EADImportMixin, CubicWeb
         with self.admin_access.cnx() as cnx:
             self.import_filepath(
                 cnx,
-                self.datapath("FRAD095_00162.xml"),
+                "FRAD095_00162.xml",
                 service_infos=self.service_infos,
                 autodedupe_authorities="service/strict",
             )

@@ -85,9 +85,16 @@ def write_log(msg, log=None):
         print(msg)
 
 
-def group_candidates(cnx, candidates, log):
+def group_candidates(cnx, candidates, log, limitdoc):
     progress_bar = _tqdm(total=len(candidates))
+    write_log(f"Limit docs set to {limitdoc}")
     for items in candidates:
+        # we group items[1:] with items[0].
+        # Only group items having documents number (item[2]) below limitdoc
+        sub_items = [item for item in items[1:] if int(item[2]) < limitdoc]
+        if not sub_items:
+            continue
+        items = [items[0]] + sub_items
         eids = [item[0] for item in items]
         target = cnx.entity_from_eid(eids.pop(0))
         write_log("grouping {} with {}".format(target.absolute_url(), eids))
@@ -145,6 +152,11 @@ def group_subject_authorities(cnx, dry_run=True, directory=None, log=None, limit
             row = []
             items = sort_subjects(items)
             first = items[0]
+            if first[1].lower() in (
+                "recherche détaillée",
+                "recherche orientation",
+            ):
+                continue
             for i, (eid, label, nbdocs) in enumerate(items):
                 url = "{}subject/{}".format(cnx.base_url(), eid)
                 data = "{label} ({url}) {nb}".format(label=label, url=url, nb=nbdocs)
@@ -165,7 +177,7 @@ def group_subject_authorities(cnx, dry_run=True, directory=None, log=None, limit
                 writer.writerow(row)
     if not dry_run:
         write_log("\n-> group subjects.")
-        group_candidates(cnx, processed_cadidates, log)
+        group_candidates(cnx, processed_cadidates, log, limitdoc)
 
 
 if __name__ == "__main__":

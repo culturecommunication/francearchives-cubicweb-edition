@@ -28,6 +28,7 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
+import datetime
 import unittest
 from itertools import chain
 
@@ -51,6 +52,7 @@ def lang_urls(rest_path):
 class VarnishTests(EsSerializableMixIn, FrACubicConfigMixIn, CubicWebTC):
     def assertBanned(self, call_args_list, urls):
         ban_commands = [("ban req.url ~", url) for url in urls]
+
         self.assertCountEqual(sorted([call[0] for call in call_args_list]), sorted(ban_commands))
 
     @patch("cubicweb_varnish.varnishadm.VarnishCLI.execute")
@@ -61,13 +63,15 @@ class VarnishTests(EsSerializableMixIn, FrACubicConfigMixIn, CubicWebTC):
     @patch("elasticsearch.client.Elasticsearch.index")
     def test_newscontent_homepage(self, index, exists, create, reindex, _connect, cli_execute):
         with self.admin_access.repo_cnx() as cnx:
-            news = cnx.create_entity("NewsContent", title="title", start_date="2015-10-12")
+            news = cnx.create_entity(
+                "NewsContent", title="title", start_date=datetime.datetime(2015, 10, 12)
+            )
             cnx.commit()
             news.cw_adapt_to("IWorkflowable").fire_transition("wft_cmsobject_publish")
             cnx.commit()
-            # first we set on_homepage so we should purge homepage
+            # first we set on_homepage so we should purge homepages
             cli_execute.reset_mock()
-            news.cw_set(on_homepage=True)
+            news.cw_set(on_homepage="onhp_hp", header="header", on_homepage_order=1)
             cnx.commit()
             rest_path = news.rest_path()
             self.assertBanned(
@@ -77,13 +81,31 @@ class VarnishTests(EsSerializableMixIn, FrACubicConfigMixIn, CubicWebTC):
                     lang_urls("actualite"),
                     lang_urls("actualites"),
                     lang_urls("sitemap"),
+                    lang_urls("gerer"),
+                    lang_urls(""),
+                ),
+            )
+            # then we change on_homepage value so news is now on home page archiviste
+            # we should purge homepages again
+            cli_execute.reset_mock()
+            news.cw_set(on_homepage="onhp_arch")
+            cnx.commit()
+            rest_path = news.rest_path()
+            self.assertBanned(
+                cli_execute.call_args_list,
+                chain(
+                    lang_urls(rest_path),
+                    lang_urls("actualite"),
+                    lang_urls("actualites"),
+                    lang_urls("sitemap"),
+                    lang_urls("gerer"),
                     lang_urls(""),
                 ),
             )
             # then we reset on_homepage so news is not on home page anymore
-            # we should purge homepage again
+            # we should purge homepages again
             cli_execute.reset_mock()
-            news.cw_set(on_homepage=False)
+            news.cw_set(on_homepage=None)
             cnx.commit()
             rest_path = news.rest_path()
             self.assertBanned(
@@ -93,6 +115,7 @@ class VarnishTests(EsSerializableMixIn, FrACubicConfigMixIn, CubicWebTC):
                     lang_urls("actualite"),
                     lang_urls("actualites"),
                     lang_urls("sitemap"),
+                    lang_urls("gerer"),
                     lang_urls(""),
                 ),
             )
@@ -121,7 +144,13 @@ class VarnishTests(EsSerializableMixIn, FrACubicConfigMixIn, CubicWebTC):
         self, index, existe, create, reindex, _connect, cli_execute
     ):
         with self.admin_access.repo_cnx() as cnx:
-            basecontent = cnx.create_entity("BaseContent", title="title")
+            basecontent = cnx.create_entity(
+                "BaseContent",
+                title="title",
+                on_homepage="onhp_hp",
+                header="header",
+                on_homepage_order=1,
+            )
             cnx.commit()
             basecontent.cw_adapt_to("IWorkflowable").fire_transition("wft_cmsobject_publish")
             cnx.commit()
@@ -136,6 +165,8 @@ class VarnishTests(EsSerializableMixIn, FrACubicConfigMixIn, CubicWebTC):
                     lang_urls("article"),
                     lang_urls("articles"),
                     lang_urls("sitemap"),
+                    lang_urls("gerer"),
+                    lang_urls(""),
                 ),
             )
 
@@ -334,17 +365,14 @@ class VarnishTests(EsSerializableMixIn, FrACubicConfigMixIn, CubicWebTC):
         self, index, exists, create, reindex, _connect, cli_execute
     ):
         with self.admin_access.repo_cnx() as cnx:
-            coll = cnx.create_entity("CommemoCollection", title="recueil 2010", year=2010)
             commemo = cnx.create_entity(
                 "CommemorationItem",
                 title="item1",
                 alphatitle="item1",
                 commemoration_year=2010,
-                collection_top=coll,
             )
             section = cnx.create_entity("Section", title="politique", children=commemo)
             cnx.commit()
-            coll.cw_adapt_to("IWorkflowable").fire_transition("wft_cmsobject_publish")
             commemo.cw_adapt_to("IWorkflowable").fire_transition("wft_cmsobject_publish")
             section.cw_adapt_to("IWorkflowable").fire_transition("wft_cmsobject_publish")
             cnx.commit()
@@ -352,16 +380,11 @@ class VarnishTests(EsSerializableMixIn, FrACubicConfigMixIn, CubicWebTC):
             commemo.cw_set(title="item1bis")
             cnx.commit()
             commemo_rest_path = commemo.rest_path()
-            coll_rest_path = coll.rest_path()
             self.assertBanned(
                 cli_execute.call_args_list,
                 chain(
                     lang_urls(commemo_rest_path),
-                    lang_urls(coll_rest_path),
                     lang_urls(section.rest_path()),
-                    lang_urls("{}/index".format(coll_rest_path)),
-                    lang_urls("{}/timeline".format(coll_rest_path)),
-                    lang_urls("{}/timeline.json".format(coll_rest_path)),
                     lang_urls("sitemap"),
                 ),
             )
@@ -518,7 +541,10 @@ class VarnishTests(EsSerializableMixIn, FrACubicConfigMixIn, CubicWebTC):
                 cli_execute.call_args_list,
                 chain(
                     lang_urls(rest_path),
-                    lang_urls("faq"),
+                    lang_urls("faq/"),
+                    lang_urls("search/"),
+                    lang_urls("circulaires/"),
+                    lang_urls("services/"),
                 ),
             )
             cli_execute.reset_mock()
@@ -528,7 +554,34 @@ class VarnishTests(EsSerializableMixIn, FrACubicConfigMixIn, CubicWebTC):
                 cli_execute.call_args_list,
                 chain(
                     lang_urls(rest_path),
-                    lang_urls("faq"),
+                    lang_urls("faq/"),
+                    lang_urls("search/"),
+                    lang_urls("circulaires/"),
+                    lang_urls("services/"),
+                ),
+            )
+
+    @patch("cubicweb_varnish.varnishadm.VarnishCLI.execute")
+    @patch("cubicweb_varnish.varnishadm.VarnishCLI.connect")
+    def test_sitelink_modificattion_cache_invalidation(self, _connect, cli_execute):
+        with self.admin_access.repo_cnx() as cnx:
+            link = cnx.create_entity(
+                "SiteLink",
+                link="@docs",
+                label_fr="SHERPA",
+                context="main_menu_links",
+                order=0,
+            )
+            cnx.commit()
+            cli_execute.reset_mock()
+            link.cw_set(link="@docs")
+            cnx.commit()
+            rest_path = link.rest_path()
+            self.assertBanned(
+                cli_execute.call_args_list,
+                chain(
+                    lang_urls(rest_path),
+                    lang_urls("sitelinks"),
                 ),
             )
 

@@ -82,7 +82,7 @@ cnx.system_sql(indexes)
 cnx.system_sql(
     """
 create table geonames_altnames (
-    alternateNameId integer not null,
+    alternateNameId integer PRIMARY KEY not null,
     geonameid integer not null,
     isolanguage varchar(7),
     alternate_name varchar(400),
@@ -101,7 +101,7 @@ create table geonames_altnames (
 cnx.system_sql(
     """
     CREATE TABLE bano_whitelisted (
-        banoid varchar(200),
+        banoid varchar(200) PRIMARY KEY,
         voie varchar(200),
         nom_comm varchar(200),
         lat double precision,

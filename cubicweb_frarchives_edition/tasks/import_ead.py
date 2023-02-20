@@ -33,7 +33,8 @@ import logging
 
 import rq
 
-from cubicweb_francearchives import init_bfss
+from cubicweb_francearchives import init_bfss, POSTGRESQL_SUPERUSER
+
 from cubicweb_francearchives.dataimport import (
     ead,
     sqlutil,
@@ -110,7 +111,11 @@ def launch_task(
     )
     foreign_key_tables = sqlutil.ead_foreign_key_tables(cnx.vreg.schema)
     store = create_massive_store(cnx, nodrop=config["nodrop"])
-    log.info("Start import with index policy: %r", config["autodedupe_authorities"])
+    log.info(
+        "Start import: index policy: %s, user: %s",
+        config["autodedupe_authorities"],
+        "superuser" if POSTGRESQL_SUPERUSER else "no superuser",
+    )
     with sqlutil.no_trigger(cnx, foreign_key_tables, interactive=False):
         services_map = load_services_map(cnx)
         init_bfss(cnx.repo)
@@ -118,29 +123,32 @@ def launch_task(
         es = indexer.get_connection()
         log.info("Getting readercls...")
         r = readercls(config, store)
+        failed_importing = []
         for filepath in filepaths:
             log.info("Start importing %r", filepath)
             try:
                 if metadata_filepath:
-                    es_docs = process_func(r, filepath, metadata_filepath, services_map, log)
+                    # csv import
+                    es_docs = process_func(r, filepath, services_map, log, metadata_filepath)
                 else:
                     es_docs = process_func(r, filepath, services_map, log)
             except Exception as error:
+                es_docs = []
+                failed_importing.append(filepath)
                 log.exception(
                     """
-                failed to import {fpath} in import_ead task.
+                Failed to import {fpath} in import_ead task.
                 <div class="alert alert-danger">{error}</div>""".format(
                         fpath=filepath, error=error
                     )
                 )
-                store.flush()
-                store.finish()
-                raise Exception
             if es_docs:
-                log.info("Start reindexing elasticsearch for %r", filepath)
+                log.info("Start reindexing elasticsearch")
                 es_bulk_index(es, es_docs)
+            log.info("Start flushing massive import")
             store.flush()
             current_progress = update_progress(job, current_progress + progress_step)
+        log.info("Start finishing massive import")
         store.finish()
     # remove published findingaid that was deleted in current task
     cnx.system_sql(
@@ -149,7 +157,7 @@ def launch_task(
         "(e.eid=fa.cw_eid) WHERE e.eid IS NULL"
     )
     # insert intial state for all FindingAid with no current state
-    log.info("insert intial state for all FindingAid with no current state")
+    log.info("Insert intial state for all FindingAid with no current state")
     rset = cnx.execute(
         'Any S WHERE S is State, S state_of WF, X default_workflow WF, X name "FindingAid", '
         "WF initial_state S"
@@ -169,8 +177,14 @@ def launch_task(
         if taskeid is not None:
             entity = cnx.entity_from_eid(taskeid)
             entity.cw_set(fatask_findingaid=r.imported_findingaids)
-            log.info("set %r fatask_findingaid", taskeid)
+            log.info("Set %r fatask_findingaid", taskeid)
     cnx.commit()
+    if failed_importing:
+        log.error(
+            f"Import failed for {len(failed_importing)} file. "
+            f"Please reimport them : {', '.join( failed_importing)}"
+        )
+
     if not r.imported_findingaids or taskeid is None:
         return
     aligntask = cnx.create_entity(

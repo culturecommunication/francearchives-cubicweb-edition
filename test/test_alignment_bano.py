@@ -162,6 +162,7 @@ class BanoAlignTC(FrACubicConfigMixIn, CubicWebTC):
                 "foo",
                 "bar",
                 "",
+                "no",
             )
         ]
         actual = list(bano_align.build_record(locations))
@@ -174,14 +175,16 @@ class BanoAlignTC(FrACubicConfigMixIn, CubicWebTC):
         Trying: Minutiers des AN
         Expecting: corresponding record
         """
-        locations = [("", "", "", "", "Acacias (petite rue des)", "MC/foo", "FRAN", "")]
+        locations = [("", "", "", "", "Acacias (petite rue des)", "MC/foo", "FRAN", "", "no")]
         actual = list(bano_align.build_record(locations))
         expected = [locations[0] + ({"city": "Paris", "voie": "petite rue des Acacias"},)]
         self.assertEqual(actual, expected)
 
     def test_build_record_lyon(self):
         """Test a label without whitespaces"""
-        locations = [("foo", "bar", "", "", "Lyon--Célestins--Place des", "baz", "foobar", "")]
+        locations = [
+            ("foo", "bar", "", "", "Lyon--Célestins--Place des", "baz", "foobar", "", "no")
+        ]
         actual = list(bano_align.build_record(locations))
         expected = [locations[0] + ({"city": "Lyon", "voie": "Célestins--Place des"},)]
         self.assertEqual(actual, expected)
@@ -202,6 +205,7 @@ class BanoAlignTC(FrACubicConfigMixIn, CubicWebTC):
                 "foo",
                 "bar",
                 "",
+                "no",
             )
         ]
         # neither does label contain ' -- ' nor Minutiers des AN
@@ -225,6 +229,7 @@ class BanoAlignTC(FrACubicConfigMixIn, CubicWebTC):
                     "foo",
                     "bar",
                     "",
+                    "no",
                 )
             ]
             bano_set = [("1234567890", "Avenue des Arènes de Cimiez", "Nice", 0.0, 0.0)]
@@ -250,6 +255,7 @@ class BanoAlignTC(FrACubicConfigMixIn, CubicWebTC):
                     "foo",
                     "bar",
                     "",
+                    "no",
                 )
             ]
             bano_set = [("3456789012", "Rue Cluvier", "Nice", 0.0, 0.0)]
@@ -265,7 +271,7 @@ class BanoAlignTC(FrACubicConfigMixIn, CubicWebTC):
         Expecting:
         """
         with self.admin_access.cnx() as cnx:
-            locations = [("", "", "", "", "rue d'Austerlitz", "MC/foobar", "FRAN", "")]
+            locations = [("", "", "", "", "rue d'Austerlitz", "MC/foobar", "FRAN", "", "no")]
             bano_set = [("2345678901", "Rue d'Austerlitz", "Paris", 0.0, 0.0)]
             records = list(bano_align.build_record(locations))
             bano_aligner = bano_align.BanoAligner(cnx)
@@ -279,7 +285,9 @@ class BanoAlignTC(FrACubicConfigMixIn, CubicWebTC):
         Expecting: is not aligned
         """
         with self.admin_access.cnx() as cnx:
-            locations = [("", "", "", "", "Acacias (petite rue des)", "MC/foobar", "FRAN", "")]
+            locations = [
+                ("", "", "", "", "Acacias (petite rue des)", "MC/foobar", "FRAN", "", "no")
+            ]
             bano_set = [("0987654321", "Rue des Acacias", "Paris", 0.0, 0.0)]
             records = list(bano_align.build_record(locations))
             bano_aligner = bano_align.BanoAligner(cnx)
@@ -313,6 +321,7 @@ class BanoAlignTC(FrACubicConfigMixIn, CubicWebTC):
                 "latitude": authority.latitude,
                 "keep": keep,
                 "fiabilité_alignement": "1",
+                "quality": "no",
             }
         )
         return record

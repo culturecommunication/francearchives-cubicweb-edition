@@ -5,10 +5,10 @@ from cubicweb import Binary
 from cubicweb.devtools.testlib import CubicWebTC
 from utils import FrACubicConfigMixIn
 
-from cubicweb_francearchives.testutils import HashMixIn
+from cubicweb_francearchives.testutils import S3BfssStorageTestMixin
 
 
-class CompoundTests(HashMixIn, FrACubicConfigMixIn, CubicWebTC):
+class CompoundTests(S3BfssStorageTestMixin, FrACubicConfigMixIn, CubicWebTC):
     """test ICompound adpaters"""
 
     def test_news_components(self):

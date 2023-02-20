@@ -82,14 +82,14 @@ class LogsTable extends Component {
                 selectedSeverity === this.props.all_levels_default
                     ? this.props.logs
                     : this.props.logs.filter(
-                          d => d.severity === selectedSeverity,
+                          (d) => d.severity === selectedSeverity,
                       ),
         })
     }
 
     buildOptions() {
         const all_levels = [this.props.all_levels_default].concat(
-            Array.from(new Set(this.props.logs.map(value => value.severity))),
+            Array.from(new Set(this.props.logs.map((value) => value.severity))),
         )
         return all_levels.map((b, idx) =>
             ce('option', {key: `bfield-${idx}`, value: b}, b),

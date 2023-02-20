@@ -46,12 +46,26 @@ from cubicweb_varnish.varnishadm import varnish_cli_connect_from_config
 
 from cubicweb.server.hook import DataOperationMixIn, LateOperation
 from cubicweb.server.sources import storages
+from cubicweb_s3storage import storages as s3_storages
+
+from cubicweb_francearchives import S3_ACTIVE
+
 
 GEONAMES_RE = re.compile(r"geonames\.org/(\d+)(?:/.+?\.html)?")
 
 CANDIDATE_SEP = "###"
 
 ALIGN_IMPORT_DIR = "/tmp/csv"
+
+FILE_URL_RE = re.compile(r"(^|/)file/(?P<hash>[a-f0-9]{40})/(?P<name>[^/]+)$")
+
+AUTHORITIES = ["LocationAuthority", "SubjectAuthority", "AgentAuthority"]
+
+AUTH_URL_PATTERN = re.compile(
+    r".*?((?P<type>location|subject|agent)/)?(?P<eid>\d+)(\?.*)?$"
+)  # noqa
+
+SUBJECT_IMAGE_SIZE = (440, 220)
 
 
 def geonames_id_from_url(geonameuri):
@@ -78,17 +92,41 @@ def fspath_for(cnx, eid, attrname="data"):
 @monkeypatch(storages.AddFileOp)
 def postcommit_event(self):
     for filepath in self.get_data():
-        FinalDeleteFileOperation.get_instance(self.cnx).add_data(("added", filepath))
+        BfssFinalDeleteFileOperation.get_instance(self.cnx).add_data(("added", filepath))
 
 
 @monkeypatch(storages.DeleteFileOp)  # noqa
 def postcommit_event(self):  # noqa
     for filepath in self.get_data():
-        FinalDeleteFileOperation.get_instance(self.cnx).add_data(("deleted", filepath))
+        BfssFinalDeleteFileOperation.get_instance(self.cnx).add_data(("deleted", filepath))
+
+
+_orig_s3_add_postcommit = s3_storages.S3AddFileOp.postcommit_event
+
+
+@monkeypatch(s3_storages.S3AddFileOp)  # noqa
+def postcommit_event(self):  # noqa
+    processed = []
+    for storage, key, eid, attr in self.get_data():
+        if key in processed:
+            continue
+        processed.append(key)
+        S3FinalDeleteFileOperation.get_instance(self.cnx).add_data(
+            ("added", storage, key, eid, attr)
+        )
+    _orig_s3_add_postcommit(self)
+
+
+@monkeypatch(s3_storages.S3DeleteFileOp)  # noqa
+def postcommit_event(self):  # noqa
+    for storage, key, eid, attr in self.get_data():
+        S3FinalDeleteFileOperation.get_instance(self.cnx).add_data(
+            ("deleted", storage, key, eid, attr)
+        )
 
 
 class UnpublishFilesOp(DataOperationMixIn, LateOperation):
-    """after a parent entity has been unpublished the fpath of related files
+    """after a parent entity has been unpublished the fpath / key of related files
     must be removed from the published directory if the path
     is not referenced by any other published entity
     """
@@ -96,7 +134,7 @@ class UnpublishFilesOp(DataOperationMixIn, LateOperation):
     def postcommit_event(self):
         sys_source = self.cnx.repo.system_source
         removed = []
-        for parent, cwfile_eid, filepath, published_filepath in self.get_data():
+        for parent, cwfile_eid, published_filepath in self.get_data():
             if self.cnx.deleted_in_transaction(cwfile_eid):
                 continue
             if published_filepath in removed:
@@ -134,10 +172,11 @@ class UnpublishFilesOp(DataOperationMixIn, LateOperation):
             # process 'image_file' relation
             image_eschema = self.cnx.vreg.schema.eschema("Image")
             # Service entity is not IWorkflowable, skip 'service_image' relation
+            # SubjectAuthority is not IWorkflowable, skip 'subject_image' relation
             image_objrels = [
                 e.type
                 for e in image_eschema.objrels
-                if not e.meta and e.type not in ("service_image")
+                if not e.meta and e.type not in ("service_image", "subject_image")
             ]
             published_parents_queries.extend(
                 [
@@ -162,11 +201,23 @@ class UnpublishFilesOp(DataOperationMixIn, LateOperation):
                 % {"x": parent.eid, "f": ", ".join(cwfiles_eids), "st": "wfs_cmsobject_published"}
             )
             if not published_parents:
-                os.remove(published_filepath)
-                removed.append(published_filepath)
+                if S3_ACTIVE:
+                    self.s3_remove_published_filepath(published_filepath, removed)
+                else:
+                    self.bfss_remove_published_filepath(published_filepath, removed)
+
+    def s3_remove_published_filepath(self, published_filepath, removed):
+        s3storage = self.cnx.repo.system_source.storage("File", "data")
+        s3storage.rename_object(published_filepath, ".hidden/" + published_filepath)
+        removed.append(published_filepath)
+
+    def bfss_remove_published_filepath(self, published_filepath, removed):
+        # removes symbolic link
+        os.remove(published_filepath)
+        removed.append(published_filepath)
 
 
-class FinalDeleteFileOperation(DataOperationMixIn, LateOperation):
+class BfssFinalDeleteFileOperation(DataOperationMixIn, LateOperation):
     def postcommit_event(self):
         fpaths = {"deleted": set(), "added": set()}
         for data in self.get_data():
@@ -188,6 +239,35 @@ class FinalDeleteFileOperation(DataOperationMixIn, LateOperation):
                         os.unlink(pub_fpath)
                     except Exception as ex:
                         self.error("can't remove published %s: %s" % (filepath, ex))
+
+
+class S3FinalDeleteFileOperation(DataOperationMixIn, LateOperation):
+    def delete_file(self, storage, key, eid, attr):
+        # the code below is a copy of S3AddFileOp.postcommit_event. Asked for
+        # refactoring on cubicweb_s3storage
+        self.info("Deleting object %s.%s (%s/%s) from S3", eid, attr, storage.bucket, key)
+        resp = storage.s3cnx.delete_object(Bucket=storage.bucket, Key=key)
+        if resp.get("ResponseMetadata", {}).get("HTTPStatusCode") >= 300:
+            self.error("S3 object deletion FAILED: %s", resp)
+        else:
+            self.debug("S3 object deletion OK: %s", resp)
+
+    def postcommit_event(self):
+        fpaths = {"deleted": set(), "added": set()}
+        for action_type, storage, key, eid, attr in self.get_data():
+            fpaths[action_type].add((key, eid, attr, storage))
+        added = [data[0] for data in fpaths["added"]]
+        for key, eid, attr, storage in fpaths["deleted"]:
+            if key in added:
+                continue
+            # thoses CWFiles have been deleted. Try to remove the fs stored files
+            self.delete_file(storage, key, eid, attr)
+            # try to remove the published file even if the previous deletion fails
+            if key.startswith(".hidden/"):
+                published_key = key.replace(".hidden/", "")
+                # test published_key in the bucket : normally should not happen
+                if storage.file_exists(published_key):
+                    self.delete_file(storage, published_key, eid, attr)
 
 
 def get_samesas_history(cnx, complete=False):
@@ -295,8 +375,7 @@ class ForbiddenPublishedTransition(Exception):
 
 
 class VarnishPurgeMixin(object):
-    def purge_varnish(self, urls):
-        config = self._cw.vreg.config
+    def purge_varnish(self, urls, config):
         if not config.get("varnishcli-hosts"):
             return
         purge_cmd = "ban req.url ~"

@@ -29,6 +29,7 @@
 # knowledge of the CeCILL-C license and that you accept its terms.
 
 from collections import OrderedDict, defaultdict
+
 from itertools import chain
 import logging
 import re
@@ -240,7 +241,7 @@ def process_label(label):
     name of administrative feature, whether to skip LocationAuthority
     :rtype: tuple
     """
-    match = CONTEXT_RE.search(label)
+    match = CONTEXT_RE.search(label or "")
     if not match:
         name = label
         topographic_info, administrative_name, skip = process_before_parentheses(label)
@@ -306,7 +307,10 @@ def build_record(rows, geodata):
         unitid,
         service_code,
         service_dptcode,
+        quality,
     ) in rows:
+        if not auth_label:
+            continue
         name, context, tokens, topographic_info, administrative_name, skip = process_label(
             auth_label
         )
@@ -322,6 +326,7 @@ def build_record(rows, geodata):
             # LocationAuthority uri,
             # LocationAuthority label (mod., used for alignment),
             # LocationAuthority label (for user),
+            # quality (for user)
             None,
             [None, None, None, None],
             autheid,
@@ -330,8 +335,12 @@ def build_record(rows, geodata):
             auth_uri,
             auth_label,
             auth_label,
+            quality,
         ]
         record[0] = name
+        simplified_name = simplify(name)
+        if simplified_name in geodata.simplified_cities.values():
+            record[1][1] = name
         topographic_fclass, topographic_name = topographic_info
         if topographic_name:
             record[1][3] = topographic_fclass
@@ -353,6 +362,9 @@ def build_record(rows, geodata):
                 records_countries.append(record)
                 continue
         else:
+            # problems with labels such as "Sarreguemines (Allemagne)
+            # [aujourd'hui : Sarregemines (Moselle, France)"
+            # which country will be randomly identified as France or Allemagne
             for token in tokens:
                 if token in geodata.simplified_blacklist.values():
                     # https://extranet.logilab.fr/ticket/67923708
@@ -368,9 +380,9 @@ def build_record(rows, geodata):
                     record[1][0] = token
                 if token in geodata.departments and record[1][0] is None:
                     record[1][0] = geodata.simplified_departments[token]
-                if token in geodata.simplified_cities.values():
+                if token in geodata.simplified_cities.values() and record[1][1] is None:
                     record[1][1] = token
-                if token in geodata.simplified_countries.values():
+                if token in geodata.simplified_altcountries_codes.keys():
                     record[1][2] = token
         if administrative_name:
             if not record[1][0]:
@@ -385,6 +397,8 @@ def build_record(rows, geodata):
         if record[1][2] and record[1][2] != "france":
             # context contains foreign country
             # Maison du Peuple (Bruxelles, Belgique)
+            # Bruxelles (Belgique)
+            record[1][1] = simplify(name)
             records_countries.append(record)
             continue
         if record[1][0]:
@@ -414,29 +428,39 @@ def build_record(rows, geodata):
     return records_fr, records_dpt, records_countries, records_topographic
 
 
+def _generate_cells(pniarecord, geonamerecord, distance, simplified=False):
+    row = [
+        str(pniarecord[2]),  # LocationAuthority entity ID
+        pniarecord[3],  # Geogname URI
+        pniarecord[4],  # Geogname label
+        pniarecord[5],  # LocationAuthority URI
+        pniarecord[7],  # LocationAuthority label
+        "https://www.geonames.org/{}".format(geonamerecord[0]),  # GeoNames URI
+        geonamerecord[-4],  # GeoNames label (UI display)
+        geonamerecord[7],  # longitude
+        geonamerecord[6],  # latitude
+        "yes",  # keep
+        f"{1-distance:.3f}",  # confidence (default value)
+        pniarecord[8],  # quality
+    ]
+    if simplified:
+        # Geogname URI at index 1
+        row.pop(1)
+        # Geogname label at index 1 after removing Geogname URI
+        row.pop(1)
+    return row
+
+
 def cells_from_pairs(pairs, geonamerecords, pniarecords, simplified=False):
     for (_, pniaidx), (_, geonameidx), distance in pairs:
         pniarecord = pniarecords[pniaidx]
         geonamerecord = geonamerecords[geonameidx]
-        row = [
-            str(pniarecord[2]),  # LocationAuthority entity ID
-            pniarecord[3],  # Geogname URI
-            pniarecord[4],  # Geogname label
-            pniarecord[5],  # LocationAuthority URI
-            pniarecord[7],  # LocationAuthority label
-            "http://www.geonames.org/{}".format(geonamerecord[0]),  # GeoNames URI
-            geonamerecord[-4],  # GeoNames label (UI display)
-            geonamerecord[7],  # longitude
-            geonamerecord[6],  # latitude
-            "yes",  # keep
-            f"{1-distance:.3f}",  # confidence (default value)
-        ]
-        if simplified:
-            # Geogname URI at index 1
-            row.pop(1)
-            # Geogname label at index 1 after removing Geogname URI
-            row.pop(1)
-        yield (row)
+        yield _generate_cells(pniarecord, geonamerecord, distance, simplified=simplified)
+
+
+def cells_from_aligned_pairs(pairs, simplified=False):
+    for pniarecord, geonamerecord, distance in pairs:
+        yield _generate_cells(pniarecord, geonamerecord, distance, simplified=simplified)
 
 
 class GeonameRecord(LocationRecord):
@@ -453,17 +477,32 @@ class GeonameRecord(LocationRecord):
             ("latitude", "latitude"),
             ("keep", "keep"),
             ("fiabilite_alignement", "confidence"),
+            ("quality", "quality"),
         ]
     )
     simplified_headers = OrderedDict(
         header for i, header in enumerate(headers.items()) if i not in (1, 2)
     )
-    REQUIRED_HEADERS = (
+
+    REQUIRED_HEADERS_ALIGN = (
         "identifiant_LocationAuthority",
         "libelle_LocationAuthority",
         "URI_GeoNames",
         "keep",
     )
+
+    REQUIRED_HEADERS_LABELS = (
+        "identifiant_LocationAuthority",
+        "libelle_LocationAuthority",
+    )
+
+    REQUIRED_HEADERS_QUALITY = (
+        "identifiant_LocationAuthority",
+        "libelle_LocationAuthority",
+        "quality",
+    )
+
+    BOOLEAN_HEADERS = ("quality",)
 
     @property
     def sourceid(self):
@@ -474,6 +513,7 @@ class GeonameAligner(LocationAligner):
     """GeoNames Aligner."""
 
     record_type = GeonameRecord
+    source = "geoname"
 
     def __init__(self, cnx, log=None):
         super(GeonameAligner, self).__init__(cnx, log=log)
@@ -485,7 +525,7 @@ class GeonameAligner(LocationAligner):
             self._geoname_set = location.build_geoname_set(self.cnx, self.geodata)
         return self._geoname_set
 
-    def find_conflicts(self, to_modify, existing_alignment):
+    def find_conflicts(self, to_modify):
         """Find conflicting alignment(s).
 
         :param defaultdict to_modify: alignment(s) to modify
@@ -509,7 +549,7 @@ class GeonameAligner(LocationAligner):
                         (
                             "%d new alignments column "
                             "'identifiant_LocationAuthority' %s are also tagged "
-                            "to be removed"
+                            "to be removed. Skip them all."
                         ),
                         len(remove_conflicts),
                         autheid,
@@ -519,9 +559,11 @@ class GeonameAligner(LocationAligner):
                 # more than one new alignment
                 if len(new) > 1:
                     log.warning(
-                        ("%d new alignments column " "'identifiant_LocationAuthority' %s"),
-                        len(new),
-                        autheid,
+                        """authority {autheid}: {nb} new different alignments found
+                        (column \"identifiant_LocationAuthority\"). Skip them all.
+                        """.format(
+                            autheid=autheid, nb=len(new)
+                        )
                     )
                     new_conflicts = True
                 # more than one row per alignment
@@ -534,7 +576,7 @@ class GeonameAligner(LocationAligner):
                                 "%d different 'libelle_GeoNames' columns "
                                 "found for combination of "
                                 "'identifiant_LocationAuthority' %s "
-                                "and 'URI_GeoNames' %s"
+                                "and 'URI_GeoNames' %s. Skip them all."
                             ),
                             len(labels),
                             *key
@@ -544,46 +586,37 @@ class GeonameAligner(LocationAligner):
                     conflicts.append(autheid)
         return conflicts
 
-    def process_csv(self, fp, existing_alignment, override_alignments=False):
-        """Process CSV file.
+    def compte_location_query(self, force=False):
+        """compute the query to fetch locations.
 
-        :param file fp: CSV file
-        :param set existing_alignment: list of existing alignments
-        :param bool override_alignments: toggle overwriting user-defined
-        alignments on/off
+        :param boolean force: if True: recalculate existing alignements, if False: ignore them
 
-        :returns: list of new alignments, list of alignments to remove
-        :rtype: dict, dict
+        :returns: url
+        :rtype: string
         """
-        invalid = []
-        alignments = []
-        if override_alignments:
-            to_modify = defaultdict(list)
-            for autheid, sourceeid, record, keep, err in self._process_csv(fp):
-                if err:
-                    invalid.append(err)
-                    continue
-                to_modify[autheid].append(((autheid, sourceeid), record, keep))
-            conflicts = self.find_conflicts(to_modify, existing_alignment)
-            alignments = []
-            for autheid, entries in to_modify.items():
-                if autheid not in conflicts:
-                    alignments += entries
+        if force:
+            restrict = ""
         else:
-            for autheid, sourceeid, record, keep, err in self._process_csv(fp):
-                if err:
-                    invalid.append(err)
-                    continue
-                alignments.append(((autheid, sourceeid), record, keep))
-        if invalid:
-            self.log.warning(
-                "found missing value in required column(s): {}".format(";".join(invalid))
-            )
-        new_alignment, to_remove_alignment = self._fill_alignments(existing_alignment, alignments)
-        return new_alignment, to_remove_alignment
+            restrict = f", NOT EXISTS(X same_as EX, EX uri E, EX source '{self.source}')"
 
-    def compute_findingaid_alignments(self, findingaid_eids, simplified=False):
-        pnia = self.fetch_locations(findingaid_eids)
+        return self.location_query.format(restrict=restrict)
+
+    def compute_findingaid_alignments(self, findingaid_eids, simplified=False, force=False):
+        """
+        :param list findingaids: list of FindingAids eids to process
+        :param Boolean simplified: use simplified header for genarated csv file
+        :param Boolean force: if True, recalculate existing alignements
+
+        :returns: list of aligned pairs
+        :rtype: list
+        """
+
+        # if force = False, do not try to realign already aligned locations
+        # and make sure that they are unique. To be faster, do not try to
+        # align a location twice.
+        pnia = list(
+            set(location for location in self.fetch_locations(findingaid_eids, force=force))
+        )
         if not pnia:
             self.log.info("no location found in findingids skip alignment")
             return []
@@ -621,17 +654,17 @@ class GeonameAligner(LocationAligner):
         lines_iter.append(
             cells_from_pairs(pairs, geoname, pnia_records_dptonly, simplified=simplified)
         )
-        # then align to country
-        geoname = location.build_countries_geoname_set(self.cnx)
+        # then align to foreign countries and cities
         self.log.info(
-            "aligne les pays sans contexte (%s lieux) vers %s pays geoname",
+            "aligne les pays hors France (%s lieux) vers %s pays geoname",
             len(pnia_records_countryonly),
             len(geoname),
         )
-        pairs = location.alignment_geo_data_countryonly(pnia_records_countryonly, geoname)
-        lines_iter.append(
-            cells_from_pairs(pairs, geoname, pnia_records_countryonly, simplified=simplified)
+        pairs = location.alignment_geo_foreign_countries_cities(
+            self.cnx, self.geodata, pnia_records_countryonly, log=self.log
         )
+        lines_iter.append(cells_from_aligned_pairs(pairs, simplified=simplified))
+
         # then align to topopgraphic feature classes
         geoname = location.build_topographic_geoname_set(self.cnx, self.geodata)
         self.log.info(
@@ -647,18 +680,6 @@ class GeonameAligner(LocationAligner):
         self.log.info("found {} lines".format(len(lines) if lines else "0"))
         return lines
 
-    def compute_existing_alignment(self):
-        """Fetch existing alignment(s) from database.
-
-        :returns: exiting alignment(s)
-        :rtype: set
-        """
-        alignment_query = """DISTINCT Any X, E
-        WHERE X is LocationAuthority, X same_as EX,
-        EX uri E, EX source 'geoname'
-        """
-        return {(str(auth), exturi) for auth, exturi in self.cnx.execute(alignment_query)}
-
     def process_alignments(self, new_alignment, to_remove_alignment, override_alignments=False):
         """
         Add or remove alignements
@@ -672,14 +693,22 @@ class GeonameAligner(LocationAligner):
         self.log.info("will create %s new alignments", len(new_alignment))
         if not (new_alignment or to_remove_alignment):
             return
-        # XXX update existing ExternalUri
         existing_exturi = {
             uri: eid
             for eid, uri in self.cnx.execute(
-                'Any X, U WHERE X is ExternalUri, X uri U, X source "geoname"'
+                f'Any X, U WHERE X is ExternalUri, X uri U, X source "{self.source}"'
             )
         }
         for (autheid, geonameuri), record in new_alignment.items():
+            # check LocationAuthority exists
+            authority = self.cnx.system_sql(
+                """SELECT 1 FROM cw_LocationAuthority
+                WHERE cw_eid=%(autheid)s""",
+                {"autheid": autheid},
+            ).fetchall()
+            if not authority:
+                self.log.error("LocationAuthority %s doesn't exist", autheid)
+                continue
             try:
                 if not override_alignments:
                     is_in_sameas_history = self.cnx.system_sql(
@@ -709,7 +738,7 @@ class GeonameAligner(LocationAligner):
                         uri=geonameuri,
                         label=label,
                         extid=geonameid,
-                        source="geoname",
+                        source=self.source,
                     ).eid
                     existing_exturi[geonameuri] = ext
                 query = """
@@ -724,9 +753,9 @@ class GeonameAligner(LocationAligner):
                     # add other existing alignment(s) to list of alignments
                     # to be removed
                     result_set = self.cnx.execute(
-                        """Any U WHERE X is ExternalUri, X uri U, A same_as X,
+                        f"""Any U WHERE X is ExternalUri, X uri U, A same_as X,
                         A eid %(autheid)s, X eid != %(ext)s,
-                        X source 'geoname'""",
+                        X source '{self.source}'""",
                         {"autheid": autheid, "ext": ext},
                     ).rows
                     to_remove_alignment.update(

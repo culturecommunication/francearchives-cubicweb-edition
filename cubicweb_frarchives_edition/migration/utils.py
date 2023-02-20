@@ -39,7 +39,6 @@ from cubicweb_frarchives_edition.mviews import formatted_ignored_cwproperties
 def get_published_tables(cnx, etypes, skipped_etypes=(), skipped_relations=()):
     rtypes = {}
     rnames = set()
-    skipped_relations = ("in_state",)  # in_state is handled separately
     for etype in etypes:
         if etype in skipped_etypes:
             continue

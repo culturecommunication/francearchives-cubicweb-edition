@@ -139,6 +139,8 @@ class DataBnfDatabase(SPARQLDatabase):
         rset = self.author_query(extid)
         data_infos = {}
         descriptions = set()
+        if not rset:
+            return data_infos
         for label, birthyear, birthdate, deathyear, deathdate, description in rset:
             data_infos["label"] = label
             dates = {}
@@ -149,5 +151,6 @@ class DataBnfDatabase(SPARQLDatabase):
             if description:
                 descriptions.add(description)
             data_infos["dates"] = json.dumps(dates)
-        data_infos["description"] = STRING_SEP.join(descriptions)
+        if descriptions:
+            data_infos["description"] = STRING_SEP.join(descriptions)
         return data_infos

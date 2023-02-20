@@ -28,17 +28,20 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
+import csv
+from io import StringIO
+
 import re
 import os.path as osp
 import os
 
-import logging
 import zipfile
 
-from cubicweb_frarchives_edition.api import jsonapi_error, JSONBadRequest
 from cubicweb_francearchives.dataimport import RELFILES_DIR
+from cubicweb_francearchives.dataimport.csv_nomina import check_document_fieldnames
 
-LOG = logging.getLogger(__name__)
+from cubicweb_frarchives_edition.api import jsonapi_error, JSONBadRequest
+from cubicweb_frarchives_edition.tasks.qualify_authorities import FIELDNAMES, KIBANA_FIELDNAMES
 
 
 def bad_request(error):
@@ -103,7 +106,14 @@ def check_zipfiles(zipf, service):
     return res
 
 
-def process_faimport_zip(cnx, fileobj):
+def get_dir_or_raise_bad_request(cnx, config_dir_name):
+    doc_dir = cnx.vreg.config.get(config_dir_name)
+    if doc_dir is None:
+        raise bad_request(cnx._(f'missing "{config_dir_name}" parameter in all-in-one.conf'))
+    return doc_dir
+
+
+def process_faimport_zip(cnx, fileobj, write_zip_func):
     """the zip file may contain :
     <code_service directory>
     |__<code_service>_XXX.xml
@@ -165,15 +175,8 @@ def process_faimport_zip(cnx, fileobj):
             errors.append(jsonapi_error(status=422, details=error, pointer="file"))
         raise JSONBadRequest(*errors)
     # catch errors ?
-    ead_dir = cnx.vreg.config.get("ead-services-dir")
-    if ead_dir is None:
-        raise bad_request(_('missing "ead-services-dir" parameter in all-in-one.conf'))
-    zf.extractall(ead_dir)
-    return [
-        osp.join(ead_dir, filepath)
-        for filepath in zf.namelist()
-        if osp.splitext(filepath.lower())[1] in (".pdf", ".xml")
-    ]
+    ead_dir = get_dir_or_raise_bad_request(cnx, "ead-services-dir")
+    return write_zip_func(zf, ead_dir, exts=(".pdf", ".xml", ".csv"))
 
 
 def check_csv_zipfiles(zf):
@@ -189,7 +192,7 @@ def check_csv_zipfiles(zf):
     return errors
 
 
-def process_csvimport_zip(cnx, fileobj):
+def process_csvimport_zip(cnx, fileobj, write_zip_func):
     """the zip file may contain :
     <directory>
     |__data1.csv
@@ -228,32 +231,20 @@ def process_csvimport_zip(cnx, fileobj):
             error = _("Following files are empty : {}".format(", ".join(empty_files)))
             errors.append(jsonapi_error(status=422, details=error, pointer="file"))
         raise JSONBadRequest(*errors)
-    ead_dir = cnx.vreg.config.get("ead-services-dir")
-    if ead_dir is None:
-        raise bad_request(_('missing "ead-services-dir" parameter in all-in-one.conf'))
-    zf.extractall(ead_dir)
-    csv_files = [f for f in zf.namelist() if osp.splitext(f.lower())[1] == ".csv"]
+    ead_dir = get_dir_or_raise_bad_request(cnx, "ead-services-dir")
+    csv_files = write_zip_func(zf, ead_dir, exts=(".csv",))
     res = {"filepaths": [], "metadata": None}
     for filepath in csv_files:
         if filepath.endswith("metadata.csv"):
-            res["metadata"] = osp.join(ead_dir, filepath)
+            res["metadata"] = filepath
         else:
-            res["filepaths"].append(osp.join(ead_dir, filepath))
+            res["filepaths"].append(filepath)
     return res
 
 
-def process_faimport_xml(cnx, fileobj, servicecode):
-    _ = cnx._
-    ead_dir = cnx.vreg.config.get("ead-services-dir")
-    if ead_dir is None:
-        raise bad_request(_('missing "ead-services-dir" parameter in all-in-one.conf'))
-    directory = osp.join(ead_dir, servicecode)
-    filepath = osp.join(ead_dir, servicecode, fileobj.filename)
-    if not osp.exists(directory):
-        os.makedirs(directory)
-    with open(filepath, "wb") as f:
-        f.write(fileobj.value)
-    return [filepath]
+def process_faimport_xml(cnx, fileobj, servicecode, write_func):
+    ead_dir = get_dir_or_raise_bad_request(cnx, "ead-services-dir")
+    return write_func(fileobj.filename, fileobj.value, subdirectories=[ead_dir, servicecode])
 
 
 def get_eac_dir(cnx):
@@ -265,7 +256,7 @@ def get_eac_dir(cnx):
     return eac_dir
 
 
-def process_authorityrecords_zip(cnx, fileobj):
+def process_authorityrecords_zip(cnx, fileobj, write_zip_func):
     """store zip files directly in the eac_dir"""
     eac_dir = get_eac_dir(cnx)
     _ = cnx._
@@ -274,21 +265,58 @@ def process_authorityrecords_zip(cnx, fileobj):
     if not zipfile.is_zipfile(fileobj.file):
         raise bad_request(_("This file in not a zip file"))
     zf = zipfile.ZipFile(fileobj.file, mode="r")
-    zf.extractall(eac_dir)
-    return [
-        osp.join(eac_dir, filepath)
-        for filepath in zf.namelist()
-        if osp.splitext(filepath.lower())[1] == ".xml"
-    ]
+    return write_zip_func(zf, eac_dir, exts=(".xml",))
 
 
-def process_authorityrecord_xml(cnx, fileobj, servicecode):
+def process_authorityrecord_xml(cnx, fileobj, servicecode, write_func):
     """store the file in the eac_dir sub-directory (servicecode)"""
-    eac_dir = get_eac_dir(cnx)
-    service_dir = osp.join(eac_dir, servicecode)
-    if not osp.exists(service_dir):
-        os.makedirs(service_dir)
-    filepath = osp.join(service_dir, fileobj.filename)
-    with open(filepath, "wb") as f:
-        f.write(fileobj.value)
-    return filepath
+    eac_dir = get_dir_or_raise_bad_request(cnx, "eac-services-dir")
+    return write_func(fileobj.filename, fileobj.value, subdirectories=[eac_dir, servicecode])
+
+
+def check_quality_csv(cnx, fileobj, st):
+    try:
+        stream = StringIO(fileobj.value.decode())
+    except Exception as exception:
+        raise bad_request(cnx._(f'Unable to read "{fileobj.filename}": {exception}'))
+    try:
+        headers = csv.DictReader(stream, delimiter="\t").fieldnames
+    except Exception as exception:
+        raise bad_request(cnx._(f'Unable to process "{fileobj.filename}": {exception}'))
+    if headers is None:
+        raise bad_request(cnx._(f'Unable to process "{fileobj.filename}": no headers found'))
+    for variantes in (FIELDNAMES, KIBANA_FIELDNAMES):
+        if not set(variantes.keys()).difference(headers):
+            return variantes
+    raise bad_request(
+        cnx._(f'''"{fileobj.filename}" file contains invalid headers "{", ".join(headers)}"''')
+    )  # noqa
+
+
+def process_nomina_csv(cnx, fileobj, servicecode, write_func):
+    """store the file in the nomina_dir sub-directory (servicecode)"""
+    nomina_dir = get_dir_or_raise_bad_request(cnx, "nomina-services-dir")
+    return write_func(fileobj.filename, fileobj.value, subdirectories=[nomina_dir, servicecode])
+
+
+def validate_import_nomina_csv(cnx, fileobj, service_code, doctype, delimiter, write_func):
+    """store the file in the nomina_dir sub-directory (servicecode)"""
+    try:
+        stream = StringIO(fileobj.value.decode())
+    except Exception as exception:
+        raise bad_request(cnx._(f'Unable to read "{fileobj.filename}": {exception}'))
+    try:
+        fieldnames = csv.DictReader(stream, delimiter=delimiter).fieldnames
+    except Exception as exception:
+        raise bad_request(cnx._(f'Unable to process "{fileobj.filename}": {exception}'))
+    if fieldnames is None:
+        raise bad_request(cnx._(f'Unable to process "{fileobj.filename}": no fieldnames found'))
+    try:
+        errors = check_document_fieldnames(cnx, doctype, fieldnames)
+    except Exception as err:
+        raise bad_request(cnx._('Unable to process "%s": %s') % (fileobj.filename, err))
+    if errors:
+        raise bad_request(
+            cnx._('Unable to process "%s": %s') % (fileobj.filename, "  ".join(errors))
+        )
+    return process_nomina_csv(cnx, fileobj, service_code, write_func)

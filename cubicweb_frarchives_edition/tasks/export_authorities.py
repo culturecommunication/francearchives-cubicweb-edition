@@ -54,14 +54,15 @@ class AuthorityExporter:
     """
 
     NONALIGNED_QUERY = """
-    DISTINCT Any I, IL, A, AL, NULL, NULL, NULL, NULL, IT ORDERBY IT, AL, A
-    WITH I, IL, A, AL, IT BEING (
-        (DISTINCT Any {var} A, AL, IT WHERE F is FindingAid, F service %(eid)s, I is {index},
-        I label IL, I index F, I authority A, A label AL, NOT EXISTS (A same_as E,
+    DISTINCT Any I, IL, A, AL, NULL, NULL, NULL, NULL, IT, Q ORDERBY IT, AL, A
+    WITH I, IL, A, AL, IT, Q BEING (
+        (DISTINCT Any {var} A, AL, IT, Q WHERE F is FindingAid, F service %(eid)s, I is {index},
+        I label IL, I index F, I authority A, A label AL, A quality Q, NOT EXISTS (A same_as E,
         {condition}), I type IT)
         UNION
-        (DISTINCT Any {var} A, AL, IT WHERE F is FindingAid, F service %(eid)s, C is FAComponent,
-        C finding_aid F, I is {index}, I index C, I label IL, I authority A, A label AL,
+        (DISTINCT Any {var} A, AL, IT, Q WHERE F is FindingAid, F service %(eid)s, C is FAComponent,
+        C finding_aid F, I is {index}, I index C, I label IL,
+        I authority A, A label AL,  A quality Q,
         NOT EXISTS (A same_as E, {condition}), I type IT)
     )"""
 
@@ -157,7 +158,8 @@ class LocationAuthorityExporter(AuthorityExporter):
                 latitude,
                 external_id,
                 external_label,
-                _,
+                agentname_type,
+                quality,
             ) = row
             authority_uri = urljoin(self.consultation_url, "location/{}".format(authority_eid))
             row = [
@@ -168,8 +170,9 @@ class LocationAuthorityExporter(AuthorityExporter):
                 external_label,
                 longitude,
                 latitude,
-                "yes",
-                "",
+                "yes",  # keep
+                "",  # fiabilite_alignement
+                "yes" if quality else "no",
             ]
             if not self.simplified:
                 geogname_uri = urljoin(self.consultation_url, "geogname/{}".format(geogname_eid))
@@ -212,16 +215,17 @@ class LocationAuthorityExporter(AuthorityExporter):
             *(("ExternalUri", "uri") if source == "geoname" else ("ExternalId", "extid"))
         )
         var = "NULL, NULL," if self.simplified else "I, IL,"
-        aligned_query = """DISTINCT Any I, IL, A, AL, LONG, LAT, EXID, EL, NULL ORDERBY AL, A
-        WITH I, IL, A, AL, LONG, LAT, EXID, EL BEING (
-        (DISTINCT Any {var} A, AL, LONG, LAT, EXID, EL WHERE
+        aligned_query = """
+        DISTINCT Any I, IL, A, AL, LONG, LAT, EXID, EL, NULL, Q ORDERBY AL, A
+        WITH I, IL, A, AL, LONG, LAT, EXID, EL, Q BEING (
+        (DISTINCT Any {var} A, AL, LONG, LAT, EXID, EL, Q WHERE
         F is FindingAid, F service %(eid)s, I is Geogname, I label IL,
-        I index F, I authority A, A label AL, A longitude LONG, A latitude LAT,
+        I index F, I authority A, A label AL, A quality Q, A longitude LONG, A latitude LAT,
         A same_as E, {external} E label EL)
         UNION
-        (DISTINCT Any {var} A, AL, LONG, LAT, EXID, EL WHERE
+        (DISTINCT Any {var} A, AL, LONG, LAT, EXID, EL, Q WHERE
         F is FindingAid, F service %(eid)s, C is FAComponent, C finding_aid F,
-        I is Geogname, I label IL, I index C, I authority A, A label AL,
+        I is Geogname, I label IL, I index C, I authority A, A label AL, A quality Q,
         A longitude LONG, A latitude LAT, A same_as E, {external} E label EL)
         )""".format(
             var=var, external=external
@@ -255,6 +259,7 @@ class AgentAuthorityExporter(AuthorityExporter):
             "libelle_AgentAuthority",
             "type_AgentName",
             "keep",
+            "quality",
         ]
         if self.simplified:
             return headers
@@ -263,9 +268,7 @@ class AgentAuthorityExporter(AuthorityExporter):
     @property
     def headers(self):
         headers = self.nonaligned_headers
-        databnf_headers = headers[:-1] + ["URI_databnf", "libelle_databnf", headers[-1]]
-        wikidata_headers = headers[:-1] + ["URI_wikidata", "libelle_wikidata", headers[-1]]
-        return {"databnf": databnf_headers, "wikidata": wikidata_headers}
+        return headers[:-2] + ["URI_ExternalUri", "libelle_ExternalUri"] + headers[-2:]
 
     def format_rows(self, rset):
         """Format rows.
@@ -286,9 +289,11 @@ class AgentAuthorityExporter(AuthorityExporter):
                 external_id,
                 external_label,
                 agentname_type,
+                quality,
             ) = row
             authority_uri = urljoin(self.consultation_url, "agent/{}".format(authority_eid))
-            row = [authority_eid, authority_uri, authority_label, agentname_type, "yes"]
+            quality = "yes" if quality else "no"
+            row = [authority_eid, authority_uri, authority_label, agentname_type, "yes", quality]
             if all((external_id, external_label)):
                 row.insert(4, external_id)
                 row.insert(5, external_label)
@@ -329,16 +334,19 @@ class AgentAuthorityExporter(AuthorityExporter):
         """
         self.log.info("export aligned to {}".format(self.pretty_sources[source]))
         var = "NULL, NULL," if self.simplified else "I, IL,"
-        aligned_query = """DISTINCT Any I, IL, A, AL, NULL, NULL, EXID, EL, IT ORDERBY AL, A
-        WITH I, IL, A, AL, EXID, EL, IT BEING (
-        (DISTINCT Any {var} A, AL, EXID, EL, IT WHERE
+        aligned_query = """
+        DISTINCT Any I, IL, A, AL, NULL, NULL, EXID, EL, IT, Q ORDERBY AL, A
+        WITH I, IL, A, AL, EXID, EL, IT, Q BEING (
+        (DISTINCT Any {var} A, AL, EXID, EL, IT, Q WHERE
         F is FindingAid, F service %(eid)s, I is AgentName, I label IL, I type IT, I index F,
-        I authority A, A label AL, A same_as E, E is ExternalUri, E source %(source)s, E uri EXID,
+        I authority A, A label AL, A quality Q,
+        A same_as E, E is ExternalUri, E source %(source)s, E uri EXID,
         E label EL)
         UNION
-        (DISTINCT Any {var} A, AL, EXID, EL, IT WHERE
+        (DISTINCT Any {var} A, AL, EXID, EL, IT, Q WHERE
         F is FindingAid, F service %(eid)s, C is FAComponent, C finding_aid F, I is AgentName,
-        I label IL, I type IT, I index C, I authority A, A label AL, A same_as E, E is ExternalUri,
+        I label IL, I type IT, I index C, I authority A, A label AL, A quality Q,
+        A same_as E, E is ExternalUri,
         E source %(source)s, E uri EXID, E label EL)
         )""".format(
             var=var
@@ -347,9 +355,7 @@ class AgentAuthorityExporter(AuthorityExporter):
         if not rset:
             self.log.info("%s : found 0 aligned AgentAuthorities", self.pretty_sources[source])
             return "", ""
-        return self.create_csv(
-            service, list(self.format_rows(rset)), self.headers[source], source=source
-        )
+        return self.create_csv(service, list(self.format_rows(rset)), self.headers, source=source)
 
 
 class SubjectAuthorityExporter(AuthorityExporter):
@@ -363,6 +369,7 @@ class SubjectAuthorityExporter(AuthorityExporter):
             "libelle_SubjectAuthority",
             "type_Subject",
             "keep",
+            "quality",
         ]
         if self.simplified:
             return headers
@@ -371,7 +378,7 @@ class SubjectAuthorityExporter(AuthorityExporter):
     @property
     def headers(self):
         headers = self.nonaligned_headers
-        return headers[:-1] + ["URI_thesaurus", "libelle_thesaurus", headers[-1]]
+        return headers[:-2] + ["URI_ExternalUri", "libelle_ExternalUri"] + headers[-2:]
 
     def format_rows(self, rset):
         """Format rows.
@@ -392,9 +399,11 @@ class SubjectAuthorityExporter(AuthorityExporter):
                 concept_eid,
                 concept_cwuri,
                 subject_type,
+                quality,
             ) = row
             authority_uri = urljoin(self.consultation_url, "subject/{}".format(authority_eid))
-            row = [authority_eid, authority_uri, authority_label, subject_type, "yes"]
+            quality = "yes" if quality else "no"
+            row = [authority_eid, authority_uri, authority_label, subject_type, "yes", quality]
             if all((concept_eid, concept_cwuri)):
                 row.insert(4, concept_cwuri)
                 row.insert(5, self.cnx.entity_from_eid(int(concept_eid)).dc_title())
@@ -431,15 +440,16 @@ class SubjectAuthorityExporter(AuthorityExporter):
         """
         self.log.info("export aligned to thesaurus")
         var = "NULL, NULL," if self.simplified else "I, IL,"
-        aligned_query = """DISTINCT Any I, IL, A, AL, NULL, NULL, C, CC, IT ORDERBY AL, A
-        WITH I, IL, A, AL, C, CC, IT BEING(
-        (DISTINCT Any {var} A, AL, C, CC, IT WHERE
+        aligned_query = """
+        DISTINCT Any I, IL, A, AL, NULL, NULL, C, CC, IT, Q ORDERBY AL, A, Q
+        WITH I, IL, A, AL, C, CC, IT, Q BEING(
+        (DISTINCT Any {var} A, AL, C, CC, IT, Q WHERE
         F is FindingAid, F service %(eid)s, I is Subject, I label IL, I type IT, I index F,
-        I authority A, A label AL, A same_as C, C is Concept, C cwuri CC)
+        I authority A, A label AL, A quality Q, A same_as C, C is Concept, C cwuri CC)
         UNION
-        (DISTINCT Any {var} A, AL, C, CC, IT WHERE
+        (DISTINCT Any {var} A, AL, C, CC, IT, Q WHERE
         F is FindingAid, F service %(eid)s, FC is FAComponent, FC finding_aid F, I is Subject,
-        I label IL, I type IT, I index FC, I authority A, A label AL, A same_as C,
+        I label IL, I type IT, I index FC, I authority A, A label AL, A quality Q, A same_as C,
         C is Concept, C cwuri CC)
         )""".format(
             var=var
@@ -507,7 +517,7 @@ def export_authorities(
         log.info("archive would be empty, skipping creating archive")
     else:
         archive = zip_files(filenames)
-        serve_zip(cnx, int(job.id), "authorities.zip", archive)
+        serve_zip(cnx, int(job.id), f"{authority_type}_authorities.zip", archive)
         # clean-up
         for filename, _ in filenames:
             os.remove(filename)

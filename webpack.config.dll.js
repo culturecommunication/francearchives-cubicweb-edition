@@ -28,43 +28,51 @@
  * knowledge of the CeCILL-C license and that you accept its terms.
  */
 
-const path = require("path");
-const webpack = require('webpack');
+const path = require('path')
+const webpack = require('webpack')
 
-
-const config = module.exports = {
+const config = (module.exports = {
     entry: {
-        vendor: ['react', 'react-router', 'react-dom',
-                 'redux', 'react-redux', 'redux-logger', 'redux-thunk',
-                 'immutable',
-                 'react-jsonschema-form',
-                 '@tinymce/tinymce-react', 'react-widgets', 'react-bootstrap-table',
-                 'moment',
-                 'lodash',
-                 'lodash-es',
-                 'whatwg-fetch',
-                 '@babel/polyfill'],
+        vendor: [
+            'react',
+            'react-router',
+            'react-dom',
+            'redux',
+            'react-redux',
+            'redux-logger',
+            'redux-thunk',
+            'immutable',
+            'react-jsonschema-form',
+            '@tinymce/tinymce-react',
+            'react-widgets',
+            'react-bootstrap-table',
+            'moment',
+            'lodash',
+            'lodash-es',
+            'whatwg-fetch',
+            '@babel/polyfill',
+        ],
     },
     output: {
-        filename: "bundle-[name].js",
+        filename: 'bundle-[name].js',
         path: path.join(__dirname, 'cubicweb_frarchives_edition', 'data'),
-        library: '[name]_[hash]',
+        library: '[name]_[fullhash]',
     },
     plugins: [
         new webpack.DllPlugin({
-            path: path.join(__dirname, "[name]-manifest.json"),
-            name: "[name]_[hash]",
+            path: path.join(__dirname, '[name]-manifest.json'),
+            name: '[name]_[fullhash]',
+            entryOnly: false,
         }),
     ],
-};
-
+})
 
 if (process.env.NODE_ENV === 'production') {
     config.plugins.push(
         new webpack.DefinePlugin({
-            "process.env": {
+            'process.env': {
                 NODE_ENV: JSON.stringify('production'),
             },
-        })
-    );
+        }),
+    )
 }

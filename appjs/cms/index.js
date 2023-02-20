@@ -43,7 +43,7 @@ const routes = require('./routes'),
 
 const App = require('./containers/app')
 
-$(function() {
+$(function () {
     const divAdminPanel = document.getElementById('admin-panel')
     // build initial immutable state
     const state = Immutable.fromJS(window.INITIAL_STATE || {})

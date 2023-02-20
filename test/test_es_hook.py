@@ -87,7 +87,6 @@ class CircularHookESTC(FrACubicConfigMixIn, EsSerializableMixIn, CubicWebTC):
             cnx.commit()
             self.assertTrue(bulk.called)
             args, kwargs = bulk.call_args
-            args = json.loads(args[0].split()[1])
             bulk.reset_mock()
             cnx.execute(
                 "DELETE C business_field X WHERE C eid %(circular)s", {"circular": circular.eid}
@@ -95,8 +94,9 @@ class CircularHookESTC(FrACubicConfigMixIn, EsSerializableMixIn, CubicWebTC):
             cnx.commit()
             self.assertTrue(bulk.called)
             args, kwargs = bulk.call_args
-            args = json.loads(args[0].split()[1])
-            self.assertEqual(args["count"], 0)
+            es = args[0] if args else kwargs["body"]  # elasticsearch 7.12 (args) vs 7.15 (kwargs)
+            es = json.loads(es.split()[1])
+            self.assertEqual(es["count"], 0)
 
     @mock.patch("elasticsearch.client.Elasticsearch.bulk", unsafe=True)
     @mock.patch("elasticsearch.helpers.reindex", unsafe=True)
@@ -123,16 +123,35 @@ class CircularHookESTC(FrACubicConfigMixIn, EsSerializableMixIn, CubicWebTC):
             cnx.commit()
             self.assertTrue(bulk.called)
             args, kwargs = bulk.call_args
-            args = json.loads(args[0].split()[1])
-            self.assertEqual(args["count"], 1)
+            es = args[0] if args else kwargs["body"]  # elasticsearch 7.12 (args) vs 7.15 (kwargs)
+            es = json.loads(es.split()[1])
+            self.assertEqual(es["count"], 1)
             bulk.reset_mock()
             bc = cnx.entity_from_eid(bc.eid)
             bc.cw_set(related_authority=None)
             cnx.commit()
             self.assertTrue(bulk.called)
             args, kwargs = bulk.call_args
-            args = json.loads(args[0].split()[1])
-            self.assertEqual(args["count"], 0)
+            es = args[0] if args else kwargs["body"]  # elasticsearch 7.12 (args) vs 7.15 (kwargs)
+            es = json.loads(es.split()[1])
+            self.assertEqual(es["count"], 0)
+
+    @mock.patch("elasticsearch.client.indices.IndicesClient.exists")
+    @mock.patch("elasticsearch.client.Elasticsearch.index")
+    def test_rename_authority(self, index, exists):
+        with self.admin_access.cnx() as cnx:
+            ce = cnx.create_entity
+            auth = ce("SubjectAuthority", label="Marcel Étienne", quality=1)
+            cnx.commit()
+            esdoc = auth.cw_adapt_to("ISuggestIndexSerializable").serialize()
+            self.assertEqual(esdoc["text"], "Marcel Étienne")
+            self.assertEqual(esdoc["letter"], "m")
+            auth.cw_set(label="Étienne Marcel")
+            cnx.commit()
+            auth.cw_clear_all_caches()
+            esdoc = auth.cw_adapt_to("ISuggestIndexSerializable").serialize()
+            self.assertEqual(esdoc["text"], "Étienne Marcel")
+            self.assertEqual(esdoc["letter"], "e")
 
 
 if __name__ == "__main__":

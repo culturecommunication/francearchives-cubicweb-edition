@@ -39,13 +39,13 @@ $func$
 SELECT public.unaccent('public.unaccent', $1)  -- schema-qualify function and dictionary
 $func$  LANGUAGE sql IMMUTABLE;
 
-drop table if exists geonames;
+drop table if exists geonames CASCADE;
 
 create table geonames (
   geonameid integer PRIMARY KEY,
   name varchar(200),
   asciiname varchar(200),
-  alternatenames varchar(10000),
+  alternatenames varchar(20000),
   latitude double precision,
   longitude double precision,
   fclass char(1),
@@ -67,10 +67,24 @@ create table geonames (
 COPY geonames from '{{ allcountries_path }}' null as '';
 
 CREATE INDEX geonames_fcode_idx ON geonames(fcode);
+CREATE INDEX geonames_name_idx ON geonames(name);
 CREATE INDEX geonames_admin2code_idx ON geonames(admin2_code);
 CREATE INDEX geonames_country_code_idx ON geonames(country_code);
 CREATE INDEX geonames_fclass_idx ON geonames(fclass);
 
+
+DROP TABLE IF EXISTS adm4_geonames;
+DROP TABLE IF EXISTS adm3_geonames;
+DROP TABLE IF EXISTS adm2_geonames;
+DROP TABLE IF EXISTS adm1_geonames;
+DROP TABLE IF EXISTS country_geonames;
+
+
+CREATE TABLE adm4_geonames AS SELECT * FROM geonames WHERE fcode='ADM4' AND country_code='FR';
+CREATE TABLE adm3_geonames AS SELECT * FROM geonames WHERE fcode='ADM3' AND country_code='FR';
+CREATE TABLE adm2_geonames AS SELECT * FROM geonames WHERE fcode='ADM2' AND country_code='FR';
+CREATE TABLE adm1_geonames AS SELECT * FROM geonames WHERE fcode='ADM1' AND country_code='FR';
+CREATE TABLE country_geonames AS SELECT * FROM geonames WHERE fcode='PCLI';
 
 DROP TABLE IF EXISTS geonames_altnames;
 
@@ -135,6 +149,8 @@ CREATE INDEX geonames_altnames_isolanguage_idx ON geonames_altnames(isolanguage)
 CREATE INDEX geonames_altnames_rank_idx ON geonames_altnames(rank);
 CREATE INDEX geonames_altnames_name_gin_idx ON geonames_altnames USING gin (alternate_name gin_trgm_ops);
 CREATE INDEX geonames_altnames_name_lower_unaccent_gin_idx ON geonames_altnames USING gin (lower(f_unaccent((alternate_name)::text)) gin_trgm_ops);
+
+drop table geodata;
 
 {% if owner %}
 ALTER TABLE geonames OWNER TO {{ owner }};

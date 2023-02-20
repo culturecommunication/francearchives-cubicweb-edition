@@ -35,7 +35,7 @@ from cubicweb import Binary
 from cubicweb.devtools import testlib  # noqa
 from cubicweb.devtools import PostgresApptestConfiguration
 
-from cubicweb_francearchives.testutils import HashMixIn
+from cubicweb_francearchives.testutils import S3BfssStorageTestMixin
 from cubicweb_francearchives.dataimport.sqlutil import delete_from_filename
 
 import utils
@@ -73,7 +73,7 @@ class MViewsSchema(MViewsBaseTC):
             self.assertIn((SCHEMA,), schemas)
 
 
-class MViewsCMS(HashMixIn, MViewsBaseTC):
+class MViewsCMS(S3BfssStorageTestMixin, MViewsBaseTC):
     def setUp(self):
         super(MViewsCMS, self).setUp()
         with self.admin_access.cnx() as cnx:

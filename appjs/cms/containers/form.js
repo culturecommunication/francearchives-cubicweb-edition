@@ -39,8 +39,8 @@ const CustomFieldTemplateConnected = connect(function mapStateToProps(
     const fieldName = props.id.replace(/root_?/, '')
     return {
         serverErrors: errors
-            .filter(e => e.getIn(['source', 'pointer']) === fieldName)
-            .map(e => e.get('details'))
+            .filter((e) => e.getIn(['source', 'pointer']) === fieldName)
+            .map((e) => e.get('details'))
             .toJS(),
     }
 })(CustomFieldTemplate)

@@ -88,7 +88,7 @@ options = (
         "linkchecker-output",
         {
             "type": "string",
-            "default": "/tmp",
+            "default": "/tmp/linkchecker.out",
             "help": "linkchecker output file name",
             "group": "linkchecker",
             "level": 2,
@@ -111,6 +111,26 @@ options = (
             "default": "",
             "help": "dead links output directory",
             "group": "linkchecker",
+            "level": 2,
+        },
+    ),
+    (
+        "linkchecker-maxmem",
+        {
+            "type": "int",
+            "default": (1024**3) * 4,
+            "help": "linkchecker memory consumption limit (in bytes)",
+            "group": "linkchecker",
+            "level": 2,
+        },
+    ),
+    (
+        "admin-emails",
+        {
+            "type": "string",
+            "default": REQUIRED,
+            "help": "FranceArchive emails used for portal notifications separated by ', '.",
+            "group": "pnia",
             "level": 2,
         },
     ),

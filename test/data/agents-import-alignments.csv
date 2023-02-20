@@ -1,0 +1,9 @@
+identifiant_AgentAuthority	URI_AgentName	libelle_AgentName	URI_AgentAuthority	libelle_AgentAuthority	type_AgentName	URI_ExternalUri	libelle_ExternalUri	keep	quality
+130999070	https://francearchives.fr/agentname/206672445	Beethoven (Ludwig von)	https://francearchives.fr/agent/130999070	Beethoven, Ludwig van (1770-1827)	persname	https://www.wikidata.org/wiki/Q255	Ludwig van Beethoven	yes	yes
+18704351	https://francearchives.fr/agentname/206671539	Bernanos (Georges)	https://francearchives.fr/agent/18704351	Bernanos, Georges	persname	https://www.wikidata.org/wiki/Q315072	Georges Bernanos	yes	yes
+131399075	https://francearchives.fr/agentname/206701816	Camus (Albert)	https://francearchives.fr/agent/131399075	Camus, Albert (1913-1960)	persname	https://data.bnf.fr/fr/11894985/albert_camus/	Camus, Albert (1913-1960)	yes	yes
+130963047	https://francearchives.fr/agentname/206670777	Hugo (Victor)	https://francearchives.fr/agent/130963047	Hugo, Victor (1802-1885)	persname	https://data.bnf.fr/ark:/12148/cb11907966z	Victor Hugo (1802-1885)	yes	yes
+130999070	https://francearchives.fr/agentname/206672445	Beethoven (Ludwig von)	https://francearchives.fr/agent/130999070	Beethoven, Ludwig van (1770-1827)	persname	https://data.bnf.fr/ark:/12148/cb138912954	Ludwig van Beethoven (1770-1827)	yes	yes
+130999070	https://francearchives.fr/agentname/206672445	Beethoven (Ludwig von)	https://francearchives.fr/agent/130999070	Beethoven, Ludwig van (1770-1827)	persname	https://data.bnf.fr/ark:/12148/cb138912954	Ludwig van Beethoven (1770-1827)	no	yes
+18704351	https://francearchives.fr/agentname/206671539	Bernanos (Georges)	https://francearchives.fr/agent/18704351	Bernanos, Georges	persname	https://www.wikidata.org/wiki/Q31	Georges Bernanos	no	yes
+130963047	https://francearchives.fr/agentname/206670777	Hugo (Victor)	https://francearchives.fr/agent/130963047	Hugo, Victor (1802-1885)	persname	https://www.larousse.fr/encyclopedie/personnage/Victor_Hugo/124393	Victor Hugo	yes	yes

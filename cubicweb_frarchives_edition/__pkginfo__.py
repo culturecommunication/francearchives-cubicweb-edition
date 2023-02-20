@@ -35,7 +35,7 @@ from os.path import join
 modname = "frarchives_edition"
 distname = "cubicweb-frarchives-edition"
 
-numversion = (0, 45, 2)
+numversion = (1, 8, 4)
 version = ".".join(str(num) for num in numversion)
 
 license = "CeCILL-C"
@@ -45,19 +45,22 @@ description = "Edition components for FranceArchives"
 web = "https://github.com/culturecommunication/francearchives-cubicweb-edition"
 
 __depends__ = {
-    "cubicweb[pyramid,crypto]": ">= 3.26.0",
-    "cubicweb-francearchives": ">= 2.9.1",
+    "cubicweb": None,
+    "cubicweb-francearchives": ">= 2.21.4",
     "pyramid": None,
     "jsl": ">= 0.2.2",
-    "cubicweb-jsonschema": ">= 0.1.2,<0.2",
+    "cubicweb-jsonschema": ">= 0.1.6,<0.2",
+    "cubicweb-forgotpwd": None,
     "cubicweb-pwd_policy": None,
-    "redis": ">=3.2,<3.3",
+    "redis": ">=4.1.4,<4.2",
+    "pyramid-session-redis": ">=1.6.3,<1.7.0",
+    "pyramid-debugtoolbar": ">=4.9.0,<4.10.0",
     "rq": ">=1.1,<1.2",
     # 'pyramid-chameleon': None,  # debian package should fix
     "jinja2": None,
     "nazca": ">= 2.0.0",
-    "scikit-learn": "< 0.21.0",
     "sparqlwrapper": None,
+    "yams": "== 0.48.0",
 }
 __recommends__ = {}
 

@@ -46,10 +46,7 @@ function isleafProp(entity) {
         'isleaf',
         {
             get() {
-                return (
-                    this.cw_etype !== 'Section' &&
-                    this.cw_etype !== 'CommemoCollection'
-                )
+                return this.cw_etype !== 'Section'
             },
         },
     )
@@ -64,10 +61,12 @@ class TreeEditor extends Component {
     }
 
     componentDidMount() {
-        const promises = this.topSections.map(eid => getEntity('section', eid))
-        Promise.all(promises).then(entities => {
+        const promises = this.topSections.map((eid) =>
+            getEntity('section', eid),
+        )
+        Promise.all(promises).then((entities) => {
             const nodes = {}
-            entities.forEach(e => {
+            entities.forEach((e) => {
                 nodes[e.eid] = isleafProp(e)
             })
             this.setState({nodes})
@@ -92,7 +91,7 @@ class TreeEditor extends Component {
                               entity.cw_etype,
                               entity.eid,
                               'children',
-                          ).then(children => children.map(isleafProp))
+                          ).then((children) => children.map(isleafProp))
                       },
                       onMove(target) {
                           return jsonFetch('/section', {

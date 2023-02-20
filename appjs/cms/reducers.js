@@ -52,7 +52,7 @@ function app(state = defaultAppState, action) {
 }
 
 module.exports = function rootReducer(state, action) {
-    return state.withMutations(state => {
+    return state.withMutations((state) => {
         const appState = state.get('app')
         return state.set('app', app(appState, action))
     })

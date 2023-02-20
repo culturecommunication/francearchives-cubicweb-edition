@@ -32,6 +32,12 @@
 
 STYLESHEETS += [
     data("frarchives_edition.css"),
-    data("react-bootstrap-table-all.min.css"),
+    data("react-bootstrap-table2.min.css"),
     data("react-widgets.css"),
 ]
+
+PNIA_JAVASCRIPTS.extend(
+    [
+        data("cubicweb.js"),  # for forgotpwd
+    ]
+)

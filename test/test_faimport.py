@@ -32,19 +32,27 @@
 """cubicweb-frarchives_edition tests for FindingAid imports"""
 
 # standard library imports
+import base64
+import csv
+from io import StringIO, TextIOWrapper
 import json
 import shutil
 import zipfile
 import os
 import os.path as osp
+import unittest.mock
 
 # third party imports
 import rq
 
 # library specific imports
 
-from cubicweb_francearchives.testutils import HashMixIn, OaiSickleMixin
+from cubicweb_francearchives.dataimport.oai_nomina import compute_nomina_stable_id
+from cubicweb_francearchives.testutils import OaiSickleMixin, S3BfssStorageTestMixin
+
+from cubicweb_frarchives_edition.tasks.qualify_authorities import KIBANA_FIELDNAMES
 from cubicweb_frarchives_edition.rq import work
+
 from utils import create_findingaid, TaskTC
 
 from pgfixtures import setup_module, teardown_module  # noqa
@@ -74,7 +82,7 @@ class FAImportArchiveMixIn(object):
         return zipf
 
 
-class FAImportsBaseTC(TaskTC):
+class FAImportsBaseTC(S3BfssStorageTestMixin, TaskTC):
     """FindingAid import test cases base class."""
 
     def setUp(self):
@@ -82,6 +90,9 @@ class FAImportsBaseTC(TaskTC):
         super(FAImportsBaseTC, self).setUp()
         self.config.global_set_option("ead-services-dir", self.datapath("ir_data", "import"))
         self.config.global_set_option("eac-services-dir", self.datapath("ir_data", "import"))
+        self.config.global_set_option("nomina-services-dir", self.datapath("ir_data", "import"))
+        self.config.global_set_option("nomina-index-name", "dummy_nomina")
+        self.config.global_set_option("admin-emails", "toto@logilab.fr, tata@logilab.fr")
 
 
 class FAImportsOAITC(OaiSickleMixin, FAImportsBaseTC):
@@ -95,6 +106,11 @@ class FAImportsOAITC(OaiSickleMixin, FAImportsBaseTC):
         assert self.filename is not None
         return self.datapath(self.filename)
 
+    @classmethod
+    def init_config(cls, config):
+        super(FAImportsOAITC, cls).init_config(config)
+        config.set_option("nomina-services-dir", "/tmp")
+
     def setup_database(self):
         """Set database up and add services related to the test cases to
         the database.
@@ -102,19 +118,26 @@ class FAImportsOAITC(OaiSickleMixin, FAImportsBaseTC):
         super(FAImportsOAITC, self).setup_database()
         url = "file://{}?verb=ListRecords&metadataPrefix={}"
         with self.admin_access.repo_cnx() as cnx:
-            service = cnx.create_entity("Service", code="FRAD034", category="foo")
+            service = cnx.create_entity("Service", name="Hérault", code="FRAD034", category="foo")
             cnx.create_entity(
                 "OAIRepository",
                 name="oai_dc",
                 service=service,
                 url=url.format(self.datapath("oai_dc_sample.xml"), "oai_dc"),
             )
-            service = cnx.create_entity("Service", code="FRAD051", category="bar")
+            service = cnx.create_entity("Service", name="Marne", code="FRAD051", category="bar")
             cnx.create_entity(
                 "OAIRepository",
                 name="oai_ead",
                 service=service,
                 url=url.format(self.datapath("oai_ead_sample.xml"), "oai_ead"),
+            )
+            service = cnx.create_entity("Service", name="Ardennes", code="FRAD0O8", category="bar")
+            cnx.create_entity(
+                "OAIRepository",
+                name="nomina",
+                service=service,
+                url=url.format(self.datapath("oai_nomina_sample.xml"), "nomina"),
             )
             cnx.commit()
 
@@ -133,8 +156,6 @@ class FAImportsOAITC(OaiSickleMixin, FAImportsBaseTC):
                     "name": "import_oai",
                     "title": "oai_dc",
                     "oairepository": eid,
-                    "should_normalize": True,
-                    "context_service": True,
                 }
             )
             post_kwargs = {"params": [("data", data)]}
@@ -153,6 +174,168 @@ class FAImportsOAITC(OaiSickleMixin, FAImportsBaseTC):
             job.refresh()
             self.assertEqual(job.status, "finished")
             self.assertEqual(len(task.fatask_findingaid), 1)
+
+    def test_harvest_nomina_oai(self):
+        """Test NOMINA OAI-PMH harvesting and import
+
+        Trying: harvest a nomina file
+        Expecting: 'import_oai' job for nomina is successfully executed: 3 cwfiles with
+                    harvested data are created an import_csv_nomina job is created
+        """
+        self.filename = "oai_nomina_sample.xml"
+        with self.admin_access.cnx() as cnx:
+            eid = cnx.execute('Any X WHERE X is OAIRepository, X name "nomina"').one().eid
+            data = json.dumps(
+                {
+                    "name": "import_oai",
+                    "title": "nomina",
+                    "dry-run": False,
+                    "oairepository": eid,
+                }
+            )
+            post_kwargs = {"params": [("data", data)]}
+            self.login()
+            self.webapp.post(
+                "/RqTask/?schema_type=import_oai",
+                status=201,
+                headers={"Accept": "application/json"},
+                **post_kwargs
+            )
+            task = cnx.find("RqTask").one()
+            self.assertEqual(task.name, "import_oai (nomina)")
+            job = task.cw_adapt_to("IRqJob")
+            self.assertEqual(job.status, "queued")
+            self.work(cnx)
+            job.refresh()
+            self.assertEqual(job.status, "finished")
+            self.assertEqual(len(task.output_file), 1)
+            csvfile = task.output_file[0]
+            with TextIOWrapper(csvfile.data, encoding="utf-8", newline="") as fp:
+                reader = csv.reader(fp, delimiter="\t")
+                rows = [row for row in reader]
+            self.assertEqual(len(rows), 8)
+            self.assertEqual(1, len(task.subtasks))
+
+    def test_delete_nomina_by_service(self):
+        """Test delete nomina records for a servicce
+
+        Trying: delete all NominaRecords for a service
+        Expecting: 'delete_nomina_by_service' job for nomina is successfully executed:
+                    no NominaRecords is left
+        """
+        with self.admin_access.cnx() as cnx:
+            service = cnx.find("Service", code="FRAD034").one()
+            for idx in range(1, 21):
+                cnx.create_entity(
+                    "NominaRecord",
+                    stable_id=compute_nomina_stable_id(service.code, str(idx)),
+                    json_data={
+                        "e": {
+                            "N": {
+                                "d": [{"d": "1894-06-24", "y": "1894"}],
+                                "l": [
+                                    {"c": "France", "d": "Yvelines (ex Seine et Oise)", "dc": "78"}
+                                ],
+                            },
+                        },
+                        "p": [{"f": "Georges René", "n": f"BIEUVILLE {idx}"}],
+                        "t": "MPF14-18",
+                        "u": "https://site.fr/fr/ark:/40699/m005239d4b17{idx}e",  # noqa
+                    },
+                    service=service,
+                )
+            cnx.commit()
+            self.assertEqual(
+                20,
+                cnx.execute(
+                    "Any COUNT(X) WHERE X service S, X is NominaRecord, S eid %(e)s",
+                    {"e": service.eid},
+                )[0][0],
+            )
+            task_name = "delete_nomina_by_service"
+            data = json.dumps(
+                {
+                    "name": task_name,
+                    "title": "delete NominaRecords",
+                    "service": service.eid,
+                }
+            )
+            post_kwargs = {"params": [("data", data)]}
+            self.login()
+            self.webapp.post(
+                f"/RqTask/?schema_type={task_name}",
+                status=201,
+                headers={"Accept": "application/json"},
+                **post_kwargs
+            )
+            task = cnx.find("RqTask").one()
+            self.assertEqual(task.name, task_name)
+            job = task.cw_adapt_to("IRqJob")
+            self.assertEqual(job.status, "queued")
+            self.work(cnx)
+            job.refresh()
+            self.assertEqual(job.status, "finished")
+            self.assertEqual(
+                0,
+                cnx.execute(
+                    "Any COUNT(X) WHERE X service S, X is NominaRecord, S eid %(e)s",
+                    {"e": service.eid},
+                )[0][0],
+            )
+
+    @unittest.mock.patch("cubicweb.cwconfig.CubicWebConfiguration.sendmails")
+    def test_oai_email_notifications(self, mock_sendmail):
+        """
+        Trying: OAI-DC import
+        Expecting: a mail with warnings is send"""
+        self.filename = "oai_dc_sample.xml"
+        with self.admin_access.cnx() as cnx:
+            eid = cnx.execute('Any X WHERE X is OAIRepository, X name "oai_dc"').one().eid
+            data = json.dumps(
+                {
+                    "name": "import_oai",
+                    "title": "oai_dc",
+                    "oairepository": eid,
+                }
+            )
+            post_kwargs = {"params": [("data", data)]}
+            self.login()
+            self.webapp.post(
+                "/RqTask/?schema_type=import_oai",
+                status=201,
+                headers={"Accept": "application/json"},
+                **post_kwargs
+            )
+            task = cnx.find("RqTask").one()
+            self.assertEqual(task.name, "import_oai (oai_dc)")
+            job = task.cw_adapt_to("IRqJob")
+            self.assertEqual(job.status, "queued")
+            self.work(cnx)
+            job.refresh()
+            args, _ = mock_sendmail.call_args
+            msg, to_addrs = args[0][0]
+            self.assertEqual(to_addrs, "toto@logilab.fr, tata@logilab.fr")
+            expected = [
+                ("Content-Type", "multipart/alternative"),
+                ("MIME-Version", "1.0"),
+                (
+                    "Subject",
+                    "[FranceArchives]: Hérault (FRAD034) - harvesting completed with errors/warnings",  # noqa
+                ),
+                ("From", "cubicweb-test@logilab.fr"),
+                ("To", "toto@logilab.fr, tata@logilab.fr"),
+            ]
+            got = dict(msg.items())
+            for key, value in expected:
+                self.assertEqual(got[key], value)
+            email_message = {part.get_content_type(): part.get_payload() for part in msg.walk()}
+            html_content = str(base64.b64decode(email_message["text/html"]).decode("utf-8"))
+            self.assertIn("""</div> EADID value""", html_content)
+            self.assertNotIn("""\n""", html_content)
+            text_content = str(base64.b64decode(email_message["text/plain"]).decode("utf-8"))
+            self.assertNotIn("""</div> EADID value""", text_content)
+            self.assertIn(""" EADID value""", text_content)
+            self.assertIn("""\n""", text_content)
 
     def test_import_oai_compute_alignments(self):
         """Test OAI import.
@@ -199,7 +382,7 @@ class FAImportsOAITC(OaiSickleMixin, FAImportsBaseTC):
             self.assertEqual(job.status, "finished")
 
 
-class FAImportsTC(HashMixIn, FAImportArchiveMixIn, FAImportsBaseTC):
+class FAImportsTC(FAImportArchiveMixIn, FAImportsBaseTC):
     """FindingAid import test cases.
 
     The test cases assert that the 'import_ead' and 'import_csv' tasks are
@@ -249,7 +432,6 @@ class FAImportsTC(HashMixIn, FAImportArchiveMixIn, FAImportsBaseTC):
             "context_service": True,
             "service": service,
         }
-        print(data)
         return dict(
             params=[("data", json.dumps(data))],
             upload_files=[("fileobj", basename, open(zip_path, "rb").read())],
@@ -481,17 +663,25 @@ class FAImportsTC(HashMixIn, FAImportArchiveMixIn, FAImportsBaseTC):
             self.assertEqual(len(cnx.execute("Any F WHERE X findingaid_support F")), 3)
             self.assertEqual(len(cnx.execute("Any F WHERE X ape_ead_file F")), 2)
             rset = cnx.execute(
-                "Any S, FSPATH(D) WHERE F data_hash S, " "X fa_referenced_files F, F data D"
+                f"""Any S, {self.fkeyfunc}(D) WHERE F data_hash S,
+                X fa_referenced_files F, F data D"""
             )
-            self.assertEqual(rset.rowcount, 11)
+            self.assertEqual(rset.rowcount, 12)
             for data_sha1hex, pdfpath in rset:
-                pdfpath = pdfpath.getvalue().decode("utf-8")
-                destpath = osp.join(
-                    self.config["appfiles-dir"], "{}_{}".format(data_sha1hex, osp.basename(pdfpath))
-                )
+                pdfpath = pdfpath.getvalue()
+                if self.s3_bucket_name:
+                    destpath = self.get_filepath_by_storage(
+                        f"{data_sha1hex}_{osp.basename(pdfpath).decode('utf-8')}"
+                    )
+                else:
+                    destpath = self.get_filepath_by_storage(
+                        f"{self.config['appfiles-dir']}/{data_sha1hex}_{osp.basename(pdfpath).decode('utf-8')}"  # noqa
+                    )
                 self.assertNotEqual(destpath, pdfpath)
-                self.assertTrue(osp.isfile(destpath))
-                self.assertTrue(osp.islink(destpath))
+                self.assertTrue(self.fileExists(pdfpath))
+                self.assertTrue(self.fileExists(destpath))
+                if not self.s3_bucket_name:
+                    self.assertTrue(osp.islink(destpath))
 
     def test_fazip_import_eac(self):
         """Test EAC import.
@@ -532,6 +722,54 @@ class FAImportsTC(HashMixIn, FAImportArchiveMixIn, FAImportsBaseTC):
             self.assertEqual(job.status, "finished")
             self.assertEqual(len(task.fatask_authorityrecord), 1)
 
+    def test_import_nomina_csv(self):
+        """Test NOMINA import.
+
+        Trying: CSV file
+        Expecting: 'import_nomina' job is executes successfully and 10 NominaEntries are imported
+        """
+        with self.admin_access.cnx() as cnx:
+            cnx.create_entity("Service", code="FRAD056", category="l")
+            cnx.commit()
+        service = "FRAD056"
+        basename = "morbihan_nomina_exemple.csv"
+        fpath = osp.join(self.datadir, "ir_data", service, basename)
+        data = {
+            "name": "import_csv_nomina",
+            "title": "import nomina",
+            "filepaths": [basename],
+            "service": service,
+            "doctype": "RM",
+            "delimiter": ";",
+        }
+        buff = ""
+        with open(fpath, "rb") as f:
+            buff = f.read()
+        post_kwargs = dict(
+            params=[("data", json.dumps(data))],
+            upload_files=[("fileobj", basename, buff)],
+        )
+        self.login()
+        self.webapp.post(
+            "/RqTask/?schema_type=import_csv_nomina",
+            status=201,
+            headers={"Accept": "application/json"},
+            **post_kwargs
+        )
+        with self.admin_access.cnx() as cnx:
+            task = cnx.find("RqTask").one()
+            job = task.cw_adapt_to("IRqJob")
+            self.assertEqual(job.status, "queued")
+            self.assertTrue(
+                job.description.startswith(
+                    "cubicweb_frarchives_edition.tasks.import_csv_nomina.import_csv_nomina("
+                )
+            )
+            self.work(cnx)
+            job.refresh()
+            self.assertEqual(job.status, "finished")
+            self.assertEqual(9, cnx.execute("Any COUNT(X) WHERE X is NominaRecord")[0][0])
+
 
 class LocAuthorityGroupTC(FAImportsBaseTC):
     """test cases.
@@ -561,6 +799,9 @@ class LocAuthorityGroupTC(FAImportsBaseTC):
             )
             self.geog2 = cnx.create_entity(
                 "Geogname", label="Paris (France)", index=fa2, authority=self.loc2
+            )
+            self.loc3 = cnx.create_entity(
+                "LocationAuthority", label="Toulouse (Haute-Garonne, France)"
             )
             # populated place features
             sql = """INSERT INTO geonames (geonameid,name,admin4_code,country_code,fclass,fcode)
@@ -603,7 +844,7 @@ class LocAuthorityGroupTC(FAImportsBaseTC):
         )
 
     def test_compute_location_authorities_to_group(self):
-        """ generate csv with candidates to group"""
+        """generate csv with candidates to group"""
         self.login()
         task_name = "compute_location_authorities_to_group"
         data = json.dumps(
@@ -656,6 +897,59 @@ class LocAuthorityGroupTC(FAImportsBaseTC):
                 [self.geog1.eid, self.geog2.eid], [geog.eid for geog in loc1.reverse_authority]
             )
             self.assertFalse(loc2.reverse_authority)
+
+    def test_quality_authorities_ok(self):
+        """test  "import_qualified_authorities" task"""
+        self.login()
+        with self.admin_access.cnx() as cnx:
+            loc3 = cnx.find("LocationAuthority", eid=self.loc3.eid).one()
+            self.assertFalse(loc3.quality)
+        task_name = "import_qualified_authorities"
+        stream = StringIO()
+        writer = csv.writer(stream, delimiter="\t")
+        writer.writerow(list(KIBANA_FIELDNAMES.keys()))
+        writer.writerow((self.loc3.eid, self.loc1.label, "yes"))
+        writer.writerow((self.loc2.eid, self.loc2.label, "no"))
+        qualified_authorities = stream.getvalue().encode("utf-8")
+
+        post_kwargs = self.create_task_kwargs(
+            qualified_authorities, "qualified_authorities.csv", task_name
+        )
+        self.webapp.post(
+            "/RqTask/?schema_type={}".format(task_name),
+            status=201,
+            headers={"Accept": "application/json"},
+            **post_kwargs
+        )
+        with self.admin_access.cnx() as cnx:
+            task = cnx.find("RqTask").one()
+            self.assertEqual(task.name, task_name)
+            job = task.cw_adapt_to("IRqJob")
+            self.assertEqual(job.status, "queued")
+            self.work(cnx)
+            job.refresh()
+            self.assertEqual(job.status, "finished")
+            loc3 = cnx.find("LocationAuthority", eid=self.loc3.eid).one()
+            self.assertTrue(loc3.quality)
+
+    def test_quality_authorities_ko(self):
+        """test  "import_qualified_authorities" task"""
+        self.login()
+        with self.admin_access.cnx() as cnx:
+            loc3 = cnx.find("LocationAuthority", eid=self.loc3.eid).one()
+            self.assertFalse(loc3.quality)
+        task_name = "import_qualified_authorities"
+        post_kwargs = self.create_task_kwargs(b"test", "qualified_authorities.js", task_name)
+        res = self.webapp.post(
+            "/RqTask/?schema_type={}".format(task_name),
+            status=400,
+            headers={"Accept": "application/json"},
+            **post_kwargs
+        )
+        errors = json.loads(res.text)["errors"]
+        self.assertEqual(errors[0]["status"], 422)
+        details = '"qualified_authorities.js" file contains invalid headers "test"'
+        self.assertEqual(errors[0]["details"], details)
 
 
 if __name__ == "__main__":

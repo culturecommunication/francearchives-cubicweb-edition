@@ -35,7 +35,7 @@ const {Component, createElement: ce} = require('react'),
 const {parse} = require('query-string')
 
 const {CmsForm} = require('./editor'),
-    {spinner, button} = require('./fa')
+    {spinner} = require('./fa')
 const {Alert} = require('../components/error')
 
 const {CustomFieldTemplateConnected} = require('../containers/form')
@@ -61,8 +61,8 @@ function RelatedEntitiesListEditor(props) {
         relatedList = related
     } else {
         relatedList = related
-            .filter(e => e.cw_etype === targetType)
-            .map(e => ({
+            .filter((e) => e.cw_etype === targetType)
+            .map((e) => ({
                 eid: e.eid,
                 label: e.dc_title,
                 link: ce(
@@ -75,6 +75,7 @@ function RelatedEntitiesListEditor(props) {
                 ),
             }))
     }
+
     const columns = [
         {
             dataField: 'link',
@@ -94,13 +95,18 @@ function RelatedEntitiesListEditor(props) {
         },
         {
             dataField: 'action',
-            text: '',
+            text: 'Action',
             formatter: (cell, row) => {
-                return ce(button, {
-                    title: 'supprimer la relation',
-                    onClick: () => props.deleteIndex(row.eid),
-                    name: 'trash',
-                })
+                return ce(
+                    'button',
+                    {
+                        title: 'supprimer la relation',
+                        className: 'btn btn-x',
+                        onClick: () => props.deleteIndex(row.eid),
+                        name: 'trash',
+                    },
+                    ce('i', {className: 'fa fa-trash'}),
+                )
             },
             style: {width: '5%'},
         },
@@ -128,6 +134,7 @@ function RelatedEntitiesListEditor(props) {
             keyField: 'eid',
             data: relatedList,
             columns: columns,
+            striped: true,
             defaultSorted: defaultSorted,
             pagination: paginationFactory(),
         }),
@@ -159,10 +166,12 @@ class AuthoritiesEditor extends Component {
                 searchValue: null,
             })
         this.onChangeAuthority = this.onChangeAuthority.bind(this)
-        const wrapsStateReinit = method => (...args) => {
-            this.resetSearchRelatedStates()
-            return method(...args)
-        }
+        const wrapsStateReinit =
+            (method) =>
+            (...args) => {
+                this.resetSearchRelatedStates()
+                return method(...args)
+            }
         this.createAuthority = wrapsStateReinit(this.props.createAuthority)
         this.createRelationWithAuthority = wrapsStateReinit(
             this.props.createRelationWithAuthority,
@@ -200,14 +209,15 @@ class AuthoritiesEditor extends Component {
         this.setState({selectedAuthority: value, searchValue: null})
     }
 
-    displayAuthorityLink(eid) {
+    displayAuthorityLink(eid, linkMsg) {
         const link = `${window.BASE_URL}${this.props.targetType}/${eid}`
         return ce(
             'a',
             {
-                className: 'col-xs-1 fa-stack fa-lg url_link',
+                className: 'col-md-1 fa-stack fa-lg url_link',
                 href: link,
                 target: '_blank',
+                title: linkMsg,
             },
             ce('i', {className: 'fa fa-circle fa-stack-2x'}),
             ce('i', {className: 'fa fa-arrow-right fa-stack-1x fa-inverse'}),
@@ -223,7 +233,7 @@ class AuthoritiesEditor extends Component {
         let body = ce(CmsForm, {
             schema,
             uiSchema,
-            onCancel: event => {
+            onCancel: (event) => {
                 event.preventDefault()
                 this.resetSearchRelatedStates()
                 this.setState({displayCreationForm: false})
@@ -246,16 +256,12 @@ class AuthoritiesEditor extends Component {
         }
         const {entity} = this,
             {targetType, rtype} = this.props,
-            {
-                displayCreationForm,
-                searchMatch,
-                searchValue,
-                selectedAuthority,
-            } = this.state
-        const resolveAvailableTargets = (d => {
+            {displayCreationForm, searchMatch, searchValue, selectedAuthority} =
+                this.state
+        const resolveAvailableTargets = ((d) => {
             const searchMatch = d.length !== 0
             this.setState({searchMatch})
-            return d.map(e => ({label: e.title, value: e.eid}))
+            return d.map((e) => ({label: e.title, value: e.eid}))
         }).bind(this)
 
         function loadOptions(input) {
@@ -291,7 +297,8 @@ class AuthoritiesEditor extends Component {
                 ce(
                     'form',
                     {
-                        onSubmit: e => {
+                        className: 'well',
+                        onSubmit: (e) => {
                             e.preventDefault()
                             this.createRelationWithAuthority(
                                 e,
@@ -302,38 +309,35 @@ class AuthoritiesEditor extends Component {
                     select,
                     ce(
                         'div',
-                        {className: 'form-group container-fluid'},
+                        {className: 'row mb-2 align-items-center'},
                         ce(
-                            'div',
-                            {className: 'row'},
-                            ce(Async, {
-                                isMulti: false,
-                                name: 'targets',
-                                placeholder: 'Rechercher une autorité',
-                                loadOptions: _.throttle(
-                                    loadOptions.bind(this),
-                                    300,
-                                ),
-                                value: selectedAuthority,
-                                noOptionsMessage: () => null,
-                                isClearable: true,
-                                onFocus: () => this.setState({message: null}),
-                                onChange: this.onChangeAuthority,
-                                className: 'col-xs-10',
-                            }),
-                            ce(
-                                'span',
-                                {
-                                    className: 'control-label col-xs-1',
-                                },
-                                linkMsg,
-                            ),
-                            selectedAuthority !== null
-                                ? this.displayAuthorityLink(
-                                      selectedAuthority.value,
-                                  )
-                                : null,
+                            'label',
+                            {className: 'form-label', for: 'targets'},
+                            `Libellé d'autorité`,
                         ),
+                        ce(Async, {
+                            isMulti: false,
+                            name: 'targets',
+                            placeholder:
+                                'Rechercher une autorité par son libellé',
+
+                            loadOptions: _.throttle(
+                                loadOptions.bind(this),
+                                300,
+                            ),
+                            value: selectedAuthority,
+                            noOptionsMessage: () => null,
+                            isClearable: true,
+                            onFocus: () => this.setState({message: null}),
+                            onChange: this.onChangeAuthority,
+                            className: 'col-md-11',
+                        }),
+                        selectedAuthority !== null
+                            ? this.displayAuthorityLink(
+                                  selectedAuthority.value,
+                                  linkMsg,
+                              )
+                            : null,
                     ),
                     ce(
                         'div',
@@ -346,7 +350,7 @@ class AuthoritiesEditor extends Component {
                                         ? 'btn btn-default'
                                         : 'btn btn-primary',
                                 type: 'button',
-                                onClick: event => {
+                                onClick: (event) => {
                                     event.preventDefault()
                                     this.setState({
                                         displayCreationForm: true,
@@ -386,7 +390,7 @@ AuthoritiesEditor.propTypes = {
 class IndexEntityRelatedEditor extends Component {
     constructor(props) {
         super(props)
-        this.updateMessage = newMsg => this.setState({message: newMsg})
+        this.updateMessage = (newMsg) => this.setState({message: newMsg})
         this.rtypes = props.rtypes.toJS()
         this.state = this.initState(props)
         this.displayFormHeader = this.displayFormHeader.bind(this)
@@ -437,7 +441,7 @@ class IndexEntityRelatedEditor extends Component {
         Promise.all([
             getRelated(this.entity.cw_etype, this.entity.eid, rtype),
         ]).then(([related]) => {
-            const targets = related.map(r => ({
+            const targets = related.map((r) => ({
                 value: r.eid,
                 label: r.dc_title,
             }))
@@ -452,8 +456,19 @@ class IndexEntityRelatedEditor extends Component {
     displayFormHeader() {
         const {i18ntargetType} = this.state,
             entity = this.entity,
-            link = `"${entity.dc_title}" : gérer les ${i18ntargetType}`
-        return ce('h1', null, link)
+            entityUrl = `${window.BASE_URL}${entity.rest_path}`,
+            link = ` : gérer les ${i18ntargetType}`
+        return ce(
+            'div',
+            null,
+            ce(
+                'h1',
+                null,
+                `${this.entity.i18n_cw_etype} `,
+                ce('a', {target: '_blank', href: entityUrl}, entity.dc_title),
+                link,
+            ),
+        )
     }
 
     displayCloseFormBtn() {
@@ -470,23 +485,23 @@ class IndexEntityRelatedEditor extends Component {
 
     deleteIndex(indexEid) {
         const {related, rtype, targetType, multiple} = this.state,
-            targets = related.map(r => ({value: r.eid, label: r.dc_title})),
+            targets = related.map((r) => ({value: r.eid, label: r.dc_title})),
             {cw_etype, eid} = this.entity,
             toDelete = targets
-                .map(el => {
+                .map((el) => {
                     if (el.value === indexEid) return el.label
                 })
-                .filter(r => r !== undefined)
-        const newRelated = related.filter(el => el.eid !== indexEid),
-            newTargets = targets.filter(el => el.value !== indexEid)
+                .filter((r) => r !== undefined)
+        const newRelated = related.filter((el) => el.eid !== indexEid),
+            newTargets = targets.filter((el) => el.value !== indexEid)
         const allrelated = new Set(
-            newRelated.map(r => r.eid).concat(newTargets.map(t => t.value)),
+            newRelated.map((r) => r.eid).concat(newTargets.map((t) => t.value)),
         )
         return addRelation(
             cw_etype,
             eid,
             rtype,
-            Array.from(allrelated).map(eid => ({value: eid})),
+            Array.from(allrelated).map((eid) => ({value: eid})),
         )
             .then(() => {
                 this.updateMessage({
@@ -495,7 +510,7 @@ class IndexEntityRelatedEditor extends Component {
                 })
                 this.loadRelated(rtype, targetType, multiple)
             })
-            .catch(e => {
+            .catch((e) => {
                 this.updateMessage({
                     type: 'danger',
                     text: `Relation avec l'autorité "${toDelete}" n'a pas pu être supprimée.`,
@@ -522,7 +537,7 @@ class IndexEntityRelatedEditor extends Component {
                 })
                 this.loadRelated(rtype, targetType, multiple)
             })
-            .catch(e => {
+            .catch((e) => {
                 this.updateMessage({
                     type: 'danger',
                     text: `La relation avec l'autorité "${selectedAuthority.label}" n'a pas pu être ajoutée.`,
@@ -542,7 +557,7 @@ class IndexEntityRelatedEditor extends Component {
                 })
                 this.loadRelated(rtype, targetType, multiple)
             })
-            .catch(e => {
+            .catch((e) => {
                 this.updateMessage({
                     type: 'danger',
                     text: `L'autorité "${formData.label}" n'as pas pu être créé.`,
@@ -567,9 +582,8 @@ class IndexEntityRelatedEditor extends Component {
                 targetType: this.state.targetType,
                 dispatch: this.props.dispatch,
                 createAuthority: this.createAuthority.bind(this),
-                createRelationWithAuthority: this.createRelationWithAuthority.bind(
-                    this,
-                ),
+                createRelationWithAuthority:
+                    this.createRelationWithAuthority.bind(this),
             }),
             ce(RelatedEntitiesListEditor, {
                 targetType: this.state.targetType,

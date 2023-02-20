@@ -43,6 +43,30 @@ from cubicweb_francearchives.testutils import XMLCompMixin
 
 from cubicweb_frarchives_edition.xmlutils import generate_summary
 
+from cubicweb_frarchives_edition import FILE_URL_RE
+
+
+class UtilsTest(CubicWebTC):
+    def test_file_url_regexpr(self):
+        for url in (
+            "http://test/file/07957e78e792c2a1b46c212473ae03615b9406b6/apprentissage_AD_H_Pyrenees.pdf",  # noqa
+            "file/07957e78e792c2a1b46c212473ae03615b9406b6/apprentissage_AD_H_Pyrenees.pdf",
+            "/file/07957e78e792c2a1b46c212473ae03615b9406b6/apprentissage_AD_H_Pyrenees.pdf",
+            "../file/07957e78e792c2a1b46c212473ae03615b9406b6/apprentissage_AD_H_Pyrenees.pdf",
+            "../../file/07957e78e792c2a1b46c212473ae03615b9406b6/apprentissage_AD_H_Pyrenees.pdf",
+        ):
+            match = FILE_URL_RE.search(url)
+            groups = match.groupdict()
+            self.assertEqual(groups["hash"], "07957e78e792c2a1b46c212473ae03615b9406b6")
+            self.assertEqual(groups["name"], "apprentissage_AD_H_Pyrenees.pdf")
+
+        for url in (
+            "http://test/totofile/07957e78e792c2a1b46c212473ae03615b9406b6/apprentissage_AD_H_Pyrenees.pdf",  # noqa
+            "totofile/07957e78e792c2a1b46c212473ae03615b9406b6/apprentissage_AD_H_Pyrenees.pdf",
+            "/totofile/07957e78e792c2a1b46c212473ae03615b9406b6/apprentissage_AD_H_Pyrenees.pdf",
+        ):
+            self.assertIsNone(FILE_URL_RE.search(url))
+
 
 class XMLUtilsTest(XMLCompMixin, CubicWebTC):
     def assertHTMLEqual(self, expected_filepath, result):

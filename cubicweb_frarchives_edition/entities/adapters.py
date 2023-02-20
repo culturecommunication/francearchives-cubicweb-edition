@@ -28,6 +28,7 @@
 # The fact that you are presently reading this means that you have had
 # knowledge of the CeCILL-C license and that you accept its terms.
 #
+from datetime import datetime
 import os
 import os.path as osp
 import shutil
@@ -45,15 +46,23 @@ from elasticsearch_dsl import query as dsl_query
 
 from logilab.common.decorators import cachedproperty
 
+from rql import TypeResolverException
+
 from cubicweb import Binary
 from cubicweb.predicates import match_kwargs, is_instance
 from cubicweb.server.hook import DataOperationMixIn, Operation
-from cubicweb.view import EntityAdapter, Adapter
+from cubicweb.entity import EntityAdapter, Adapter
 
-from cubicweb_francearchives.dataimport import usha1, normalize_entry
+from cubicweb_francearchives import S3_ACTIVE
+from cubicweb_francearchives.dataimport import normalize_entry
 from cubicweb_francearchives.cssimages import HERO_SIZES, thumbnail_name, static_css_dir
+from cubicweb_francearchives.storage import S3BfssStorageMixIn
+
+from cubicweb_francearchives.views.index import AbstractAuthorityAdapter
 
 from cubicweb_frarchives_edition import UnpublishFilesOp
+
+AbstractAuthorityAdapter.editable = True
 
 
 class EsAuthorityCandidatesMixin(object):
@@ -70,7 +79,7 @@ class EsAuthorityCandidatesMixin(object):
         index_name = self._cw.vreg.config["index-name"]
         search = Search(
             doc_type="_doc", extra={"size": 1000}, index="{}_suggest".format(index_name)
-        ).sort("-count")
+        ).sort("_score", "-count")
         must = [
             {"match": {"text": {"query": query_string, "operator": "and"}}},
             # only display authorities of the same cw_etype
@@ -78,7 +87,8 @@ class EsAuthorityCandidatesMixin(object):
             # do not display already grouped authorities
             {"match": {"grouped": False}},
         ]
-        search.query = dsl_query.Bool(must=must)
+        should = [{"match_phrase": {"text.raw": query_string}}]
+        search.query = dsl_query.Bool(must=must, should=should)
         try:
             response = search.execute()
         except NotFoundError:
@@ -143,25 +153,176 @@ class IServiceAvailable(PostgresMixin, IEtypeAvailable):
     def candidates_rset(self, **params):
         return self._cw.execute(
             """
-        DISTINCT Any X, XN, XN2, C WITH X, XN, XN2, C BEING (
-          (Any X, XN, XN2, C WHERE X is Service,
-           X name2 XN2, X code C,
+        DISTINCT Any X, SN, XN, XN2, C WITH X, SN, XN, XN2, C BEING (
+          (Any X, SN, XN, XN2, C WHERE X is Service,
+           X short_name SN, X name2 XN2, X code C,
            X name XN HAVING NORMALIZE_ENTRY(XN) ILIKE %(q)s)
           UNION
-          (Any X, XN, XN2, C WHERE X is Service,
-           X name XN, X code C,
+          (Any X, SN, XN, XN2, C WHERE X is Service,
+           X short_name SN, X name XN, X code C,
            X name2 XN2 HAVING NORMALIZE_ENTRY(XN2) ILIKE %(q)s)
           UNION
-          (Any X, XN, XN2, C WHERE X is Service,
-           X name XN, X name2 XN2,
+          (Any X, SN, XN, XN2, C WHERE X is Service,
+           X short_name SN, X name XN, X name2 XN2,
            X code C HAVING NORMALIZE_ENTRY(C) ILIKE %(q)s)
+         UNION
+          (Any X, SN, XN, XN2, C WHERE X is Service,
+           X short_name SN, X name XN, X code C,
+           X name2 XN2 HAVING NORMALIZE_ENTRY(SN) ILIKE %(q)s)
+
         )        """,
             {"q": "%{}%".format(normalize_entry(params["q"]))},
         )
 
     def candidates(self, **params):
         rset = self.candidates_rset(**params)
-        return [{"title": name or name2 or code, "eid": eid} for eid, name, name2, code in rset]
+        return [
+            {"title": " - ".join(t for t in (short_name, name2, name) if t), "eid": eid}
+            for eid, short_name, name, name2, code in rset
+        ]
+
+
+class IDocumentSuggestionAvailable(PostgresMixin, IEtypeAvailable):
+    __abstract__ = True
+
+    def candidates_rset(self, **params):
+        etype_clause = self.etype_clause
+        kwargs = {
+            "q": params["q"],
+            "eid": params.get("eid"),
+            "normq": "%{}%".format(normalize_entry(params["q"])),
+        }
+        try:
+            if "eid" in params:  # if a content eid is given, exclude it from the results
+                if params["q"].isdigit():  # if q is a digit string, we can query eid and title
+                    return self._cw.execute(
+                        f"""DISTINCT Any X, T, N ORDERBY T WITH X, T, N BEING (
+                        (Any X, T, N WHERE X is {self.etype}, X eid %(q)s,
+                        NOT X identity S, S eid %(eid)s,
+                        {etype_clause},
+                        X title T
+                        ) UNION (
+                        Any X, T, N WHERE X is {self.etype},
+                        {etype_clause},
+                        NOT X identity S, S eid %(eid)s,
+                        X title T HAVING NORMALIZE_ENTRY(T) ILIKE %(normq)s
+                        )
+                    )
+                    """,
+                        kwargs,
+                    )
+                # otherwise, we can only query title
+                return self._cw.execute(
+                    f"""DISTINCT Any X, T, N ORDERBY T WHERE X is {self.etype},
+                        NOT X identity S, S eid %(eid)s,
+                        {etype_clause},
+                        X title T HAVING NORMALIZE_ENTRY(T) ILIKE %(normq)s
+                    """,
+                    kwargs,
+                )
+            if params["q"].isdigit():
+                return self._cw.execute(
+                    f"""Any X, T, N WITH X, T N ORDERBY T BEING (
+                        (Any X, T, N WHERE X is {self.etype}, X eid %(q)s,
+                        X title T,
+                        {etype_clause}
+                        ) UNION (
+                        Any X, T, N WHERE X is {self.etype},
+                        X title T HAVING NORMALIZE_ENTRY(T) ILIKE %(normq)s,
+                        {etype_clause}
+                        )
+                    )
+                    """,
+                    kwargs,
+                )
+            return self._cw.execute(
+                f"""Any X, T, N ORDERBY T WHERE X is {self.etype},
+                    {etype_clause},
+                    X title T HAVING NORMALIZE_ENTRY(T) ILIKE %(normq)s
+                """,
+                kwargs,
+            )
+        except TypeResolverException:
+            return []
+
+    @property
+    def etype_clause(self):
+        return "X is E, E name N"
+
+    def candidates(self, **params):
+        rset = self.candidates_rset(**params)
+        if rset:
+            return [
+                {"title": f"{title} - ({self._cw._(etype)}) ", "eid": eid}
+                for eid, title, etype in rset
+            ]
+        return []
+
+
+class IBaseContentSuggestionAvailable(IDocumentSuggestionAvailable):
+    __select__ = IEtypeAvailable.__select__ & match_kwargs({"etype": "BaseContent"})
+
+    @property
+    def etype_clause(self):
+        return "X content_type N"
+
+
+class ICommemorationItemContentSuggestionAvailable(IDocumentSuggestionAvailable):
+    __select__ = IEtypeAvailable.__select__ & match_kwargs({"etype": "CommemorationItem"})
+
+
+class IExternRefSuggestionAvailable(PostgresMixin, IEtypeAvailable):
+    __select__ = IEtypeAvailable.__select__ & (match_kwargs({"etype": "ExternRef"}))
+
+    def candidates_rset(self, **params):
+        try:
+            if "eid" in params:
+                return self._cw.execute(
+                    """DISTINCT Any X, T, N ORDERBY T WITH X,T, N BEING (
+                    (Any X,T,N WHERE X is ExternRef, X uuid %(q)s,
+                    X reftype N,
+                    NOT X identity S, S eid %(eid)s,
+                    X title T)
+                    UNION (
+                    Any X, T, N WHERE X is ExternRef, X reftype %(rtype)s,
+                    X reftype N,
+                    NOT X identity S, S eid %(eid)s,
+                    X title T HAVING NORMALIZE_ENTRY(T) ILIKE %(normq)s
+                    )
+                    )""",
+                    {
+                        "q": params["q"],
+                        "eid": params["eid"],
+                        "rtype": "Virtual_exhibit",
+                        "normq": "%{}%".format(normalize_entry(params["q"])),
+                    },
+                )
+            return self._cw.execute(
+                """ Any X, T, N ORDERBY T WITH X,T, N BEING (
+                    (Any X,T, N WHERE X is ExternRef, X uuid %(q)s,
+                    X title T, X reftype N)
+                    UNION (
+                    Any X, T, N WHERE X is ExternRef, X reftype %(rtype)s,
+                    X title T, X reftype N HAVING NORMALIZE_ENTRY(T) ILIKE %(normq)s
+                    )
+                    )""",
+                {
+                    "q": params["q"],
+                    "rtype": "Virtual_exhibit",
+                    "normq": "%{}%".format(normalize_entry(params["q"])),
+                },
+            )
+        except TypeResolverException:
+            return []
+
+    def candidates(self, **params):
+        rset = self.candidates_rset(**params)
+        if rset:
+            return [
+                {"title": f"{title} - ({self._cw._(reftype)}) ", "eid": eid}
+                for eid, title, reftype in rset
+            ]
+        return []
 
 
 class IAuthorityAvailable(EsAuthorityCandidatesMixin, IEtypeAvailable):
@@ -240,7 +401,7 @@ class StartRqTaskOp(DataOperationMixIn, Operation):
         # to manually create it
         queue = rq.Queue(connection=rq.connections.get_current_connection() or redis.Redis())
         for args, kwargs in self.cnx.transaction_data.get("rq_tasks", []):
-            kwargs.setdefault("job_timeout", "2h")
+            kwargs.setdefault("job_timeout", "12h")
             queue.enqueue(*args, **kwargs)
 
 
@@ -270,8 +431,11 @@ class IRqJob(EntityAdapter):
         if self._job is None:
             try:
                 self._job = rq.job.Job.fetch(self.id)
-            except rq.job.NoSuchJobError:
-                self.warning("failed to get job #%s from redis, mocking one", self.id)
+            except rq.job.NoSuchJobError as err:
+                self.warning(f"failed to get job #{self.id} from redis, mocking one: {err}")
+                return rq.job.Job.create(self.id)
+            except rq.connections.NoRedisConnectionException as err:
+                self.warning(f"failed to get job #{self.id} from redis, mocking one: {err}")
                 return rq.job.Job.create(self.id)
         return self._job
 
@@ -310,6 +474,8 @@ class RqTaskJob(IRqJob):
         )
         for attr in ("enqueued_at", "started_at"):
             update[attr] = getattr(self, attr)
+        # XXX for some reason ended_at is never available put an approximate end date
+        update["ended_at"] = self.ended_at if self.ended_at else datetime.now()
         self.entity.cw_set(**update)
 
     def handle_finished(self):
@@ -317,6 +483,8 @@ class RqTaskJob(IRqJob):
         update = {"log": Binary(self.log.encode("utf-8"))}
         for attr in ("enqueued_at", "started_at"):
             update[attr] = getattr(self, attr)
+        # XXX for some reason ended_at is never available put an approximate end date
+        update["ended_at"] = self.ended_at if self.ended_at else datetime.now()
         update["status"] = rq.job.JobStatus.FINISHED
         self.entity.cw_set(**update)
 
@@ -342,6 +510,9 @@ class RqTaskJob(IRqJob):
 
 
 def copy(src, dest, logger=None):
+    """
+    filesystem copy from src to destination
+    """
     try:
         shutil.copy(src, dest)
     except Exception:
@@ -354,18 +525,32 @@ def copy(src, dest, logger=None):
 class IFileSync(EntityAdapter):
     __regid__ = "IFileSync"
     __select__ = is_instance("Any")
+    _pub_appfiles_dir = None
+
+    @cachedproperty
+    def file_data_storage(self):
+        return self._cw.repo.system_source.storage("File", "data")
 
     @property
     def pub_appfiles_dir(self):
-        return self._cw.vreg.config.get("published-appfiles-dir")
+        if self._pub_appfiles_dir:
+            return self._pub_appfiles_dir
+        if S3_ACTIVE:
+            self._pub_appfiles_dir = ""
+        else:
+            self._pub_appfiles_dir = self._cw.vreg.config.get("published-appfiles-dir")
+            if not osp.exists(self._pub_appfiles_dir):
+                os.makedirs(self._pub_appfiles_dir)
+        return self._pub_appfiles_dir
 
     @staticmethod
     def queries():
         return ()
 
     def files_to_sync(self):
-        if not self.pub_appfiles_dir:
-            return []
+        if not S3_ACTIVE:
+            if not self.pub_appfiles_dir:
+                return []
         queries = self.queries()
         if not queries:
             return []
@@ -376,22 +561,64 @@ class IFileSync(EntityAdapter):
         rset = self._cw.execute(query, {"e": self.entity.eid})
         return [(fpath.getvalue(), eid) for fpath, eid in rset]
 
+    def get_fullpath(self, fpath):
+        return osp.join(self.pub_appfiles_dir.encode("utf-8"), osp.basename(fpath))
+
     def delete(self):
+        """unpublish file"""
+        if S3_ACTIVE:
+            self.s3_delete()
+        else:
+            self.bfss_delete()
+
+    def bfss_delete(self):
+        """unpublish file"""
         for fpath, feid in self.files_to_sync():
-            fullpath = osp.join(self.pub_appfiles_dir.encode("utf-8"), osp.basename(fpath))
+            fullpath = self.get_fullpath(fpath)
             if osp.exists(fullpath):
-                UnpublishFilesOp.get_instance(self._cw).add_data(
-                    (self.entity, feid, fpath, fullpath)
-                )
+                UnpublishFilesOp.get_instance(self._cw).add_data((self.entity, feid, fullpath))
+
+    def s3_delete_fpath(self, fpath, feid):
+        fullpath = self.get_fullpath(fpath)
+        if self.file_data_storage.file_exists(fullpath):  # not sure we need to check this
+            UnpublishFilesOp.get_instance(self._cw).add_data(
+                (self.entity, feid, fullpath.decode("utf-8"))
+            )
+
+    def s3_delete(self):
+        """unpublish file"""
+        for fpath, feid in self.files_to_sync():
+            self.s3_delete_fpath(fpath, feid)
 
     def copy(self):
+        """publish file"""
+        if S3_ACTIVE:
+            self.s3_copy()
+        else:
+            self.bfss_copy()
+
+    def bfss_copy(self):
+        """publish file"""
         if not self.pub_appfiles_dir:
             return
-        if not osp.exists(self.pub_appfiles_dir):
-            os.makedirs(self.pub_appfiles_dir)
         for fpath, feid in self.files_to_sync():
-            fullpath = osp.join(self.pub_appfiles_dir.encode("utf-8"), osp.basename(fpath))
-            copy(fpath, fullpath)
+            copy(fpath, self.get_fullpath(fpath))
+
+    def s3_copy_fpath(self, fpath):
+        """copy a prefixed ".hidden/" fpath into fpath"""
+        if isinstance(fpath, bytes):
+            fpath = fpath.decode("utf-8")
+        unpublished_path = ".hidden/" + fpath
+        if self.file_data_storage.file_exists(unpublished_path):
+            published_path = fpath.replace(".hidden/", "")
+            self.file_data_storage.rename_object(unpublished_path, published_path)
+        else:
+            self.info(f"[s3_copy] {fpath} is allready published / visible")
+
+    def s3_copy(self):
+        """publish file"""
+        for fpath, feid in self.files_to_sync():
+            self.s3_copy_fpath(self.get_fullpath(fpath))
 
 
 class FindingAidIFileSync(IFileSync):
@@ -401,7 +628,7 @@ class FindingAidIFileSync(IFileSync):
     def queries():
         return (
             "Any FSPATH(FD), F WHERE FA findingaid_support F, F data FD, "
-            'FA eid %(e)s, F data_name ILIKE "%.pdf"',
+            'FA eid %(e)s, NOT F data_format "application/xml"',
             "Any FSPATH(FD), F WHERE FA ape_ead_file F, F data FD, " "FA eid %(e)s",
             "Any FSPATH(FD), F WHERE FA fa_referenced_files F, F data FD, " "FA eid %(e)s",
             "Any FSPATH(FD), F WHERE FAC finding_aid FA, FAC fa_referenced_files F, F data FD, "
@@ -409,8 +636,7 @@ class FindingAidIFileSync(IFileSync):
         )
 
     def get_destpath(self, filepath):
-        with open(filepath, "rb") as f:
-            sha1 = usha1(f.read())
+        sha1 = S3BfssStorageMixIn().get_file_sha1(filepath)
         basename = osp.basename(filepath)
         if not basename.startswith(sha1):
             basename = "{}_{}".format(sha1, basename)
@@ -419,8 +645,8 @@ class FindingAidIFileSync(IFileSync):
     def get_fullpath(self, fpath):
         if isinstance(fpath, bytes):
             fpath = fpath.decode("utf-8")
-        if fpath.endswith(".pdf"):
-            return self.get_destpath(fpath)
+        if fpath.endswith(".pdf") or fpath.endswith(".csv"):
+            return self.get_destpath(fpath).encode("utf-8")
         basepath = osp.basename(fpath)
         if fpath.endswith(".xml") and basepath.startswith("ape-"):
             ape_ead_service_dir = osp.join(
@@ -428,21 +654,8 @@ class FindingAidIFileSync(IFileSync):
             )
             if not osp.exists(ape_ead_service_dir):
                 os.makedirs(ape_ead_service_dir)
-            return osp.join(ape_ead_service_dir, basepath)
+            return osp.join(ape_ead_service_dir, basepath).encode("utf-8")
         return ""
-
-    def delete(self):
-        for fpath, feid in self.files_to_sync():
-            fullpath = self.get_fullpath(fpath)
-            if osp.exists(fullpath):
-                UnpublishFilesOp.get_instance(self._cw).add_data(
-                    (self.entity, feid, fpath, fullpath)
-                )
-
-    def copy(self):
-        for fpath, feid in self.files_to_sync():
-            fullpath = self.get_fullpath(fpath)
-            copy(fpath, fullpath)
 
 
 class CircularFileSync(IFileSync):
@@ -477,13 +690,9 @@ class ImageFileSync(IFileSync):
         )
 
 
-class CommemoFileSync(ImageFileSync):
-    __select__ = ImageFileSync.__select__ & is_instance("CommemoCollection")
-    rtype = "section_image"
-
-
-class SectionFileSync(RichContentFileSyncMixin, CommemoFileSync):
+class SectionFileSync(RichContentFileSyncMixin, ImageFileSync):
     __select__ = ImageFileSync.__select__ & is_instance("Section")
+    rtype = "section_image"
 
     def queries(self):
         q = super(SectionFileSync, self).queries()
@@ -511,12 +720,17 @@ class SectionFileSync(RichContentFileSyncMixin, CommemoFileSync):
                 files.append(thumbpath)
         return files
 
-    def copy(self):
+    def s3_copy(self):
+        for fpath in self.heroimages_to_sync():
+            self.s3_copy_fpath(fpath)
+        super(SectionFileSync, self).s3_copy()
+
+    def bfss_copy(self):
         if self.published_static_css_dir and osp.exists(self.published_static_css_dir):
             for srcpath in self.heroimages_to_sync():
                 destpath = osp.join(self.published_static_css_dir, osp.basename(srcpath))
                 copy(srcpath, destpath)
-        super(SectionFileSync, self).copy()
+        super(SectionFileSync, self).bfss_copy()
 
 
 class SectionTranslationFileSync(RichContentFileSyncMixin, IFileSync):

@@ -64,13 +64,8 @@ class Node extends Component {
 
     render() {
         const {expanded, fetching} = this.state,
-            {
-                renderer,
-                entity,
-                onFetchChildren,
-                ancestors,
-                allNodes,
-            } = this.props
+            {renderer, entity, onFetchChildren, ancestors, allNodes} =
+                this.props
         if (entity.isleaf) {
             return ce('li', {style: {paddingLeft: '20px'}}, entity.title)
         }
@@ -166,7 +161,7 @@ class Tree extends Component {
                 for (let eid of Object.keys(allNodes)) {
                     let e = allNodes[eid]
                     if (e.children && e.children.includes(entityEid)) {
-                        e.children = e.children.filter(c => c !== entityEid)
+                        e.children = e.children.filter((c) => c !== entityEid)
                         break
                     }
                 }
@@ -186,10 +181,10 @@ class Tree extends Component {
 
     childrenFetcher(node) {
         const {allNodes} = this
-        return this.props.onFetchChildren(node).then(children => {
+        return this.props.onFetchChildren(node).then((children) => {
             const eids = []
             for (let c of children) {
-                if (!allNodes.hasOwnProperty(c.eid)) {
+                if (!Object.prototype.hasOwnProperty.call(allNodes, c.eid)) {
                     allNodes[c.eid] = c
                 }
                 eids.push(c.eid)
@@ -224,7 +219,7 @@ Tree.propTypes = {
 
 function eidsToNode(eids, allNodes, ancestors, props) {
     // TODO add ancestors param to compute `expand` props value
-    return eids.map(eid =>
+    return eids.map((eid) =>
         ce(
             Node,
             Object.assign(

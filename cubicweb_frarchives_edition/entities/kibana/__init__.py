@@ -33,12 +33,13 @@ from functools import partial
 import logging
 
 import tqdm
+import time
 
 from elasticsearch.helpers import parallel_bulk
 
 from cubicweb.toolsutils import Command
 
-from cubicweb.view import EntityAdapter
+from cubicweb.entity import EntityAdapter
 
 from cubicweb_elasticsearch.entities import Indexer
 from cubicweb_elasticsearch.es import indexable_entities
@@ -61,7 +62,8 @@ class AbstractKibanaSerializable(EntityAdapter):
 
 
 class AbstractKibanaIndexer(Indexer):
-    __regid__ = "IKibanaIndexSerializable"
+    __regid__ = "KibanaIndexer"
+    adapter = "IKibanaIndexSerializable"
     analyser_settings = {
         "analysis": {
             "filter": {
@@ -206,19 +208,30 @@ class IndexESKibana(Command):
     def run(self, args):
         """run the command with its specific arguments"""
         appid = args[0]
+        self.log = logging.getLogger("es.index-kibana")
         with admincnx(appid) as cnx:
             indexer = cnx.vreg["es"].select(self.indexer_name, cnx)
             index_name = self.config.index_name or indexer.index_name
-            print(""""{}" kibana index for {}""".format(index_name, ", ".join(indexer.etypes)))
+            etypes = self.config.etypes
+            if etypes:
+                if not set(etypes).intersection(indexer.etypes):
+                    self.log.error(
+                        f""""[{index_name}]; abort indexing: {etypes}" """
+                        f"""are invalid values for '--etypes' option"""
+                    )  # noqua
+                    return
+            else:
+                etypes = indexer.etypes
+            self.log.info(""""{}" kibana index for {}""".format(index_name, ", ".join(etypes)))
             es = indexer.get_connection()
             if not es and self.config.debug:
-                print("no elasticsearch configuration found, skipping")
+                self.log.error("f[{index_name}]: no elasticsearch configuration found. Abort.")
                 return
             indexer.create_index(index_name)
-            self.update_sql_data(cnx)
+            self.update_sql_data(cnx, etypes)
             if self.config.no_index:
                 # do not reindex
-                print("do not index es")
+                self.log.error(f"{time.ctime()}: [{index_name}]: do not index es. Abort")
                 return
             for _ in parallel_bulk(
                 es,
@@ -233,7 +246,7 @@ class IndexESKibana(Command):
         etypes = self.config.etypes or indexer.etypes
         for etype in etypes:
             nb_entities = cnx.execute("Any COUNT(X) WHERE X is %s" % etype)[0][0]
-            print("\n-> indexing {} {}".format(nb_entities, etype))
+            self.log.info(f"\n-> {time.ctime()}: indexing {nb_entities} {etype}")
             progress_bar = _tqdm(total=nb_entities)
             for idx, entity in enumerate(
                 indexable_entities(cnx, etype, chunksize=self.config.chunksize), 1
@@ -252,30 +265,37 @@ class IndexESKibana(Command):
                     progress_bar.update()
                 except Exception:
                     pass
-            cnx.info("[{}] indexed {} {} entities".format(index_name, idx, etype))
+                if idx % 1000 == 0:
+                    self.log.info(
+                        f"{time.ctime()}: [{index_name}] partially indexed "
+                        f"{idx}/{nb_entities} {etype} entities"
+                    )
+            self.log.info(
+                f"{time.ctime()}: [{index_name}] indexed {idx}/{nb_entities} " f"{etype} entities"
+            )
 
-    def update_sql_data(self, cnx):
+    def update_sql_data(self, cnx, etypes):
         raise NotImplementedError
 
 
 class IndexESAuthoritiesKibana(IndexESKibana):
-    """Create indexes and index Authorities data monitoring in Kibana"""
+    """Create indexes and index Authorities for data monitoring in Kibana"""
 
     name = "index-es-auth-kibana"
     indexer_name = "kibana-auth-indexer"
     serializer = "IKibanaInitiaLAuthorityIndexSerializable"
 
-    def update_sql_data(self, cnx):
-        create_kibana_authorities_sql(cnx)
+    def update_sql_data(self, cnx, etypes):
+        create_kibana_authorities_sql(cnx, etypes)
 
 
 class IndexESServicesKibana(IndexESKibana):
-    """Create indexes and index Services data monitoring in Kibana"""
+    """Create indexes and index Services for data monitoring in Kibana"""
 
     name = "index-es-service-kibana"
     indexer_name = "kibana-service-indexer"
 
-    def update_sql_data(self, cnx):
+    def update_sql_data(self, cnx, etypes):
         pass
 
 
@@ -288,5 +308,5 @@ class IndexEsKibanaLauncher(IndexESKibana):
     def run(self, args):
         """run the command with its specific arguments"""
         logger = logging.getLogger(self.name)
-        for cmd in (IndexESAuthoritiesKibana(logger), IndexESServicesKibana(logger)):
+        for cmd in (IndexESServicesKibana(logger), IndexESAuthoritiesKibana(logger)):
             cmd.run(args)
